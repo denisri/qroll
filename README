@@ -1,0 +1,142 @@
+
+	ROCK ' N ' ROLL
+	===============
+
+
+(sorry,  french-only...  if by chance  any  non-french people get this
+program,  please let me know, it  will motivate us  to make an english
+version)
+
+
+CE JEU N'EST PAS FINI .....
+
+
+
+En  particulier le son  est un  peu  moche (pas  très  clair, et  peut
+peut-être faire ramer la machine quand il y a beaucoup de sons en même
+temps).
+
+Et certains éléments ne marchent pas encore.
+
+Le temps est mal  réglé sur la  plupart des tableaux, donc  l'arrêt du
+jeu quand le temps est fini est désactivé.
+
+L'éditeur de tableaux n'est  pas complètement  fini,  je ne  sais même 
+plus si toutes les fonctions "vitales" pour composer des tableaux sont 
+présentes ou non...
+
+
+** BUT DU JEU :
+
+Manger le nombre de diamants qui est indiqué dans le compteur à rebour
+des diamants mangés (tu  comprendras en jouant).   Quand le C  à R des
+Diams   tombe à  0   la porte s'ouvre: <grincement>  Il  reste alors à
+trouver la  porte  et à  l'emprunter  pour passer  au tableau  suivant
+Remarque: rien ne  t'empêche de continuer à bouffer  des diams pour le
+score s'il en reste. ET OUI!: il n'est  pas necessaire de bouffer tous
+les diams pour finir un tableau.
+
+
+A  chaque  fois que tu  perds  une vie, la  partie   continue sans toi
+pendant quelques secondes.
+
+
+** PRATIQUE :
+
+TU PEUX ENTRE DEUX PARTIES
+  changer de tableau
+  charger une nouvelle série de tableaux
+  etc...
+
+SUR ATARI ST 
+  il existe un EDITEUR de tableaux
+  alors avec un bon émulateur... (il existe STonX sous Unix mais celui
+que j'ai essayé  ne marchait pas avec  ma version du TOS  Atari (vieux
+TOS  1.0), ou  alors PacifiST  sous  Windows, qui marchote  mais a des
+petits  problèmes  avec  le   GFA Basic,  utilisé  pour   l'éditeur de
+Rock'N'Roll; la version compilée semble marcher).
+
+  il existe aussi sur Atari ST un mode multi-joueurs, soit à deux  sur
+le même ordinateur, soit avec 2 machines connectées par liaison série.
+Un des tout premiers jeux en réseau...  (il y a p'têt 15 ans...)  J'ai
+en   partie  refait une interface réseau     pour Rock'n'Roll, on peut
+commencer a y rejouer à plusieurs, mais ce n'est pas encore bien fini.
+
+
+CONTROLES:
+
+au clavier:
+touches gauche - bas - haut - droite
+CTRL:   bouton de tir
+Espace: larguer les bombes
+ESC:    suicide (perdre une vie...)
+
+
+
+** BUGS ET INACHEVEMENTS:
+
+- son qui devient trop fort quand beaucoup de trucs font le même bruit
+en  même temps,  plus d'autres  petits  pbs (dus  principalement à  un
+multithreading un peu gorêt...)
+
+-   certains éléments du  jeu ne   sont pas   encore programmés  et ne
+marchent donc  pas, surtout les  éléments  'récents' utilisés dans les
+dernières séries de tableaux. Enfin il y en a de moins en moins qui ne 
+marchent pas...
+
+- plein de trucs ne sont pas affichés (bombes en poche...)
+
+-  les graphismes   paraissent souvent  assez grossiers: c'est   parce
+qu'ils viennent tout droit de l'Atari  ST (écran 320x200x16 couleurs),
+ils ont simplement été dilatés (à part quelques uns qui ont un peu été
+retouchés).  On  manque de  main  d'oeuvre  pour   ce boulot  un  poil
+fastidieux...
+
+- beaucoup  de tableaux ne sont pas  vraiment jouables:  certains sont
+des   essais expérimentaux,  d'autres   ont  été  crées  en  des temps
+antédiluviens où on ne pouvait pas vraiment  les tester (quand même la
+version Atari du  jeu n'avait pas été programmée:   on a commencé  par
+l'éditeur), (certains même  ne sont pas au  bon format et n'ont pas de
+murs de  bord.  Ne pas les essayer!!);  d'autres encore étaient réglés
+au  quart  de poil sur  la  version Atari, mais   ne se  déroulent pas
+correctement sur    la verion Unix,  à   cause  de petites différences
+comportementales de certains éléments du jeu.  Il va falloir attendre,
+soit qu'on fasse le ménage et qu'on éradique ceux qui ne marchent pas,
+soit que   des modifs soient  faites (dans  le programme ou   dans les
+tableaux) pour que ça remarche au poil.
+
+- ça peut arriver que ça plante...  eh oui... J'accèpte évidemment les
+'bug reports' s'ils  décrivent   assez précisément les situations   de
+plantage pour que ça me donne une idée de leur origine.
+Envoyer ça à: nudz@free.fr.
+
+
+
+
+** AUTEURS : (c'est nous)        (nous!!)    (si, nous.)
+
+D'abord, n'omettons pas les auteurs de BOULDERDASH, qui ont inspiré ce
+jeu. Faisons-leur une petite 'standing  ovation' au passage.  (ils ont
+inventé Rock'N'Roll, et ils ne le savent  même pas... nombre de grands
+génies  n'ont  pas   compris de leur   viviant   la  portée  de  leurs
+inventions)
+
+Maintenant les auteurs de Rock'N'Roll:
+
+
+Denis Rivière (c'est moi): programme, une  partie des graphismes, voix
+mélodieuses des bruitages, etc etc etc, pour la versions Atari ST, les
+embryons de   verions PC  DOS, Windows3 puis   Windows95,  et enfin LA
+version Unix que voici.
+
+Frédéric Relaix: graphismes (la  plupart), tableaux (la plupart aussi,
+et en  tous  cas tous les plus   sadiques), idées du  jeu,  et surtout
+instigateur d'origine du projet. Il  a du créer à lui  seul à peu près
+400 tableaux pour Rock'N'Roll...
+
+Antoine Germain: beaucoup d'idées pour le jeu et l'éditeur de tableaux
+("il faut   faire  ceci-celà, démerde-toi..."),  soutien moral  ("j'me
+repose à ta place")  quelques tableaux, fignolage des bruitages. C'est
+un peu sous sa pression que R&R ressort aujourd'hui de son placard. Il
+ne lui manque plus qu'un ordinateur pour y jouer...
+

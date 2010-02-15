@@ -1,0 +1,5322 @@
+#! /usr/bin/env python
+
+# Copyright CEA (2000-2006)
+#
+#  This software and supporting documentation were developed by
+#      CEA/DSV/SHFJ
+#      4 place du General Leclerc
+#      91401 Orsay cedex
+#      France
+#
+# This software is governed by the CeCILL license version 2 under 
+# French law and abiding by the rules of distribution of free software.
+# You can  use, modify and/or redistribute the software under the 
+# terms of the CeCILL license version 2 as circulated by CEA, CNRS
+# and INRIA at the following URL "http://www.cecill.info". 
+# 
+# As a counterpart to the access to the source code and  rights to copy,
+# modify and redistribute granted by the license, users are provided only
+# with a limited warranty  and the software's author,  the holder of the
+# economic rights,  and the successive licensors  have only  limited
+# liability. 
+# 
+# In this respect, the user's attention is drawn to the risks associated
+# with loading,  using,  modifying and/or developing or reproducing the
+# software by the user in light of its specific status of free software,
+# that may mean  that it is complicated to manipulate,  and  that  also
+# therefore means  that it is reserved for developers  and  experienced
+# professionals having in-depth computer knowledge. Users are therefore
+# encouraged to load and test the software's suitability as regards their
+# requirements in conditions enabling the security of their systems and/or 
+# data to be ensured and,  more generally, to use and operate it in the 
+# same conditions as regards security. 
+# 
+# The fact that you are presently reading this means that you have had
+# knowledge of the CeCILL license version 2 and that you accept its terms.
+
+import sys, os, string, inspect, types, glob, fnmatch, re, copy, shutil
+import signal, time, errno, socket, platform, tempfile, traceback, stat
+import distutils.spawn, operator
+
+
+# This version will change with the evolution of build-config
+buildconfigVersion = 2.0
+
+
+def exit_handler( number, frame ):
+  sys.exit()
+
+signal.signal( signal.SIGINT, exit_handler )
+
+
+systemname = sys.platform
+if systemname[:5] == 'linux':
+  systemname = 'linux'
+elif systemname[:6] == 'sunos5':
+  systemname = 'solaris'
+elif systemname[:4] == 'irix':
+  systemname = 'irix'
+elif systemname[:4] == 'osf1':
+  systemname = 'tru64'
+elif systemname[:5] == 'win32':
+  systemname = 'windows'
+elif systemname[:6] == 'darwin':
+  systemname = 'darwin'
+elif systemname[:6] == 'cygwin':
+  systemname = 'cygwin'
+else:
+  print >> sys.stderr, 'WARNING: Unsupported platform', systemname
+
+dllExt = '.so'
+staticExt = '.a'
+ldLibraryPath = 'LD_LIBRARY_PATH'
+dirSeparator = '/'
+x11 = 1
+sipmodExt = dllExt
+gcclibDir = None
+try:
+  f = os.popen( 'gcc -print-libgcc-file-name' )
+  l = f.read()
+  gcclibDir = os.path.dirname( l )
+except:
+  pass
+if systemname == 'darwin':
+  dllExt = '.dylib'
+  ldLibraryPath = 'DYLD_LIBRARY_PATH'
+elif systemname == 'windows' or systemname == 'cygwin':
+  dllExt = '.DLL'
+  ldLibraryPath = 'PATH'
+  dirSeparator = '\\'
+  x11 = 0
+  sipmodExt = '.pyd'
+
+# Adds the directory containing build-config to sys.path
+sys.path.append( os.path.dirname( os.path.abspath( \
+                 os.path.realpath( sys.argv[0] ) ) ) )
+
+#-----------------------------------------------------------------------------
+# Exact linux system release (RedHat X, Fedora Y, Mandrake Z...)
+_osdistrib = None
+def linuxDistrib():
+  global _osdistrib
+  if _osdistrib is not None:
+    return _osdistrib
+  if systemname != 'linux':
+    return None
+  if os.path.exists( '/etc/fedora-release' ):
+    file = '/etc/fedora-release'
+    rex = re.compile( '^(Fedora) Core release ([0-9]+).*$' )
+    rid = (1, 2)
+  elif os.path.exists( '/etc/mandriva-release' ):
+    file = '/etc/mandrake-release'
+    rex = re.compile( '^(Mandriva) Linux release ([0-9]+\.[0-9]+).*$' )
+    rid = (1, 2)
+  elif os.path.exists( '/etc/mandrake-release' ):
+    file = '/etc/mandrake-release'
+    rex = re.compile( '^(Mandrake) Linux release ([0-9]+\.[0-9]+).*$' )
+    rid = (1, 2)
+  elif os.path.exists( '/etc/redhat-release' ):
+    file = '/etc/redhat-release'
+    rex = re.compile( '^((Red Hat Enterprise) Linux WS|(Red Hat) Linux|(Fedora) Core|' 
+                      '(Mandrake) Linux) release ([0-9]+(\.[0-9]+)*).*$' )
+    f = open( file )
+    release = f.read()
+    f.close()
+    m = rex.match( release )
+    if m:
+      if m.group( 1 ) == 'Red Hat Enterprise Linux WS':
+        rid = (2, 6)
+      elif m.group( 1 ) == 'Red Hat Linux':
+        rid = (3, 6)
+      elif m.group( 1 ) == 'Fedora Core':
+        rid = (4, 6)
+      elif m.group( 1 ) == 'Mandrake Linux':
+        rid = (5, 6)
+      else:     
+        return None
+  else:
+    return None
+    
+  f = open( file )
+  release = f.read()
+  f.close()
+  m = rex.match( release )
+  if m:
+    if m.group( 1 ) == 'Red Hat Enterprise Linux WS':
+      if platform.machine() == 'x86_64':
+        _osdistrib = ( 'Fedora', m.group( rid[1] ) + '-64' )
+      else:
+        _osdistrib = ( 'Fedora', m.group( rid[1] ) )
+    else:
+      _osdistrib = ( string.replace( m.group( rid[0] ), ' ', '' ), m.group( rid[1] ) )
+  return _osdistrib
+
+#-----------------------------------------------------------------------------
+# copied form Python 2.2 sources (function not available in earlier versions)
+# Return a canonical path (i.e. the absolute location of a file on the
+# filesystem).
+
+def our_realpath(filename):
+    """Return the canonical path of the specified filename, eliminating any
+symbolic links encountered in the path."""
+    filename = os.path.abspath(filename)
+
+    bits = [dirSeparator] + filename.split(dirSeparator)[1:]
+    for i in range(2, len(bits)+1):
+        component = os.path.join(*bits[0:i])
+        if os.path.islink(component):
+            resolved = os.readlink(component)
+            (dir, file) = os.path.split(component)
+            resolved = os.path.normpath(os.path.join(dir, resolved))
+            newpath = os.path.join(*([resolved] + bits[i:]))
+            return our_realpath(newpath)
+
+    return filename
+
+myPath = os.path.dirname( our_realpath( sys.argv[0] ) )
+
+#-----------------------------------------------------------------------------
+# Call os.system and check result to throw an exception if a signal occured
+def systemChecked( command ):
+  status = os.system( command )
+  if systemname != 'windows':
+    if os.WIFSTOPPED(status):
+      print '*STOPPED*'
+      os.kill( os.getpid(), os.WSTOPSIG(status) )
+    if os.WIFSIGNALED(status):
+      print '*SIGNALED*'
+      os.kill( os.getpid(), os.WTERMSIG(status) )
+    return os.WEXITSTATUS(status)
+  else: # windows
+    return status
+
+def systemRaised( command ):
+  res = systemChecked( command )
+  if res != 0:
+    raise Exception( 'System command: ' + command + ' failed. Return code: ' + \
+                     str( res ) )
+  
+#-----------------------------------------------------------------------------
+def findInPath( environmentVariable, fileName, default=None, otherPaths=None ):
+  if environmentVariable:
+    dirs = string.split( os.environ.get( environmentVariable, '' ), 
+      os.pathsep )
+  else:
+    dirs = []
+  if otherPaths:
+    op = otherPaths
+    if type( op ) is types.StringType:
+      op = [ otherPaths ]
+    op2 = []
+    for p in op:
+      op2 += string.split( p, os.pathsep )
+    dirs += op2
+  for dirName in dirs:
+    if os.path.exists( os.path.expandvars( os.path.join( dirName, fileName ) ) ):
+      return dirName
+  return default
+  
+#-----------------------------------------------------------------------------
+def findOneDllInPath( environmentVariable, fileName, default=None, otherPaths=None ):
+  if environmentVariable:
+    dirs = string.split( os.environ.get( environmentVariable, '' ), 
+      os.pathsep )
+  else:
+    dirs = []
+  if otherPaths:
+    op = otherPaths
+    if type( op ) is types.StringType:
+      op = [ otherPaths ]
+    op2 = []
+    for p in op:
+      op2 += string.split( p, os.pathsep )
+    dirs += op2
+  rex = re.compile( fileName + '[0-9]*$' )
+  for dirName in dirs:
+    fullPath = os.path.expandvars( dirName )
+    if os.path.exists( fullPath ):
+      files = os.listdir( fullPath )
+      for fic in files:
+        m = rex.match( fic )
+        if m:
+          #print 'Found : ', os.path.join( fullPath, m.group( 0 ) )
+          return dirName
+  return default
+
+#-----------------------------------------------------------------------------
+def makeLibList( line ):
+  l = line.split()
+  ll = []
+  p = None
+  lastp = 0
+  i = 0
+  n = len( l )
+  while i < n:
+    x = l[i]
+    if x.startswith( '-L' ):
+      if lastp:
+        ll.append( ( p, None ) )
+      p = x
+      lastp = 1
+    else:
+      if x == '-framework': # mac
+        if i < n-1:
+          i += 1
+          x = x + ' ' + l[i]
+      if lastp:
+        ll.append( ( p, x ) )
+        lastp = 0
+      else:
+        ll.append( ( None, x ) )
+    i += 1
+  if lastp:
+    ll.append( ( p, None ) )
+  return ll
+
+#-----------------------------------------------------------------------------
+def uniqueLibList( libs ):
+  if type( libs ) is types.StringType:
+    l = makeLibList( libs )
+  else:
+    l = copy.copy( libs )
+  l.reverse()
+  ll = []
+  ll2 = []
+  for x in l:
+    if x[1]:
+      if x[1] not in ll2:
+        ll.insert( 0, x )
+        ll2.append( x[1] )
+    else:
+      ll.insert( 0, x )
+  return ll
+
+#-----------------------------------------------------------------------------
+def makeLibLine( libs ):
+  line = ''
+  paths = [ '-L/usr/lib' ]
+  for x in uniqueLibList( libs ):
+    if x[0] and x[0] not in paths:
+      paths.append( x[0] )
+      if len( line ) != 0:
+        line += ' '
+      line += x[0]
+    if x[1]:
+      if len( line ) != 0:
+        line += ' '
+      line += x[1]
+  return line
+
+#-----------------------------------------------------------------------------
+def lddLibs( libfile ):
+  '''returns a dictionary of libraries. Each key is the short name, 
+  and the assiciated value the fullpath'''
+  if systemname == 'windows':
+    return [] # I can't get it on windows
+  if systemname == 'darwin':
+    cmd = 'otool -L '
+  else:
+    cmd = 'ldd '
+  cmd += libfile
+  try:
+    f = os.popen( cmd )
+    xlibs = f.readlines()
+    f.close()
+  except:
+    print 'could not popen', cmd
+    return []
+  libs = {}
+  if systemname == 'darwin':
+    r = re.compile( '\s*([^\s\(]+)' )
+    #print xlibs
+    for l in xlibs:
+      #print l
+      lr = r.match( l )
+      #print lr
+      if lr:
+        #print lr.group(1)
+        b = os.path.basename( lr.group(1) )
+        p = findInPath( 'DYLD_LIBRARY_PATH', b )
+        if p is not None:
+          p = os.path.join( p, b )
+        libs[ b ] = p
+  else:
+    r = re.compile( '\s*([^\s]+)\s*=>\s*([^\s]+)' )
+    for l in xlibs:
+      lr = r.match( l )
+      if lr:
+        libs[ os.path.basename( lr.group(1) ) ] = lr.group(2)
+  return libs
+
+#-----------------------------------------------------------------------------
+def unixpath( d ):
+  return d.replace( '\\', '/' )
+#-----------------------------------------------------------------------------
+def unixpathanddrive( d ):
+  p = unixpath( d )
+  i = 0
+  n = len(p)
+  q = ''
+  while i < n:
+    if i+2<n and p[i+1] == ':' and p[i+2] == '/' and p[i] in string.letters:
+      j = p.find( ':', i+3 )
+      k = p.find( ';', i+3 )
+      if j == -1:
+        j = n
+      if k == -1:
+        k = n
+      j = min( j, k )
+      if q != '':
+        q += ':'
+      q += '/' + p[i] + p[i+2:j]
+    else:
+      j = n
+      if q != '':
+        q += ':'
+      q += p[i:]
+    i = j+1
+  return q
+
+#-----------------------------------------------------------------------------
+def getOptions( component ):
+  if type( component ) is types.StringType:
+    component = ( component, component )
+  opts = copy.copy( options[ None ] )
+  o2 = options.get( component[1] )
+  if o2 is not None:
+    for x,y in o2.items():
+      opts[ x ] = y
+  if component[0] != component[1]:
+    o2 = options.get( component[0] )
+    if o2 is not None:
+      for x,y in o2.items():
+        opts[ x ] = y
+  options[ component[0] ] = opts
+  return opts
+
+#-----------------------------------------------------------------------------
+def getOption( component, option ):
+  if type( component ) is types.StringType:
+    component = componentNames( component )
+  o2 = options.get( component[0] )
+  if o2 is not None and o2.has_key( option ):
+    return o2[ option ]
+  if component[0] != component[1]:
+    o2 = options.get( component[1] )
+    if o2 is not None and o2.has_key( option ):
+      return o2[ option ]
+  o2 = options.get( None )
+  if o2 is not None:
+    return o2.get( option )
+  return None
+
+#-----------------------------------------------------------------------------
+# Build components instances
+def buildInstances( comps ):
+  c = copy.copy( comps )
+  while c:
+    component = c.pop(0)
+    comp = componentNames( component )
+    if instances.get( comp[0] ) is None:
+      verbose = getOption( comp, 'verbose' )
+      if verbose:
+        print 'buildInstances:', comp[0]
+      #opts = options[ None ].get( component )
+      opts = getOptions( comp )
+      compclass = components.get( comp[0] )
+      if compclass is None:
+        compclass = buildExternalComponent( comp[0], comp[1] )
+      else:
+        instances[ comp[0] ] =  compclass( opts )
+        # instances[ compclass ] = instances[ comp[0] ]
+      inst = instances.get( comp[0] )
+      if compclass is None or inst is None:
+        raise RuntimeError( comp[0] + ': missing or duplicate component' )
+      dependencies = inst.dependencies()
+      c += dependencies
+      if verbose:
+        for d in dependencies:
+          if type( d ) is not types.StringType:
+            d = d._name
+          print d, 'required by', comp[0]
+      inst.postInit()
+
+
+#-----------------------------------------------------------------------------
+# find a matching project directory and read the .bcg file
+def buildExternalComponent( componentname, basecomp = None ):
+  def indir( filename, directories ):
+    rf = os.path.abspath( os.path.normpath( os.path.realpath( filename ) ) )
+    for direc in directories:
+      for x in direc:
+        if os.path.abspath( os.path.normpath( os.path.realpath( x ) ) ) == rf:
+          return 1
+    return 0
+
+  # print 'buildExternalComponent:', componentname, basecomp
+  if basecomp is None:
+    component, basecomp = componentNames( componentname )
+  else:
+    component = componentname
+  # print 'look for comp', component, 'from base', basecomp
+  if instances.get( component ):
+    res = components.get( component )
+    if res:
+      return res
+  base = None
+  if basecomp != component:
+    base = getInstance( basecomp )
+  #global components, instances
+  comp = components.get( component )
+  if comp is not None:
+    return comp # alread built
+
+  opts = getOptions( ( component, basecomp ) )
+  sources = opts.get( 'sources' ).split( os.pathsep )
+  verbose = opts.get( 'verbose' )
+  directories = []
+  source = opts.get( 'source' )
+  if source is not None and os.path.isdir( source ):
+    directories.append( [ source ] )
+
+  if source is None:
+    for s in sources:
+      d = glob.glob( os.path.join( s, basecomp + '-*' ) )
+      bp = os.path.join( s, basecomp )
+      d += glob.glob( bp )
+      d2 = filter( os.path.isdir, d )
+      if len(d2) > 0 and d2[-1] == bp:
+        # try svn-like tree
+        for x in os.listdir( bp ):
+          if x == 'trunk' or len(filter(lambda y:y in '0123456789.',x)) == len(x):
+            y = os.path.join( bp, x )
+            if os.path.isdir( y ):
+              d2.append( y )
+          elif x == 'branches':
+            d2 += filter( os.path.isdir, glob.glob( os.path.join( bp, x ) ) )
+      directories.append( filter( lambda x, dirs = directories: \
+                                    not indir( x ,dirs ),
+                                  d2 ) )
+  if not directories or not filter( lambda x: len(x) != 0, directories ):
+    raise ValueError( 'No sources found for ' + component + ' in ' \
+                      + string.join(sources,os.pathsep) )
+
+  selectedcomp = None
+
+  for directoryroot in directories:
+    for directory in directoryroot:
+      # Read <component>.bcg file
+      bcg = os.path.join( directory, basecomp + '.bcg' )
+      if not os.path.exists( bcg ):
+        if verbose:
+          print 'Bcg file not existing ' + bcg
+        continue
+      if verbose:
+        print 'Read ' + bcg
+      l = {}
+      comptemp = {}
+      execfile( bcg, globals(), l )
+      bcgComponents = []
+      for name, value in l.items():
+        if type( value ) is types.ClassType and issubclass( value, Component ):
+          comptemp[ value._name ] = value
+          components[ value._name ] = value
+          if value._name == component:
+            bcgComponents.append( value )
+      if not bcgComponents:
+        raise RuntimeError( 'No component named ' + component + ' defined in ' + bcg )
+      elif len( bcgComponents ) > 1:
+        raise RuntimeError( 'More than one component named ' + component + ' defined in ' + bcg )
+
+      # One "main" component found in <component>.bcg file
+      comp = bcgComponents[ 0 ]
+      # Try to get a component instance
+      if verbose:
+        print 'Check', comp._name, 'component from', bcg
+      result = None
+      try:
+        # Try to instantiate component
+        opts = getOptions( ( comp._name, basecomp ) ).copy()
+        # print 'instantiate', comp._name
+        opts[ 'source' ] = directory
+        result = comp( opts )
+        # print 'instantiation of', comp._name ,'done'
+      except Exception, e:
+        if verbose:
+          print 'Impossible to instantiate component', comp._name, 'in', bcg
+          print 'exception:', e, ' from:'
+          exceptionInfo = sys.exc_info()
+          e, v, t = exceptionInfo
+          tb = traceback.extract_tb( t )
+          for i in traceback.format_list(tb) : print i
+        continue
+      if result._found and result._data.get( 'enabled' ):
+        s = os.path.normpath( os.path.abspath( os.path.realpath( \
+          result._data.get( 'sources' ) ) ) )
+        b = os.path.normpath( os.path.abspath( os.path.realpath( \
+          os.path.dirname( bcg ) ) ) )
+        if s.startswith( b ):
+          if selectedcomp is not None:
+            raise RuntimeError( 'Several bcg files found with a valid ' \
+                                + component + ' component' )
+          selectedcomp = ( bcg, l )
+          if verbose:
+            print 'check', bcg, 'OK'
+      if selectedcomp is None and verbose:
+        print 'comp' , comp._name, 'in', bcg, 'not appropriate: enabled:', \
+          result._data.get( 'enabled' ), ', found:', result._found, \
+          ', sources:', result._data.get( 'sources' )
+
+      # reset what we've done
+      for x in comptemp:
+        del components[ x ]
+      del result
+    if selectedcomp is not None:
+      break
+
+  # print 'selected:', selectedcomp
+  if selectedcomp is not None:
+    # read again selected .bcg file because another one can have overwritten it
+    if selectedcomp[0] != bcg:
+      execfile( selectedcomp[0], globals(), l )
+    else:
+      l = selectedcomp[1]
+    comp = None
+    globals().update( l )
+    for name, value in l.items():
+      if type( value ) is types.ClassType and issubclass( value, Component ):
+        components[ value._name ] = value
+        if value._name == component:
+          comp = value
+    opts[ 'source' ] = os.path.dirname( selectedcomp[0] )
+    result = comp( opts )
+    instances[ comp._name ] =  result
+    #instances[ comp ] = instances[ comp._name ]
+    return comp
+    
+  return None
+
+#-----------------------------------------------------------------------------
+def componentName( component ):
+  if type( component ) is types.StringType:
+    basere = re.compile( '([^\(]+)\(([^\)]+)\)$' )
+    baserem = basere.match( component )
+    if baserem:
+      return baserem.group(1)
+    else:
+      return component
+  elif type( component ) is types.TupleType \
+    or type( component ) is types.ListType:
+    return component[0]
+  else:
+    return component._name
+
+#-----------------------------------------------------------------------------
+def componentNames( component ):
+  if type( component ) is types.StringType:
+    basere = re.compile( '([^\(]+)\(([^\)]+)\)$' )
+    baserem = basere.match( component )
+    if baserem:
+      return ( baserem.group(1), baserem.group(2) )
+    else:
+      return ( component, component )
+  elif type( component ) is types.TupleType \
+    or type( component ) is types.ListType:
+    return component
+  else:
+    return ( component._name, component._name )
+
+#-----------------------------------------------------------------------------
+# Get or build a component instance
+def getInstance( component ):
+  comp = componentName( component )
+  instance = instances.get( comp )
+  if instance:
+    return instance
+  else:
+    buildInstances( [ component ] )
+  return instances[ comp ]
+
+#-----------------------------------------------------------------------------
+# Add a "weak dependency": component upon which we optionnaly depend
+def weakDependency( newcomponent, existingcomponent = None ):
+  # print 'weakdep:', newcomponent, 'on', existingcomponent
+  newcomponentname, basecomp = componentNames( newcomponent )
+  if existingcomponent is not None:
+    basecomp = existingcomponent._name
+    if options.get( newcomponentname ) is None:
+      options[ newcomponentname ] = copy.copy( existingcomponent._options )
+    if options[ newcomponentname ].get( 'source' ) is None:
+      options[ newcomponentname ][ 'source' ] \
+               = existingcomponent.get( 'sources' )
+    options[ newcomponentname ][ 'version' ] \
+             = existingcomponent.get( 'version' )
+    d = existingcomponent.get( 'build' )
+    if d and options[ newcomponentname ].get( 'componentBuildDir' ) is None:
+      options[ newcomponentname ][ 'componentBuildDir' ] = d
+  try:
+    # instantiate new component with same source tree and version
+    inst = getInstance( ( newcomponentname, basecomp ) )
+  except Exception, e:
+    print '(weak dependency):', newcomponentname, 'failed to build'
+    print e
+    return 0
+  if inst is not None:
+    if not inst._found:
+      inst._data[ 'enabled' ] = '0'
+    return inst._found
+  return 0
+
+#-----------------------------------------------------------------------------
+class FileNameFilter( object ):
+  '''
+  Unix shell like patterns matching for file names.
+  Example::
+    f = FileNameFilter( '*.py', 'ui/*.ui' )
+    f.match( 'toto.py' ) = True
+    f.match( 'tutu/toto.py' ) = True
+    f.match( 'test.ui' ) = False
+    f.match( 'test/test.ui' ) = True
+  
+  @see: L{copyDirectory}
+  '''
+  def __init__( self, *args ):
+    '''
+    Takes a list of patterns (like in a Unix shell) of file and directory 
+    names. These patterns are supposed to be in Unix style (a slash for 
+    directory separation) and are converted to system-specific regular 
+    expressions.
+    '''
+    self.patterns = []
+    for p in args:
+      if isinstance( p, str ) or isinstance( p, unicode ):
+        self.patterns.append( re.compile(fnmatch.translate( os.path.join(*p.split('/')))) )
+      else:
+        self.patterns.append( p )
+  
+  
+  def match( self, fileName ):
+    for p in self.patterns:
+      if p.match( fileName ):
+        return True
+    return False
+
+
+  def factory( filter ):
+    if filter is None:
+      return None
+    elif isinstance( filter, str ) or isinstance( filter, unicode ):
+      return FileNameFilter( filter )
+    elif operator.isSequenceType( filter ):
+      return FileNameFilter( *filter )
+    else:
+      return filter
+  factory = staticmethod( factory )
+
+
+#-----------------------------------------------------------------------------
+def copyFile( source, dest,
+              symlinks=False, 
+              copyAsSymlinks=False ):
+  '''
+  Remove C{dest} file or symbolic link and copy C{source} file to C{dest}. If 
+  C{dest} is an existing directory, an C{OSError} exception is raised (this is 
+  to avoid removing directories and their content by mistake).
+  @param symlinks: if C{True} (default=C{False}), all symbolic links in 
+    C{sourceDir} are copied as is in C{destinationDir}. For instance, if a
+    symbolic link points to C{a/b/c}, its copy will also point to C{a/b/c}.
+  @type  symlinks: bool
+  @param copyAsSymlinks: if True (default=C{False}), regular files are not 
+    copied but symbolic links are created to these files. Symbolic links in 
+    ${sourceDir} are treated as if C{symlinks=True}.
+  @type  copyAsSymlinks: bool
+  '''
+  if not os.path.exists( source ):
+    print source, 'does not exist'
+    return
+  if os.path.islink( dest ):
+    os.remove( dest )
+  elif os.path.exists( dest ):
+    os.chmod( dest, stat.S_IWRITE | stat.S_IREAD )
+    os.remove( dest )
+  else:
+    destDir = os.path.dirname( dest )
+    if not os.path.isdir( destDir ):
+      os.makedirs( destDir )
+
+  if symlinks or copyAsSymlinks:
+    try:
+      if os.path.islink( source ) and not os.path.isabs( \
+        os.readlink( source ) ):
+        os.symlink( os.readlink( source ), dest )
+      elif copyAsSymlinks and systemname != 'windows':
+        os.symlink( source, dest )
+      else:
+        shutil.copy2( source, dest )
+    except:
+      print 'error in copyFile(', source, ',', dest, ', symlinks=', \
+        symlinks, ', copyAsSymlinks=', copyAsSymlinks, ')'
+      raise
+  else:
+    shutil.copy2( source, dest )
+
+
+#-----------------------------------------------------------------------------
+def copyDirectory( sourceDir, destinationDir, 
+                   symlinks = False, 
+                   copyAsSymlinks = False,
+                   include = None,
+                   exclude = None,
+                   copyCallback = None,
+                   keepExistingDirs = True ):
+  '''
+  Copy recursively the content of C{sourceDir} directory in C{destinationDir}   
+  directory. All subdirectories directories are created if necessary (including 
+  C{destinationDir}).
+
+  @param symlinks: if C{True} (default=C{False}), all symbolic links in 
+    C{sourceDir} are copied as is in C{destinationDir}. For instance, if a
+    symbolic link points to C{a/b/c}, its copy will also point to C{a/b/c}.
+  @type  symlinks: bool
+
+  @param copyAsSymlinks: if True (default=C{False}), regular files are not 
+    copied but symbolic links are created to these files. Symbolic links in 
+    ${sourceDir} are treated as if C{symlinks=True}.
+  @type  copyAsSymlinks: bool
+
+  @param include: Selection of files to copy. If not C{None} (which is the 
+    default), files are not copied if C{include.match( fileName )} is false 
+    (where C{fileName} is the source file name relative to C{sourceDir}). 
+    C{include} has no effect on directories parsing.
+
+  @param exclude: Selection of file or directories to ignore. If not C{None} 
+   (which is the default), files are not copied if C{exclude.match( fileName )} 
+   is true (where C{fileName} is the source file name relative to 
+   C{sourceDir}). C{include} has no effect on directories parsing.
+
+  @param copyCallback: function that is called before the copy of each file 
+    (after filtering with C{include} and C{exclude}). If the function return 
+    C{False} the file is not copied, otherwise L{copyFile} is called to do the 
+    copy. The function is called with two parameters: the source file name and 
+    the destination file name.
+
+  @param keepExistingDirs: if True (default=C{True}), already existing
+    subdirectories will not be removed or cleaned. This allows mixing several
+    source directories in the same destination.
+
+  @see: L{copyFile}
+  '''
+  #print 'copyDirectory', sourceDir, destinationDir, ', symlinks:', symlinks, \
+    #'copyAsSymlinks:', copyAsSymlinks, 'include:', include, \
+    #'exclude:', exclude, 'copyCallback:', copyCallback
+  if not os.path.exists( sourceDir ):
+    return
+  stack = os.listdir( sourceDir )
+  while stack:
+    relSource = stack.pop()
+    source = os.path.join( sourceDir, relSource )
+    dest = os.path.join( destinationDir, relSource )
+    if os.path.islink( source ) or not os.path.isdir( source ):
+      if ( include is not None and not include.match( relSource ) ) or \
+         ( exclude is not None and exclude.match( relSource ) ):
+        continue
+      if copyCallback is None or copyCallback( source, dest ):
+        copyFile( source, dest, symlinks=symlinks,
+                  copyAsSymlinks=copyAsSymlinks )
+    elif os.path.isdir( source ):
+      if os.path.islink( dest ):
+        os.unlink( dest )
+      elif os.path.exists( dest ):
+        if not keepExistingDirs:
+          rm( dest )
+      else:
+        os.makedirs( dest )
+      stack += [os.path.join( relSource, f ) for f in os.listdir( source )]
+    else:
+      stack += [os.path.join( relSource, f ) for f in os.listdir( source )]
+
+
+#-----------------------------------------------------------------------------
+class FilesPackager( object ):
+  class Copier( object ):
+    def __init__( source, destination=None, 
+                   symlinks = False, 
+                   copyAsSymlinks = False,
+                   include = None,
+                   exclude = None,
+                   copyCallback=None ):
+      self.source = source
+      if destination is None:
+        self.destination = source
+      else:
+        self.destination = destination
+      for i in ( 'symlinks', 'copyAsSymlinks', 'include', 'exclude', 
+                 'copyCallback' ):
+        setattr( self, i, locals()[ i ] )
+
+    def copy( self, sourceDir, destinationDir ):
+      source = os.path.join( sourceDir, self.source )
+      destination = os.path.join( destinationDir, self.destination )
+      if os.path.isdir( source ):
+        if os.path.islink( source ) and ( self.symlinks or self.copyAsSymlinks ):
+          if self.copyCallback is not None:
+            self.copyCallback( source, destination )
+          copyFile( source, destination, symlinks=self.symlinks, copyAsSymlinks=self.copyAsSymlinks )
+        else:
+          copyDirectory( source, destination,
+                         include = FileNameFilter.factory( self.include ),
+                         exclude = FileNameFilter.factory( self.exclude ),
+                         symlinks = self.symlinks, 
+                         copyAsSymlinks = self.copyAsSymlinks,
+                         copyCallback = self.copyCallback )
+      else:
+        if self.copyCallback is not None:
+          self.copyCallback( source, destination )
+        copyFile( source, destination, symlinks=self.symlinks, copyAsSymlinks=self.copyAsSymlinks )
+
+
+  def __init__( self ):
+    self.copiers = {}
+  
+  
+  def add( self, source, **kwargs ):
+    self.copiers[ source ] = self.Copier( source, **kwargs )
+  
+
+
+
+#-----------------------------------------------------------------------------
+# shell-like cp/rm/symlink functions
+
+#-----------------------------------------------------------------------------
+def filesFromShPatterns( *args ):
+  result = []
+  for pattern in args:
+    result += glob.glob( pattern )
+  return result
+
+
+#-----------------------------------------------------------------------------
+def _exclude( exclude_files, file ):
+  for x in exclude_files:
+    if x.search( file ):
+      #print 'not copying', file
+      return True
+  return False
+
+
+#-----------------------------------------------------------------------------
+def cp( *args, **kwargs ):
+  '''
+  Work much like Unix C{cp} command (accepting patterns as defined in C{glob} 
+  Python module).
+  @param exclude_files: sequence of patterns (as defined in C{re} Python 
+    module) to exclude files/directories from copy (default=C{[ '~$' ]})
+  @type  exclude_files: sequence
+  @param symlinks: if C{True}, preserve symbolic links during copy
+    (default=C{False})
+  @type  symlinks: bool
+  @param copyAsSymlinks: if True, do not copy files but create symbolic links 
+    on files (default=C{False})
+  @type  copyAsSymlinks: bool
+  '''
+  sources = apply( filesFromShPatterns, args[:-1] )
+  if not sources: return
+  dest = args[ -1 ]
+  symlinks = kwargs.get( 'symlinks', False )
+  copyAsSymlinks = kwargs.get( 'copyAsSymlinks', False )
+  exclude_files1 = kwargs.get( 'exclude_files', [ '~$' ] )
+  exclude_files = []
+  for x in exclude_files1:
+    exclude_files.append( re.compile( x ) )
+
+  if os.path.exists( dest ) or os.path.islink( dest ):
+    if not os.path.isdir( dest ):
+      if len( sources ) > 1:
+        raise IOError( errno.ENOTDIR, os.strerror( errno.ENOTDIR ), dest )
+      source = sources[ 0 ]
+      if not _exclude( exclude_files, source ):
+        if os.path.exists( dest ) or os.path.islink( dest ):
+          os.remove( dest )
+        if copyAsSymlinks:
+          os.symlink( source, dest )
+        else:
+          shutil.copy2( source, dest )
+        return
+  else:
+    os.makedirs( dest )
+
+  for path in sources:
+    if _exclude( exclude_files, path ):
+      continue
+    newpath = os.path.join( dest,
+                            os.path.normpath( os.path.basename( path ) ) )
+    if os.path.isdir( path ):
+      if not os.path.isdir( newpath ): os.mkdir( newpath )
+      cp( os.path.join( path, '*' ), os.path.join( path, '.*' ), newpath,
+          symlinks=symlinks, exclude_files=exclude_files1, 
+          copyAsSymlinks=copyAsSymlinks )
+    elif symlinks and os.path.islink( path ):
+      if os.path.exists( newpath ) or os.path.islink( newpath ):
+        os.remove( newpath )
+      os.symlink( os.readlink( path ), newpath )
+    else:
+      if os.path.exists( path ):
+        if os.path.islink( newpath ):
+          try:
+            os.remove( newpath )
+          except:
+            print 'can\'t remove existing symlink:', newpath
+        elif os.path.exists( newpath ):
+          try:
+            # print 'removing', newpath
+            sys.stdout.flush()
+            os.chmod( newpath, 0777 )
+            os.remove( newpath )
+          except:
+            print 'can\'t remove existing file:', newpath
+        try:
+          if copyAsSymlinks:
+            os.symlink( path, newpath )
+          else:
+            shutil.copy2( path, newpath )
+        except:
+          print 'can\'t copy file:', path, 'to:', newpath
+      else:
+        print >> sys.stderr, "Cannot copy invalid symlink '" + path + "' (ignored)"
+
+
+def symlink( *args ):
+  sources = apply( filesFromShPatterns, args[:-1] )
+  if not sources: return
+  dest = args[ -1 ]
+  if not os.path.isdir( dest ):
+    raise IOError( errno.ENOTDIR, os.strerror( errno.ENOTDIR ), dest )
+  for link in sources:
+    os.symlink( link, os.path.join( dest, os.path.basename( os.path.normpath( link ) ) ) )
+
+
+def rm( *args ):
+  sources = filesFromShPatterns( *args )
+  sys.stdout.flush()
+  for path in sources:
+    if not os.path.islink( path ):
+      # this test avoids an error on dead symlinks
+      os.chmod( path, 0777 )
+    if os.path.isdir( path ) and not os.path.islink( path ):
+      rm( os.path.join( path, '*' ), os.path.join( path, '.*' ) )
+      os.rmdir( path )
+    else:
+      os.remove( path )
+
+def mv( *args, **kwargs ):
+  cp( *args, **kwargs )
+  rm( *args[:-1] )
+
+
+#-----------------------------------------------------------------------------
+# Base class for all components
+# 
+# Important class members :
+#
+# _name: string containing the name of the component. It is only required if
+#   the component can be instanciated.
+#
+# __init__: find component files and set component state according to options.
+#  If redefined, must call Component.__init__( self, options) once.
+#
+# optionsDescription: a dictionary where keys are options names and values
+#   are pairs of ( type, description ). type is either None for a boolean 
+#   option or one of the Python data types.
+#
+# dependencies: a method which returns a list of components (e.g. a list of
+#   classes which inherit from Component) needed to process this one.
+#
+# configure: the method called to configure the component when all the
+#   dependencies has been processed.
+#
+# build: the method called to compile the component sources.
+#
+# changeVersion : modifies VERSION file and performs other operations
+#                 as requested by options (perforce branching etc)
+#
+# ---
+# 'official' useful variables (obtained with get() and usable
+# in config.template files):
+#
+# version
+#
+# defines	- list of macros passed to the compiler (usually related to
+#		  the component dependencies used)
+#
+# sources	- sources root dir
+#
+# -- variables used to build this component:
+# build		- build dir
+# includeBuild	- include dir list for building this component (with deps)
+# libDepsLine	- link line to installed deps (used to link libraries)
+# libBuild	- lib dir where to build libraries
+# libBuildLine	- link line to component's libraries (to link commands)
+# libraries	- libraries (list) from this component
+#		- (short form: <lib> from -l<lib>)
+# binaries	- commands from this component (list) (not always provided)
+# libraryPath - list of path where to look for libraries
+#
+# -- variables used as dependencies (for other components to use this one):
+# include	- include dir of installed component, can be a list
+# includes	- includes dirs (list) to use component (= include + deps)
+# lib		- lib dir of installed component
+# bin		- bin dir of installed component
+# includeLine	- full include compilation line for this component
+# libLine	- full libs link line: -L/lib/to/comp/lib -lcomponent
+#
+class Component:
+  _globalOptions = {}
+  
+  def __init__( self, options ):
+    # print 'instantiating component', self._name
+    self._data = { 'version': None, 'enabled':'1' }
+    self._options = {}
+    #--------------------#
+    #  Component states  #
+    #--------------------#
+    # Indicate that the source tree version had been updated
+    self._changeversion = 0
+    # Indicate that the source tree had been configured
+    self._configured = 0
+    # Indicate that the source had been compiled
+    self._build = 0
+    # Indicate that the package is initialized
+    self._initialized = 0
+    # Indicate that the package has been successfully detected (headers/libs)
+    self._found = 0
+    # Copy component options
+#    for optionName in self.optionsDescription.keys() + [ 'verbose' ]:
+#      if options.has_key( optionName ):
+#        self._options[ optionName ] = options[ optionName ]
+    self._options = options.copy()
+    if self.getOption( 'verbose' ):
+      print 'options of', self._name, ':', self._options
+  optionsDescription = {
+    'version': ( types.StringType, 'Required version (default: guess)'),
+    'buildDir': ( types.StringType, 'Base build directory (default: $P4/build-<requiredVersion>-<system>-<buildMode>)\n' ),
+  }
+
+  def options( self ):
+    return self._options
+
+  def getOption( self, optionName, defaultValue = None ):
+    return self._options.get( optionName, 
+                    self._globalOptions.get( optionName, defaultValue ) )
+
+  def setDefaultOption( self, optionName, defaultValue ):
+    if not self._options.has_key( optionName ) and not self._globalOptions.has_key( optionName ):
+      self._options[ optionName ] = defaultValue
+  
+  def setOptions( self, values={}, **kwargs ):
+    self._options.update( values )
+    self._options.update( kwargs )
+
+  def findSources( self ):
+    sources = self.getOption( 'sources' ).split( os.pathsep )
+    version = self.getOption( 'version' )
+    verbose = self.getOption( 'verbose' )
+
+    # Find component source directories
+    source = self.getOption( 'source' )
+    if not source:
+      if verbose:
+        print 'Look for', self._name, 'in', sources
+      for s in sources:
+        d = glob.glob( os.path.join( s, self._name + '-*' ) )
+        d += glob.glob( os.path.join( s, self._name ) )
+        directories = filter( os.path.isdir, d )
+        if directories:
+          break
+      if not directories:
+        raise ValueError( 'No sources found for ' + self._name + ' in ' \
+                          + str( sources ) )
+    else:
+      print 'Look for', self._name, 'in', source
+      directories = [ source ]
+    # Extract version from source directory
+    def getVersion( directoryName ):
+      try:
+        # Get version
+        file = open( os.path.join( directoryName, 'VERSION' ) )
+        result = ( directoryName, file.readline()[ : -1 ] )
+        file.close()
+        return result
+      except:
+        return None
+    possibleVersions = filter( None, map( getVersion, directories ) )
+    if verbose:
+      sys.stdout.write( '  Found: ' )
+      print possibleVersions
+      for directory, possibleVersion in possibleVersions:
+        sys.stdout.write( self._name + '-' + possibleVersion + ' ' )
+      print
+    # Choose an appropriate version
+    def selectVersion( versionTuple, requiredVersion=version ):
+      directory, version = versionTuple
+      if version == requiredVersion: return 1
+      dsplit = string.split( directory, '-' )
+      if len( dsplit ) >= 2 and dsplit[ 1 ] == requiredVersion:
+        return 1
+      return 0
+    if version is not None:
+      possibleVersions = filter( selectVersion, possibleVersions )
+    if verbose:
+      print '  Required version:', version
+    if not possibleVersions:
+      raise ValueError( 'No valid version of ' + self._name + ' found in ' + `sources` )
+    if verbose:
+      sys.stdout.write( '  Selected: ' )
+      for directory, possibleVersion in possibleVersions:
+        sys.stdout.write( self._name + '-' + possibleVersion + ' ' )
+      print
+      print '(dir:', directory, ')'
+    if len( possibleVersions ) > 1:
+      raise ValueError( 'Several versions of ' + self._name + ' found in ' \
+                        + string.join( sources, os.pathsep ) )
+
+    # set datas
+    self._data[ 'sources' ], self._data[ 'version' ] = possibleVersions[ 0 ]
+    self._data[ 'enabled' ] = 1
+    self._found = 1
+
+  def dependencies( self ):
+    return []
+
+
+  def dependsOn( self, componentName ):
+    '''Returns true if componentName is the name of a component in the dependency tree'''
+    for c in self.dependencies():
+      instance = getInstance( c )
+      if instance._name == componentName or \
+         instance.dependsOn( componentName ):
+        return True
+  
+  
+  def createCopiedFilesList( self, source, dest ):
+    copyfiles =  self._data.get( 'copiedFiles' )
+    if not copyfiles:
+      copyfiles = os.path.join( self.componentBuildDir(), 'files' )
+      self._data[ 'copiedFiles' ] = copyfiles
+      if os.path.exists( copyfiles ):
+        os.unlink( copyfiles )
+      else:
+        d = os.path.dirname( copyfiles )
+        if not os.path.isdir( d ):
+          os.makedirs( d )
+    f = open( copyfiles, 'a' )
+    print >> f, dest
+    f.close()
+    return True
+
+  def weakDependencies( self ):
+    '''
+    weak dependencies are components which are optional: they need to
+    be configured/built before self but don't provide libraries to link against.
+    Weak dependencies are created dynamically (use the global weakDependency
+    function to create them
+    '''
+    return []
+
+  # final list of dependencies
+  def cleanDependencies( self ):
+    wd = self.weakDependencies()
+    w = []
+    for x in wd:
+      try:
+        d = getInstance( x )
+        w.append( x )
+      except:
+        pass
+    return self.dependencies() + w
+
+  def version( self ):
+    return self._data[ 'version' ]
+
+  def postInit( self ):
+    if not self._initialized:
+      for x in self.dependencies():
+        y = getInstance( x )
+        y.postInit()
+      for x in self.weakDependencies():
+        weakDependency( x, self )
+      if self.getOption( 'verbose' ):
+        print 'postInit', self._name
+      self.setDirs()
+      self.setupDeps( instances )
+      self._initialized = 1
+
+  def name( self ):
+    return self._name
+  
+  def nameAndVersion( self ):
+    if self.version() is None:
+      return self.name()
+    return self.name() + '-' + str(self.version())
+
+  def get( self, variable, default='' ):
+    return self._data.get( variable, default )
+
+  def setupDeps( self, instances ):
+    # set up compil lines with deps
+    inc = []
+    builddir = self.libDir()
+    lib = [ '-L' + builddir ]
+    builddir = os.path.normpath( os.path.join( builddir, '..' ) )
+    define = []
+    bm = self.get( 'buildMode' )
+    if bm:
+      define.append( 'CARTO_DEBUGMODE=\\"' + bm + '\\"' )
+      if bm in ( 'debug', ):
+        define.append( 'CARTO_DEBUG=1' )
+    deps = self.dependencies()
+    for component in deps:
+      c = getInstance( component )
+      # if dependency has not been found, self is not found
+      if c._found == 0:
+        self._found = 0
+        self._data[ 'enabled' ] = '0'
+        print self._name,': missing or invalid dependency:', c._name
+      i = c.get( 'includes' )
+      if i:
+        for x in i:
+          if x not in inc:
+            inc .append( x )
+      l = c.get( 'libLine' )
+      if l:
+        if type( l ) == types.ListType:
+          lib += l
+        else:
+          lib.append( l )
+      d = c.get( 'defines' )
+      if d:
+        define += d
+    bd = self.includeDir()
+    if bd:
+      if type( bd ) is not types.ListType:
+        bd = [ bd ]
+      for i in bd:
+        if i not in inc:
+          inc.insert( 0, i )
+    self._data[ 'includes' ] = inc
+    self._data[ 'includeBuild' ] = copy.deepcopy( inc )
+    bd = builddir
+    if bd:
+      bd = os.path.join( bd, 'include' )
+      if bd not in inc:
+        self._data[ 'includeBuild' ].insert( 0, bd )
+    if self.getOption( 'verbose' ):
+      print 'includes of ', self._name, ': ', inc
+    self._data[ 'libDepsLine' ] = makeLibLine( string.join( lib ) )
+    d = self.get( 'defines' )
+    if not d:
+      d = []
+    d += define
+    defines = []
+    # remove multiple defines
+    for x in d:
+      if x not in defines:
+        defines.append( x )
+    self._data[ 'defines' ] = defines
+    if self.getOption( 'verbose' ):
+      print 'defines of', self._name, ':', defines
+
+    lib2 = self.get( 'libLine' )
+    if not lib2:
+      lib2 = []
+    elif type( lib2 ) == types.StringType:
+      lib2 = [ lib2 ]
+    lib2 = lib2 + lib
+    self._data[ 'libLine' ] = makeLibLine( string.join( lib2 ) )
+
+    lib2 = self.get( 'libBuildLine' )
+    if not lib2:
+      lib2 = ''
+    elif type( lib2 ) != types.StringType:
+      lib2 = string.join( lib2 )
+    if lib:
+      if lib2 and lib:
+        lib2 = lib2 + ' '
+      lib2 = lib2 + string.join( lib )
+    self._data[ 'libBuildLine' ] = makeLibLine( lib2 )
+    if self.getOption( 'verbose' ):
+      print 'build libs of', self._name, ':', self._data[ 'libBuildLine' ]
+
+  def configureWithDependencies( self, instances ):
+    if not self._found or self._data[ 'enabled' ] == '0':
+      return
+    b = int( self.getOption( 'configure', 0 ) )
+    if not b:
+      return
+    if not self._configured:
+      self._configured = 1
+      # Configure dependencies
+      for component in self.cleanDependencies():
+        getInstance( component ).configureWithDependencies( instances )
+      # Configure self
+      self.configure( instances )
+
+  def configure( self, instances ):
+    if not self._found or self._data[ 'enabled' ] == '0':
+      return
+    if self.getOption( 'verbose' ):
+      print self.nameAndVersion() + ':', 'nothing to configure'
+
+
+  def buildWithDependencies( self, instances ):
+    if not self._found or self._data[ 'enabled' ] == '0':
+      return
+    b = int( self.getOption( 'build', 0 ) )
+    if not b:
+      return
+    if not self._build:
+      self._build = 1
+      # Configure dependencies
+      deps = self.cleanDependencies()
+      for component in deps:
+        comp = getInstance( component )
+        comp.buildWithDependencies( instances )
+      # Configure self
+      self.build( instances )
+
+  def build( self, instances ):
+    if not self._found or self._data[ 'enabled' ] == '0':
+      return
+    if self.getOption( 'verbose' ):
+      print self.nameAndVersion() + ':', 'nothing to build'
+
+  
+  
+  def changeVersionWithDependencies( self, instances ):
+    if not self._changeversion:
+      self._changeversion = 1
+      # Change dependencies versions
+      # print 'changeVersionWithDependencies:', self._name
+      deps = self.cleanDependencies()
+      # print self._name, 'deps:', deps
+      for component in deps:
+        try:
+          inst = getInstance( component )
+          if inst:
+            int.changeVersionWithDependencies( instances )
+        except:
+          pass
+      # Configure self
+      self.changeVersion()
+
+  def changeVersion( self ):
+    # create a Perforce object and call Perforce.changeVersion() if needed
+    pass
+
+  # things to do just before changing version (perforce branching etc)
+  def beforeVersionChange( self, newver, perforce ):
+    pass
+
+  # things to do just at the moment of version changing
+  # (called immediately after VERSION file is changed)
+  def atVersionChange( self, newver, perforce ):
+    pass
+
+  # things to do after version has changed
+  def afterVersionChange( self, newver, perforce ):
+    pass
+
+  # write the VERSION file or equivalent
+  def writeVersionFile( self, version, perforce ):
+    pass
+
+  def sourceDir( self ):
+    return self.get( 'sources' )
+
+  def buildDir( self ):
+    if self._data.has_key( 'buildDir' ):
+      return self._data[ 'buildDir' ]
+    result = self.getOption( 'buildDir' )
+    return result
+
+  def installDir( self ):
+    if self._data.has_key( 'installDir' ):
+      return self._data[ 'installDir' ]
+    result = self.buildDir()
+    return result
+
+  def componentBuildDir( self ):
+    result = self.get( 'build' )
+    if not result:
+      result = self.buildDir()
+    return result
+
+
+  def includeDir( self ):
+    result = self.get( 'include' )
+    if result != '':
+      if result == '/usr/include':
+        result = None
+    else:
+      d = self.buildDir()
+      if d and d != '/usr':
+        result = os.path.join( d, 'include' )
+      else:
+        result = None
+    return result
+
+  def libDir( self ):
+    l = self.get( 'lib' )
+    if l:
+      #if l == '/usr/lib':
+        #return None
+      return l
+    d = self.buildDir()
+    if d and d != '/usr':
+        return os.path.join( d, 'lib' )
+    return None
+
+  def libBuildDir( self ):
+    l = self.get( 'libBuild' )
+    if l:
+      return l
+    d = self.buildDir()
+    if d:
+      return os.path.join( d, 'lib' )
+    return None
+
+  def binDir( self ):
+    b = self.get( 'bin' )
+    if b:
+      return b
+    d = self.buildDir()
+    if d:
+      return os.path.join( d, 'bin' )
+    return None
+
+  ## To be overloaded if needed
+  def _libraries( self ):
+    return [ self.name() ]
+
+  def libraries( self ):
+    x = self._libraries()
+    if x is None:
+      return []
+    bme = self._data.get( 'buildModeExtension' )
+    if bme:
+      return map( lambda y: y + bme, x )
+    return x
+
+  def binaries( self ):
+    x = self.get( 'binaries' )
+    if x is None:
+      return []
+    return x
+
+  # function to be called by __init__()
+  def setDirs( self ):
+    #self._data[ 'build' ] = self.componentBuildDir()
+    self._data[ 'include' ] = self.includeDir()
+    self._data[ 'lib' ] = self.libDir()
+    self._data[ 'bin' ] = self.binDir()
+
+    idir = self.includeDir()
+    if idir:
+      if type( idir ) is not types.ListType:
+        idir = [ idir ]
+      self._data[ 'includeLine' ] \
+                  = string.join( map( lambda x: '-I' + x, idir ) )
+    self._data[ 'libraries' ] = self.libraries()
+    liblist = map( lambda x: ( None, '-l' + x ), self.libraries() )
+
+    commonLibLine = []
+    if not self.get( 'libLine' ):
+      libraryPath = self.getOption( 'libraryPath' )
+      if libraryPath:
+        for path in string.split( libraryPath, ':' ):
+          commonLibLine.append( ( '-L' + path, None ) )
+      commonLibLine = uniqueLibList( commonLibLine )
+      libd = self.libDir()
+      if libd and liblist:
+        if type( libd ) is types.StringType:
+          libd = [ libd ]
+        self._data[ 'libLine' ] \
+          = makeLibLine( commonLibLine \
+                         + map( lambda x: ( '-L' + x, None ),
+                                libd ) \
+                         + liblist )
+      else:
+        self._data[ 'libLine' ] \
+          = makeLibLine( commonLibLine + liblist )
+    if self.libBuildDir():
+      self._data[ 'libBuild' ] = self.libBuildDir()
+    else:
+      self._data[ 'libBuild' ] = ''
+    if not self.get( 'libBuildLine' ):
+      if self._data[ 'libBuild' ] and liblist:
+        self._data[ 'libBuildLine' ] \
+          = makeLibLine( commonLibLine + \
+                          [ ( '-L' + self._data[ 'libBuild' ], None ) ] )
+      else:
+        self._data[ 'libBuildLine' ] = ''
+      self._data[ 'libBuildLine' ] += ' ' \
+        + makeLibLine( commonLibLine + liblist )
+      self._data[ 'libBuildLine' ] \
+        = makeLibLine( self._data[ 'libBuildLine' ] )
+
+
+  def postPackAction( self ):
+    pass
+
+  def doxygenTagFile( self ):
+    return None
+
+  def docDir( self ):
+    return None
+
+  def doxygenDir( self ):
+    docDir = self.docDir()
+    if docDir:
+      return os.path.join( self.buildDir(), docDir )
+    return None
+
+  def doDoxygen( self ):
+    return False
+
+  def doEpydoc( self ):
+    return False
+
+  def doxygenTagFiles( self ):
+    if self._data.has_key( 'tagfiles' ):
+      return self._data[ 'tagfiles' ]
+    self._data[ 'tagfiles' ] = []
+    tags = []
+    mytag = ( self.doxygenTagFile(), self.doxygenDir() )
+    for x in self.cleanDependencies() + self.weakDependencies():
+      z = getInstance( x )
+      y = z.doxygenTagFile()
+      if y:
+        k = ( y, z.doxygenDir() )
+        if k not in tags:
+          tags.append( k )
+      for x in z.doxygenTagFiles():
+        if x not in tags and x != mytag:
+          tags.append( x )
+    self._data[ 'tagfiles' ] = tags
+    return tags
+
+  def makeDocumentation( self ):
+    self.makeEpydocDocumentation()
+
+  def makeEpydocDocumentation( self ):
+    if self.doEpydoc() and self.pythonModule() and self.getOption( 'doc' ):
+      makefile = os.path.join( self.epydocDir(), 'Makefile' )
+      if not os.path.exists( makefile ):
+        return
+      mo = self.getOption( 'makeOptions' )
+      if mo is None:
+        mo = ''
+      command = 'make ' + mo
+      print 'generating epydoc documentation for', self.nameAndVersion(), '...'
+      cwd = os.getcwd()
+      os.chdir( self.epydocDir() )
+      result = systemChecked( command )
+      os.chdir( cwd )
+      if result:
+        print 'warning: epydoc doc build failed for', self.nameAndVersion()
+
+  def __str__( self ):
+    name = self.name()
+    _name = self._name
+    if name == _name:
+      return self.nameAndVersion()
+    else:
+      return self.nameAndVersion() + ' (' + _name + ')'
+  
+#-----------------------------------------------------------------------------
+# Perforce utility class
+#
+class Perforce:
+  def __init__( self, component, useperforce = 1, fakeperforce = 0 ):
+    self._component = component
+    if useperforce is None or useperforce:
+      self._perforce = 1
+    else:
+      self._perforce = 0
+    self._fakeperforce = fakeperforce
+
+  def p4branch( self ):
+    if not self._perforce:
+      return
+    branch = self._component._name + '-' + self._component.get( 'version' )
+
+    # Change client
+    client = self.p4client()
+    clientName = re.compile( '^Client:\t(.*)$', re.M ).search( client ).group( 1 )
+    client += '\n\t//depot/' + self._component._name + '/' \
+              + self._component.get( 'version' ) + '/... //' + clientName \
+              + '/' + self._component._name + '-' \
+              + self._component.get( 'version' ) + '/...'
+    command = 'echo "' + client + '" | p4 client -i'
+    print command
+    if not self._fakeperforce:
+      systemRaised( command )
+
+    # Create new branch
+    branchContent = '''Branch:	''' + branch + '''
+
+Description:
+\tautomatically created by build-config  
+
+View:
+	//depot/''' + self._component._name + '/main/... //depot/' + self._component._name + '/' + self._component.get('version') + '/...'
+
+    command = 'echo "' + branchContent + '"| p4 branch -i '
+    print command
+    if not self._fakeperforce:
+      systemRaised( command )
+
+    # Integrate new branch
+    bsource = os.path.dirname( self._component.sourceDir() )
+    bsource = os.path.join( bsource, branch )
+    bsources = os.path.join( bsource, '...' )
+    command = 'p4 integrate -d -b ' + branch
+    print command
+    if not self._fakeperforce:
+      systemRaised( command )
+    self.p4submit( branch + ' branch created', self.p4opened( bsources ) )
+
+  def p4client( self ):
+    if not self._perforce:
+      return ''
+    command = 'p4 client -o'
+    print command
+    fd = os.popen( command )
+    fres = fd.read()
+    ret = fd.close()
+    if ret is not None:
+      print 'p4 command failed - maybe you don\'t have perforce ?'
+      self._perforce = 0
+      return ''
+    return fres
+
+  def p4delete( self, source ):
+    if not self._perforce:
+      os.unlink( source )
+      return
+    command = 'p4 delete ' + source
+    print command
+    if not self._fakeperforce:
+      if systemRaised( command ):
+        print 'p4 command failed - maybe you don\'t have perforce ?'
+
+  def p4edit( self, files ):
+    if not self._perforce:
+      return
+    if type( files ) is types.StringType:
+      f = files
+    else:
+      f = string.join( files )
+    command = 'p4 edit ' + f
+    print command
+    if not self._fakeperforce:
+      if systemRaised( command ):
+        print 'p4 command failed - maybe you don\'t have perforce ?'
+        self._perforce = 0
+
+  def p4integrate( self, source, dest, options = '' ):
+    if not self._perforce:
+      # works only for files (no p4-style 'turlute/...' )
+      shutil.copyfile( source, dest )
+      return
+    command = 'p4 integrate -d ' + options + ' ' + source + ' ' + dest
+    print command
+    if not self._fakeperforce:
+      if systemRaised( command ):
+        print 'p4 command failed - maybe you don\'t have perforce ?'
+
+  def p4opened( self, files ):
+    if not self._perforce:
+      return ''
+    if type( files ) is types.StringType:
+      f = files
+    else:
+      f = string.join( files )
+    command = 'p4 opened ' + f
+    print command
+    fd = os.popen( command )
+    fres = fd.read()
+    ret = fd.close()
+    if ret is not None:
+      print 'p4 command failed - maybe you don\'t have perforce ?'
+      self._perforce = 0
+      return ''
+    patt = re.compile( '^', re.M )
+    return patt.sub( '\t', fres )
+
+  def p4submit( self, comment, files ):
+    if not self._perforce:
+      return
+    messg = re.sub( '<enter description here>', comment,
+                    self.p4submitMessage() )
+    messg += files
+    command = 'echo "' + messg + '" | p4 submit -i'
+    print command
+    if not self._fakeperforce:
+      systemRaised( command )
+
+  def p4submitMessage( self ):
+    return 'Change: new\n\n' \
+           + 'Description:\n' \
+           + '\t(automatically created by build-config)\n' \
+           + '\t<enter description here>\n\n' \
+           + 'Files:\n'
+
+  def changeVersion( self ):
+    newver = self._component.getOption( 'newVersion' )
+    if newver:
+      newver = map( lambda x: int(x), string.split( newver, '.' ) )
+    else:
+      newver = self._component.getOption( 'changeVersion' )
+      if not newver:
+        return
+      newver = map( lambda x: int(x),
+                    string.split( self._component.get( 'version' ), '.' ) )
+      newver[1] += 1
+      
+    newver = string.join( map( lambda x: str(x), newver ), '.' )
+    if self._component.get( 'verbose' ):
+      print 'new version for ', self._component._name, ' : ', newver
+
+    self._component.beforeVersionChange( newver, self )
+    self.p4branch()
+    self._component.writeVersionFile( newver, self )
+    self._component.atVersionChange( newver, self )
+    self._component.afterVersionChange( newver, self )
+    self.p4submit( self._component._name + ', new main version ' + newver \
+                   + ' created',
+                   self.p4opened( os.path.join( self._component.sourceDir(),
+                                                '...' ) ) )
+    options = copy.deepcopy( self._component._options )
+    options[ 'version' ] = newver
+    if options.has_key( 'changeVersion' ):
+      del options[ 'changeVersion' ]
+    if options.has_key( 'newVersion' ):
+      del options[ 'newVersion' ]
+    if self._component.getOption( 'verbose' ):
+      print 'restart with options: '
+      print options
+    #re-initialize (is this legal in python ?)
+    self._component.__init__( options )
+    self._component._changeversion = 1
+
+#-----------------------------------------------------------------------------
+# Base class for SHFJ libraries
+#
+class GenericMakerComponent( Component ):
+  _name = 'all_maker_components'
+  optionsDescription = Component.optionsDescription.copy()
+  optionsDescription.update( {
+    'source': ( types.StringType, 'specific source for this component' ),
+    'buildMode': ( types.StringType, 'compilation mode: release, debug or ' \
+      'default (default: default)' ),
+    'componentBuildDir': ( types.StringType, 'Build tree directory for each ' \
+      'component (relative to <buildDir>)\n(default: ' \
+      '<component>-<system>-<mode>)' ),
+    'changeVersion': ( None, 'Perform version change before configuring:\n' \
+      '                        increment version number by 0.1' ),
+    'newVersion': ( types.StringType, 'Perform version change before '
+      'configuring:\n                        set version number to given arg' ),
+    'perforce': ( None, 'Try to use perforce for version change operations\n'
+      '                        (default: yes)' ),
+    'makeOptions': ( types.StringType, 'Options to pass to make (ie "-j10")' ), 
+    'configureOptions': ( types.StringType, 
+      'Options to pass to configure (ie "-n")' ), 
+    'buildOptions': ( types.StringType, 
+      'Obsolete, use --makeOptions instead' ), 
+    'configureCommand': ( types.StringType, 
+      'name of the configure program (default: \'configure\')' ), 
+    'libraryPath': ( types.StringType, 
+      'comma separated list of directories where to look for libraries at ' \
+      'compile time (default: none)' ), 
+  } )
+
+
+  # directory name to look for sources in
+  def sourceName( self ):
+    return self.name()
+
+  def outputDirectory( self, directoryName, mode ):
+    'find out output dir, either perforce-like or svn-like source tree'
+    bdir = os.path.basename( directoryName )
+    dn = os.path.dirname( directoryName )
+    outdir = bdir
+    veralias = None
+    if bdir == 'trunk' or len( filter( lambda x: x in '0123456789.', bdir ) ) == len( bdir ):
+      veralias = bdir
+      bdir = os.path.basename( dn )
+      if bdir == 'branches':
+        dn = os.path.dirname( dn )
+        bdir = os.path.basename( dn )
+      outdir = dn + '-' + veralias
+    else:
+      i = bdir.rfind('-')
+      if i >= 0 and i < len(bdir)-1:
+        veralias = bdir[i+1:]
+    result = ( outdir + '-' + self.buildSystemName() + '-' + mode, veralias )
+    return result
+
+
+  def shareDir( self ):
+    '''
+    Return the share directory (relative to self.buildDir()) where shared 
+    files must be copied during configuration.
+    '''
+    return os.path.join( 'share', self.nameAndVersion() )
+  
+  
+  def docDir( self ):
+    '''
+    Return the share directory (relative to self.buildDir()) where doc 
+    files must be copied during configuration.
+    '''
+    return os.path.join( 'share', 'doc', self.nameAndVersion() )
+  
+  
+  # Extract version from source directory
+  def getVersion( self, directoryName, mode ):
+    try:
+      file = open( os.path.join( directoryName, 'VERSION' ) )
+      ver = file.readline()[ : -1 ]
+      file.close()
+      outd = self.outputDirectory( directoryName, mode )
+      result = ( directoryName, ver, outd[0], outd[1] )
+      return result
+    except:
+      return None
+
+  def __init__( self, options ):
+    # print 'init', self._name
+    Component.__init__( self, options )
+    bmext = ''
+    mode = self.getOption( 'buildMode' )
+    if mode is None:
+      mode = 'default'
+    if not mode in ( 'release', ):
+      bmext = '-' + mode
+    self._data[ 'buildModeExtension' ] = bmext
+    sources = self.getOption( 'sources', '' ).split( os.pathsep )
+    version = self.getOption( 'version' )
+    verbose = self.getOption( 'verbose' )
+    configure = self.getOption( 'configureCommand' )
+    if not configure:
+      configure = os.path.join( os.path.dirname( os.path.realpath( \
+        sys.argv[0] ) ), 'configure' )
+      if systemname == 'windows':
+        configure = 'python ' + configure
+      else:
+        if not os.path.exists( configure ):
+          configure = 'configure'
+      self.setOptions( configureCommand = configure )
+    # Find component source directories
+    source = self.getOption( 'source' )
+    if not source:
+      if verbose:
+        print 'Look for', self._name, 'in', sources
+      directories = []
+      for s in sources:
+        d = glob.glob( os.path.join( s, self.sourceName() + '-*' ) )
+        x = os.path.join( s, self.sourceName() )
+        if os.path.isdir( x ):
+          d.append( x )
+          # look for svn tree
+          for y in os.listdir(x):
+            if y == 'trunk' or len( filter( lambda x: x in '0123456789.' , y ) ) == len(y):
+              d.append( os.path.join( x, y ) )
+            elif y == 'branches':
+              d += glob.glob( os.path.join( x, '*' ) )
+        directories += filter( os.path.isdir, d )
+      if not directories:
+        raise ValueError( 'No sources found for ' + self._name + ' in ' \
+                          + string.join(sources,os.pathsep) )
+    else:
+      if verbose:
+        print 'Look for', self._name, 'in (specified)', source
+      directories = [ source ]
+
+    libraryPath = self.getOption( 'libraryPath' )
+
+    possibleVersions = filter( None, map( lambda x, self=self, mode=mode: self.getVersion( x, mode ), directories ) )
+    if verbose:
+      print possibleVersions
+      sys.stdout.write( '  Found: ' )
+      for directory, possibleVersion, defaultBuildDirectory, veralias in possibleVersions:
+        sys.stdout.write( self._name + '-' + possibleVersion )
+        if veralias is not None:
+          sys.stdout.write( '(' + veralias + ')' )
+        sys.stdout.write( ' ' )
+      print
+    # Choose an appropriate version
+    def selectVersion( versionTuple, requiredVersion=version ):
+      directory, version, defaultBuildDirectory, veralias = versionTuple
+      if version == requiredVersion or ( veralias is not None and veralias == requiredVersion):
+        return 1
+      version = os.path.split( directory[ directory.rfind('-'): ][ 1: ] )
+      if version[ 0 ]:
+        version = version[ 0 ]
+      else:
+        version = version[ 1 ]
+      return version == requiredVersion
+    if version is not None:
+      possibleVersions = filter( selectVersion, possibleVersions )
+    if verbose:
+      print '  Required version:', version
+    if not possibleVersions:
+      raise ValueError( 'No valid version of ' + self._name + ' found in ' \
+                        + string.join(sources, os.pathsep) )
+    if verbose:
+      sys.stdout.write( '  Selected: ' )
+      for directory, possibleVersion, defaultBuildDirectory, veralias in possibleVersions:
+        sys.stdout.write( self._name + '-' + possibleVersion )
+        if veralias is not None:
+          sys.stdout.write( '(' + veralias + ')' )
+        sys.stdout.write( ' ' )
+      print
+    if len( possibleVersions ) > 1:
+      # try to determine if they are symlinks to the same directory
+      dirs = []
+      for d, v, defaultBuildDirectory, veralias in possibleVersions:
+        d = our_realpath( d ) # replace by os.path.realpath with python>=2.2
+        if d not in dirs:
+          dirs.append( d )
+      if len( dirs ) > 1:
+        if os.path.dirname( dirs[ 0 ] ) == os.path.dirname( dirs[ 1 ] ):
+          raise ValueError( 'Several versions of ' + self._name + ' found in ' \
+                          + string.join( sources, os.pathsep ) )
+      possibleVersions = [ ( dirs[0], possibleVersions[0][1], 
+                            possibleVersions[0][2], possibleVersions[0][3] ) ]
+    else:
+      # un-link (may cause problems if you're trying to bidouille)
+      possibleVersions[0] = ( our_realpath( possibleVersions[0][0] ),
+                              possibleVersions[0][1], possibleVersions[0][2], 
+                              possibleVersions[0][3] )
+      if verbose:
+        print '  Directory:', possibleVersions[0][0]
+
+    # set datas
+    self._data[ 'sources' ], self._data[ 'version' ], defaultBuildDirectory, veralias = possibleVersions[ 0 ]
+    self._found = 1
+    self._data[ 'verbose' ] = verbose
+    bm = self.getOption( 'buildMode' )
+    if bm is None:
+      bm = 'default'
+    self._data[ 'buildMode' ] = bm
+    componentBuildDir = self.getOption( 'componentBuildDir' )
+    if componentBuildDir is not None:
+      self._data[ 'build' ] = os.path.join( self.buildDir(), componentBuildDir )
+    else:
+      mode = self.get( 'buildMode' )
+      if not mode:
+        mode = 'default'
+      self._data[ 'build' ] = os.path.join( self.buildDir(), defaultBuildDirectory )
+
+    self._data[ 'configureCommand' ] = configure
+    self._enabledoxy = 1
+    if self.doDoxygen():
+      self._data[ 'tagfile' ] = os.path.join( self.doxygenDir(), self.name() + '.tag' )
+    
+  def buildSystemName( self ):
+    result = systemname
+    if x11 and systemname in ( 'darwin', 'windows' ):
+      result += '_X11'
+    return result
+    
+  def processTemplateFile( self, input, output ):
+    try:
+      template = open( input )
+      config = open( output, 'w' )
+      pattern = re.compile( '@([^@]*)@' )
+      for line in template.xreadlines():
+        while 1:
+          match = pattern.search( line )
+          if match:
+            l = string.split( match.group( 1 ), ':' )
+            if len( l ) == 1:
+              instance = self
+              variable = l[ 0 ]
+            else:
+              component, variable = l
+              instance = instances.get( component )
+            if instance is None:
+              substitute = ''
+            else:
+              substitute = instance.get( variable, None )
+              if substitute is None:
+                try:
+                  substitute = getattr( instance, variable )
+                except:
+                  substitute = ''
+            if type( substitute ) is types.ListType:
+              substitute = string.join( substitute )
+            line = line[ :match.start() ] + substitute + line[ match.end(): ]
+          else:
+            break
+        config.write( line )
+      config.close()
+      template.close()
+    except:
+      pass
+
+  def configure( self, instances ):
+    if not self._found or self._data[ 'enabled' ] == '0':
+      return
+    # Create build tree
+    if not os.path.isdir( self.componentBuildDir() ):
+      basedir = os.path.normpath( os.path.join( self.componentBuildDir(), '..' ) )
+      if not os.access( basedir, os.R_OK | os.W_OK ):
+        print 'No write access to', basedir, ': not configuring component', \
+              self.nameAndVersion()
+        return
+      os.makedirs( self.componentBuildDir() )
+    elif not os.access( self.componentBuildDir(), os.R_OK | os.W_OK ):
+      print 'No write access to', self.componentBuildDir(), \
+            ': not configuring component', \
+            self.nameAndVersion()
+      return
+
+    print self.nameAndVersion() + ':', 'configure'
+
+    if os.path.exists( os.path.join( self.sourceDir(), 'src' ) ):
+      self.configureCompilation()
+
+    # other config files & scripts (doxygen...)
+    self.configureDoxygen()
+    self.configureEpydoc()
+
+    # Copy share directory
+    # old style
+    sharedDirectory = os.path.join( self.sourceDir(), 'shared' )
+    if os.path.isdir( sharedDirectory ):
+      destShareDir = os.path.join( self.buildDir(), self.shareDir() )
+      if not os.path.isdir( destShareDir ):
+        os.makedirs( destShareDir )
+      copyDirectory( sharedDirectory, destShareDir, symlinks = True,
+                     copyAsSymlinks = self.getOption( 'symlinks', False ),
+                     copyCallback = self.createCopiedFilesList,
+                     exclude = FileNameFilter( '*~', '*%', '*.bak' ) )
+    # new style
+    sharedDirectory = os.path.join( self.sourceDir(), 'share' )
+    if os.path.isdir( sharedDirectory ):
+      destShareDir = os.path.join( self.buildDir(), self.shareDir() )
+      if not os.path.isdir( destShareDir ):
+        os.makedirs( destShareDir )
+      copyDirectory( sharedDirectory, destShareDir, symlinks = True,
+                     copyAsSymlinks = self.getOption( 'symlinks', False ),
+                     copyCallback = self.createCopiedFilesList,
+                     exclude = FileNameFilter( '*~', '*%', '*.bak' ) )
+		     
+    # Copy doc directory
+    docDirectory = os.path.join( self.sourceDir(), 'doc' )
+    if os.path.isdir( docDirectory ):
+      destDocDir = os.path.join( self.buildDir(), self.docDir() )
+      if not os.path.isdir( destDocDir ):
+        os.makedirs( destDocDir )
+      copyDirectory( docDirectory, destDocDir, symlinks=True,
+                     copyAsSymlinks = self.getOption( 'symlinks', False ),
+                     copyCallback = self.createCopiedFilesList,
+                     exclude = FileNameFilter( '*~', '*%', '*.bak' ) )
+
+
+  def templateConfigurationFiles( self ):
+    '''
+    Return the name of all template configuration files that must
+    be processed for this component. These files must be located
+    in self.sourceDir() and their name must ends with '.template'.
+    By default returns all config*.template files in self.sourceDir().
+    '''
+    return glob.glob( os.path.join( self.sourceDir(), 'config*.template' ) )
+  
+  
+  def configureCompilation( self ):
+    for template in self.templateConfigurationFiles():
+      config = os.path.join( self.componentBuildDir(), os.path.basename( template )[ :-9 ] )
+      self.processTemplateFile( template, config )
+
+    mode = ''
+    if self.get( 'buildMode' ) == 'release':
+      mode = ' -r'
+    elif self.get( 'buildMode' ) == 'debug':
+      mode = ' -d'
+    co = self.getOption( 'configureOptions' )
+    command = self.get( 'configureCommand' ) + mode
+    if co:
+      command += ' ' + co
+    if self.get( 'verbose' ):
+      command += ' -v'
+    binbdir = os.path.join( self.buildDir(), 'bin' )
+    incbdir = os.path.join( self.buildDir(), 'include' )
+    libbdir = os.path.join( self.buildDir() , 'lib' )
+    command += ' --binbdir="' + binbdir + '" --incbdir="' + incbdir \
+               + '" --libbdir="' + libbdir + '"' \
+               + ' --binfile="' + os.path.abspath( \
+	         os.path.join( self.componentBuildDir(), 
+                                                'binaries' ) )+ '"' \
+               + ' --incfile="' + os.path.abspath( \
+	         os.path.join( self.componentBuildDir(), 
+                                                'headers' ) ) + '"' \
+               + ' --libfile="' + os.path.abspath( \
+	         os.path.join( self.componentBuildDir(), 
+                                                'libraries' ) ) + '"' \
+               + ' --pyfile="' + os.path.abspath( \
+	         os.path.join( self.componentBuildDir(), 'pythons' ) ) + '"' \
+               + ' --buildMode=' + self.getOption( 'buildMode', 'default' )
+    command += ' ' + self.get( 'sources' )
+
+    pwd = os.getcwd()
+    os.chdir( self.componentBuildDir() )
+    print command
+    result = systemChecked( command )
+    os.chdir( pwd )
+    if result:
+      raise OSError( 'Configuration of ' + self.nameAndVersion() + ' failed' )
+
+  def build( self, instances ):
+    if not self._found or self._data[ 'enabled' ] == '0':
+      return
+    self.build_copyStep( instances )
+    self.build_compileStep( instances )
+    self.build_translationStep( instances )
+
+  def build_copyStep(self, instances):
+    # Copy directories as-is:
+    #    python
+    #    examples
+    for d in ( 'python', 'bin', 'scripts', 'examples', 'tests' , 'R', 'brainvisa' ):
+      dest = os.path.join( self.buildDir(), d )
+      if not os.path.exists( dest ):
+        os.makedirs( dest )
+      copyDirectory( os.path.join( self.sourceDir(), d ), dest, symlinks=True,
+                     copyAsSymlinks = self.getOption( 'symlinks', False ),
+                     exclude = FileNameFilter( '*.bck', '*~', '*%', '*.pyc', '*.pyo' ),
+                     copyCallback = self.createCopiedFilesList )
+
+  def build_compileStep(self, instances):
+    # compile
+    bm = ''
+    bsource = os.path.join( self.componentBuildDir() )
+    
+    if os.path.exists( os.path.join( bsource, 'Makefile' ) ):
+      if not os.access( bsource, os.R_OK | os.W_OK ):
+        print 'not building', self.nameAndVersion(), 'because', bsource, \
+          'is not a valid directory'
+        return
+  
+      print self.nameAndVersion() + ':', 'build'
+  
+      mo = self.getOption( 'makeOptions' )
+      if mo is None:
+        mo = self.getOption( 'buildOptions' )
+      if mo is None:
+        mo = ''
+      cwd = os.getcwd()
+      os.chdir( bsource )
+      #print 'cwd:', os.getcwd()
+      #print os.listdir( os.getcwd() )
+      # command =  'cd ' + bsource + ' && make ' + mo + ' ' + bm
+      command = 'make ' + mo + ' ' + bm
+      print 'running:', command
+      #result = systemChecked( 'pwd' )
+      result = systemChecked( command )
+      #print 'run done:', result
+      os.chdir( cwd )
+      if result:
+        raise OSError( 'Building of ' + self.nameAndVersion() + ' failed' )
+  def build_translationStep(self, instances):
+    # Qt translations (if needed)
+    self.makeTranslations()
+
+  def makeDocumentation( self ):
+    self.makeDoxygenDocumentation()
+    self.makeEpydocDocumentation()
+
+  def makeDoxygenDocumentation( self ):
+    if self.doDoxygen() and self.getOption( 'doc' ):
+      verbose = self.getOption( 'verbose' )
+      doxdir = self.doxygenDir()
+      if os.path.exists( os.path.join( doxdir, 'Makefile' ) ):
+        cwd = os.getcwd()
+        os.chdir( doxdir )
+        mo = self.getOption( 'makeOptions' )
+        if mo is None:
+          mo = ''
+        command = 'make ' + mo
+        print 'generating Doxygen documentation for', self.nameAndVersion(), '...'
+        result = systemChecked( command )
+        os.chdir( cwd )
+        if result:
+          print 'warning: doxygen doc build failed'
+
+  def pythonModule( self ):
+    return None
+
+  def docbookProject( self ):
+    return self.name()
+
+  def docbookProjects( self ):
+    dp = self.docbookProject()
+    if dp is None:
+      dp = ''
+    x = dp.split( ',' )
+    v = self.get( 'version' )
+    return dict( [ ( y, { 'version' : v } ) for y in x ] )
+
+  # Operations needed to change component version
+  def changeVersion( self ):
+    perforce = Perforce( self, self.getOption( 'perforce' ), 0 )
+    perforce.changeVersion()
+
+  def writeVersionFile( self, version, perforce ):
+    versionfile = os.path.join( self.sourceDir(), 'VERSION' )
+    perforce.p4edit( versionfile )
+    file = open( versionfile, 'w' )
+    file.write( version + '\n' )
+    file.close()
+
+
+  def filesToPack( self ):
+    '''
+    Returns a generator for all the files to copy on package (relative to buildDir).
+    '''
+    listfiles = [ 'files' ]
+    packs = self.getOption( 'pack' )
+    print 'pack', self.nameAndVersion(), ':', packs
+    if 'progs' in packs:
+      exclude = FileNameFilter( 'bin/*_test', 'bin/*_test.exe',
+                                'bin/*Example', 'bin/*Example.exe',
+                                'bin/*_example', 'bin/*_example.exe' )
+      listfiles += [ 'binaries', 'libraries', 'pythons' ]
+    else:
+      exclude = FileNameFilter( re.compile( '(?!share/)|(share/(?!doc/))' ) )
+    if 'progdoc' not in packs:
+      exclude.patterns += [ re.compile( 'share/doc/doxygen/.*' ),
+                            re.compile( 'share/doc/epydoc/.*' ),
+                            re.compile( 'share/doc/[^/]*_pg/.*' ) ]
+    if 'includes' in packs:
+      listfiles.append( 'headers' )
+    if 'userdoc' not in packs:
+      exclude.patterns += [ re.compile( 'share/doc/[^/]_man/.*' ),
+                            re.compile( 'share/doc/[^/]_training/.*' ),
+                            re.compile( 'share/doc/html/.*' ) ]
+    prefixLen = len( self.buildDir() ) + 1
+    for fileList in listfiles:
+      f = os.path.join( self.componentBuildDir(), fileList )
+      if os.path.exists( f ):
+        for fileName in open( f ):
+          if fileName.endswith( '\n' ):
+            fileName = fileName[:-1]
+          f = os.path.join( *fileName.replace( '\\\\', 
+            '/' )[ prefixLen : ].split('/') )
+          if not exclude.match( f ):
+            yield f
+
+
+  def package( self ):
+    # Create Destination directory
+    destDir = packageDir()
+    for fileName in self.filesToPack():
+      source = os.path.join( self.buildDir(), fileName )
+      dest = os.path.join( destDir, fileName )
+      symlinks = self.getOption( 'symlinks' )
+      if os.path.islink( source ):
+        if os.path.isabs( os.readlink( source ) ):
+          # Links pointing outside the package are copied as files
+          symlinks = False
+      copyFile( source, dest, symlinks )
+    self.packageDocs()
+
+  def packageDocs( self ):
+    doc = os.path.join( self.buildDir(), self.docDir() )
+    packs = self.getOption( 'pack' )
+    if doc and os.path.exists( doc ):
+      docs = []
+      if 'userdoc' in packs:
+        docs = [ re.compile( '[^/]+_man' ),
+                 re.compile( '[^/]+_training' ) ]
+      if 'progdoc' in packs:
+        docs += [ re.compile( '[^/]+_pg' ),
+                  re.compile( 'doxygen' ),
+                  re.compile( 'epydoc' ) ]
+      if docs:
+        print 'packaging doc for', self.nameAndVersion()
+        symlinks = self.getOption( 'symlinks' )
+        dstdoc = os.path.join( packageDir(), self.docDir() )
+        for d in os.listdir( doc ):
+          if filter( lambda x: x is not None, [ x.match( d ) for x in docs ] ):
+            copyDirectory( os.path.join( doc, d ), os.path.join( dstdoc, d ),
+                           symlinks=symlinks )
+    else:
+      print 'no docs for', self.nameAndVersion()
+
+  def doDoxygen( self ):
+    return self._libraries() and self._enabledoxy
+
+  def doxygenDir( self ):
+    docDir = self.docDir()
+    if docDir:
+      return os.path.join( self.buildDir(), docDir, 'doxygen' )
+    return None
+
+  def epydocDir( self ):
+    docDir = self.docDir()
+    if docDir:
+      return os.path.join( self.buildDir(), docDir, 'epydoc' )
+    return None
+
+  def doxygenTagFile( self ):
+    return self.get( 'tagfile' )
+
+  def configureDoxygen( self ):
+    if not self.doDoxygen():
+      return
+    try:
+      import doxyconf
+    except:
+      print 'doxyconf module cannot be imported. Doxygen docs will not be '
+      'generated.'
+      self._enabledoxy = 0
+      return
+    # get headers from maker-generated file
+    hdrs = os.path.join( self.componentBuildDir(), 'headers' )
+    if not os.path.exists( hdrs ):
+      return
+    f = open( hdrs )
+    inp = []
+    for x in f.xreadlines():
+      if x != '':
+        if x[-1] == '\n':
+          x = x[:-1]
+        inp.append( '"' + x + '"' )
+    f.close()
+    # additional substitutions file
+    doxsubst = os.path.join( self.sourceDir(), 'doxygen', 'doxygen_subst.dox' )
+    if not os.path.exists( doxsubst ):
+      print 'no subst file', doxsubst
+      doxsubst = None
+    else: print 'substitutions:', doxsubst
+    inp = string.join( inp )
+    pr = self.nameAndVersion()
+    out = self.doxygenDir()
+    inc = self.get( 'includes' )
+    outtag = self.doxygenTagFile()
+    defines = self.get( 'defines' )
+    if defines is None:
+      defines = []
+    defines += [ 'DOXYGEN_HIDE_INTERNAL_CLASSES','_CPP_NUMERIC_LIMITS' ]
+    if not os.path.isdir( out ):
+      os.makedirs( out )
+    outdox = os.path.join( out, self.name() + '.dox' )
+    if os.path.exists( outdox ):
+      tout = tempfile.mkstemp( '.dox', 'doxy' )
+      os.close( tout[0] )
+      toutdox = tout[1]
+    else:
+      toutdox = outdox
+    tagfiles = [ x[0] + '=' + x[1] for x in self.doxygenTagFiles() ]
+    outdox = os.path.join( out, self.name() + '.dox' )
+    srcdox = os.path.join( self.sourceDir(), 'doxygen' )
+    header = None
+    footer = None
+    if os.path.isdir( srcdox ):
+      for x in os.listdir( srcdox ):
+        if x.endswith( '.html' ):
+          if x.startswith( 'head_' ):
+            header = os.path.join( out, x )
+          elif x.startswith( 'foot_' ):
+            footer = os.path.join( out, x )
+    doxyconf.buildDoxygenConf( project=self._name, input=inp,
+                               output=toutdox,
+                               include=inc, htmlpath=out,
+                               tagfiles=tagfiles, 
+                               version=self.get( 'version' ), outtag=outtag,
+                               defines=defines, name=self.name(),
+                               html_header=header, html_footer=footer,
+                               external_subst_file=doxsubst )
+    if toutdox != outdox:
+      # compare old and new .dox
+      f1 = open( outdox )
+      f2 = open( toutdox )
+      diff = 0
+      for l in f1.xreadlines():
+        ol = f2.readline()
+        if l != ol:
+          diff = 1
+          break
+      if not diff:
+        ol = f2.readline()
+        if ol != '':
+          diff = 1
+      f1.close()
+      f2.close()
+      if diff:
+        shutil.copyfile( toutdox, outdox )
+      os.unlink( toutdox )
+    self.doxygenMakefile()
+
+  def doxygenMakefile( self ):
+    def recursiveHeaders( d ):
+      # get headers from maker-generated file
+      f = open( os.path.join( self.componentBuildDir(), 'headers' ) )
+      inp = []
+      for x in f.xreadlines():
+        if x != '':
+          if x[-1] == '\n':
+            x = x[:-1]
+          inp.append( x )
+      f.close()
+      return inp
+    if not self.doDoxygen():
+      return
+    src = self.sourceDir()
+    # TODO get the actual headers list from .pro
+    inp = os.path.join( self.sourceDir(), 'src' )
+    out = self.doxygenDir()
+    uout = unixpath( out )
+    if not os.path.isdir( out ):
+      os.makedirs( out )
+    f = open( os.path.join( out, 'Makefile' ), 'w' )
+    tag = self.doxygenTagFile()
+    utag = unixpath( tag )
+    print 'tag for', self.name(), ':', tag, utag
+    dox = os.path.join( out, self.name() + '.dox' )
+    udox = unixpath( dox )
+    tags = self.doxygenTagFiles()
+    linkfiles = [ 'changelog.html', 'TODO', 'todo.html', 'BUGS' ]
+    linkfiles = filter( lambda x: os.path.exists( os.path.join( src, x ) ),
+                        linkfiles )
+    f.write( 'all:\t' )
+    f.write( string.join( [ unixpath( os.path.join( out, x ) ) \
+                            for x in linkfiles ] ) )
+    if len( linkfiles ) > 0:
+      f.write( ' ' )
+    f.write( utag + '\n\n' )
+    f.write( utag + ':\t' + udox + ' ' \
+             + string.join( [ unixpath( x[0] ) for x in tags ] ) + ' ' )
+    f.write( string.join( [ unixpath(x) for x in recursiveHeaders( inp ) ] ) )
+    f.write( '\n' )
+    # copy doxygen files into output directory
+    srcdox = os.path.join( src, 'doxygen' )
+    if os.path.isdir( srcdox ):
+      for x in os.listdir( srcdox ):
+        f.write( '\tcp -f ' + unixpath( os.path.join( srcdox, x ) ) + ' ' \
+                 + uout + '\n' )
+    f.write( '\tdoxygen ' + udox + '\n\n' )
+    for x in linkfiles:
+      o = unixpath( os.path.join( out, x ) )
+      s = unixpath( os.path.join( src, x ) )
+      f.write( o + ':\t' + s + '\n' )
+      f.write( '\tif [ -f ' + o + ' ]; then rm -f ' + o + '; fi\n' )
+      f.write( '\tcp -f ' + s + ' ' + o + '\n\n' )
+    f.close()
+
+  def configureEpydoc( self ):
+    if not self.doEpydoc():
+      return
+    self.epydocMakefile()
+
+  def pythonFiles( self ):
+    '''
+    Returns all Python files from source directory.
+    '''
+    def _pyfiles( path, files=[] ):
+      if not os.path.exists( path ):
+        return
+      for x in os.listdir( path ):
+        f2 = os.path.join( path, x )
+        if os.path.isdir( f2 ):
+          _pyfiles( f2, files )
+        elif f2.endswith( '.py' ):
+          files.append( f2 )
+    fpath = os.path.join( self.sourceDir(), 'python' )
+    f = []
+    _pyfiles( fpath, f )
+    return f
+
+  def pythonCModules( self ):
+    pyfile = os.path.join( self.componentBuildDir(), 'pythons' )
+    if os.path.exists( pyfile ):
+      f = open( pyfile )
+      return [ x[:-1] for x in f.readlines() ]
+    return []
+
+  def epydocMakefile( self ):
+    if not self.doEpydoc():
+      return
+    epydoccmd = None
+    for e in ( 'epydoc', 'epydoc.py' ):
+      epydoccmd = findInPath( 'PATH', e )
+      if epydoccmd:
+        epydoccmd = unixpath( os.path.join( epydoccmd, e ) )
+        break
+    if not epydoccmd:
+      print 'epydoc program not found. Not generating python API '
+      'documentation for', self.nameAndVersion()
+      return
+    epydoccmd = unixpath( sys.executable ) + ' "' + epydoccmd + '"'
+    src = self.sourceDir()
+    inp = self.pythonFiles() + self.pythonCModules()
+    out = self.epydocDir()
+    uout = unixpath( out )
+    if not os.path.isdir( out ):
+      os.makedirs( out )
+    target = os.path.join( out, 'index.html' )
+    utarget = unixpath( target )
+    destPython = os.path.join( self.buildDir(), 'python' )
+    print 'Generating Epydoc Makefile:', os.path.join( out, 'Makefile' )
+    f = open( os.path.join( out, 'Makefile' ), 'w' )
+    pythonPath = destPython
+    oldp = os.getenv( 'PYTHONPATH' )
+    if oldp:
+      pythonPath += ':' + oldp
+    f.write( 'PYTHONPATH = ' + unixpathanddrive( pythonPath ) + '\n' )
+    f.write( '\n' )
+    f.write( 'all:\t' )
+    f.write( utarget + '\n' )
+    f.write( '\n' )
+    f.write( utarget + ':\t' )
+    f.write( string.join( [ unixpath(x) for x in inp ] ) )
+    f.write( '\n' )
+    #f.write( '\trm -f ' + uout + '*.html\n' ):
+    epydoc = epydoccmd + ' -v --html --name ' + self.name() \
+              + ' --no-frames --show-imports -o "' + out \
+              + '" ' + self.pythonModule()
+    f.write( '\tPYTHONPATH=${PYTHONPATH}; export PYTHONPATH; ' + epydoc + '\n\n' )
+    f.close()
+
+  def findCCSources( directory ):
+    for file in os.listdir( directory ):
+      fullName = os.path.join( directory, file )
+      if file.endswith( '.cc' ):
+        yield fullName
+      elif os.path.isdir( fullName ):
+        for ccSource in AnatomistComponent.findCCSources( fullName ):
+          yield ccSource
+  findCCSources = staticmethod( findCCSources )
+
+  def makeTranslations( self ):
+    source = self.get( 'sources' )
+    flag = False
+    for lang in ( 'en', 'fr' ):
+      sourcet = os.path.join( source, 'shared', 'po', lang,
+        self.name() + '.ts' )
+      if os.path.exists( sourcet ):
+        if not flag:
+          flag = True
+          proName = os.tempnam()
+          pro = open( proName, 'w' )
+          print >> pro, 'TRANSLATIONS = \\'
+        d = os.path.join( self.buildDir(), self.shareDir(), 'po', lang )
+        if not os.path.exists( d ): os.makedirs( d )
+        cp( sourcet, d )
+        ts = os.path.join( d, self.name() + '.ts' )
+        os.chmod( ts,
+          stat.S_IMODE( os.stat( ts )[ stat.ST_MODE ] | stat.S_IWRITE ) )
+        print >> pro, ' ', os.path.join( d, self.name() + '.ts' ) + ' \\'
+    if flag:
+      print >> pro
+      print >> pro, 'SOURCES = ' + ' \\\n  '.join( \
+        self.findCCSources( os.path.join( source, 'src' ) ) )
+      pro.close()
+      print 'generating translations for', self.nameAndVersion()
+      cmd = os.path.join( os.environ[ 'QTDIR' ], 'bin', 'lupdate' ) + ' "' \
+        + proName + '"'
+      print cmd
+      os.system( cmd )
+      cmd = os.path.join( os.environ[ 'QTDIR' ], 'bin', 'lrelease' ) + ' "' \
+        + proName + '"'
+      os.system( cmd )
+      rm( proName )
+
+#-----------------------------------------------------------------------------
+# Base class for SHFJ modules (sub-parts)
+#
+class GenericMakerModuleComponent( GenericMakerComponent ):
+  # overload sourceName() in sub-classes
+  def __init__( self, options ):
+    GenericMakerComponent.__init__( self, options )
+    try:
+      deps = self.dependencies()
+      ok = self._found
+      for i in deps:
+        gi = getInstance(i)
+        if gi._found == 0 or not gi.get( 'enabled' ):
+          print self._name, ': not building due to missing dependency:', i._name
+          ok = 0
+    except:
+      ok = 0
+    self._found = ok
+    if not ok:
+      self._data[ 'enabled' ] = '0'
+
+  def configure( self, instances ):
+    Component.configure( self, instances )
+
+  def build( self, instances ):
+    pass
+
+  def changeVersion( self ):
+    pass
+
+  
+  def package( self ):
+    pass
+  
+  
+  def doxygenTagFile( self ):
+    return None
+
+  def doDoxygen( self ):
+    return 0
+
+  def docbookProject( self ):
+    return None
+
+#-----------------------------------------------------------------------------
+# Base class for system (already installed) libraries
+#
+class SystemComponent( Component ):
+
+  _includeFileRequired = 1
+
+  def __init__( self, options ):
+    Component.__init__( self, options )
+    try:
+      x = self._includeFile
+    except:
+      self._includeFile = self._name + '.h'
+    selflib = 0
+    try:
+      x = self._libFile
+    except:
+      selflib = 1
+      self._libFile = 'lib' + self._name + dllExt
+    self.findLib()
+    found = self._found
+    if not found and selflib:
+      self._libFile = 'lib' + self._name + '.a'
+      self.findLib()
+      found = self._found
+      if not found and systemname == 'windows':
+        self._libFile = 'lib' + self._name + '.lib'
+        self.findLib()
+        found = self._found
+        if not found:
+          self._libFile = self._name + '.lib'
+          self.findLib()
+          found = self._found
+    self._found = 0
+    self.findInclude()
+    self._found &= found
+    if self.getOption( 'verbose' ):
+      print self._name,': found  :', self._found
+      print self._name,': enabled:', self._data[ 'enabled' ]
+
+  def searchPath( self ):
+    if self._name[:3] == 'lib':
+      altname = self._name[3:]
+    else:
+      altname = 'lib' + self._name
+    source = self.get( 'sources' )
+    if not source:
+      source = self.getOption( 'sources' )
+    search = []
+    if source:
+      source = source.split( os.pathsep )
+      for x in source:
+        y = os.path.join( x, self._name )
+        if y not in search:
+          search.append( y )
+        y = os.path.join( x, altname )
+        if y not in search:
+          search.append( y )
+        if x not in search:
+          search.append( x )
+    source = self.getOption( 'source' )
+    if source:
+      search.insert( 0, source )
+    ldp = os.getenv( ldLibraryPath )
+    if ldp:
+      ldp = ldp.split( os.pathsep )
+      for x in ldp:
+        if x:
+          if x[-1] == os.sep : x = x[:-1]
+          y = os.path.dirname( x )
+          z = os.path.join( y, self._name )
+          if z not in search:
+            search.append( z )
+          z = os.path.join( y, altname )
+          if z not in search:
+            search.append( z )
+          if y not in search:
+            search.append( y )
+    if systemname == 'linux':
+      distrib = linuxDistrib()
+      if distrib:
+        x = os.path.join( '/usr/local',
+                          string.join( distrib, '-'), self._name )
+        if x not in search:
+          search.append( x )
+        x = os.path.join( '/usr/local', 
+                          string.join( distrib, '-'), altname )
+        if x not in search:
+          search.append( x )
+        x = os.path.join( '/usr/local', 
+                          string.join( distrib, '-') )
+        if x not in search:
+          search.append( x )
+    for x in ( os.path.join( '/usr/local', self._name ),
+      os.path.join( '/usr/local', altname ),
+      '/usr/local', '/usr' ):
+      if x not in search:
+        search.append( x )
+    if systemname == 'linux':
+      search.append( '/usr/X11R6' )
+    elif systemname == 'darwin':
+      search += [ '/sw', '/usr/X11R6' ]
+    elif systemname == 'windows':
+      search += [ 'c:\\mingw', 'd:\\mingw', 'e:\\mingw', 'c:\\' ]
+    #print 'searchPath:', search
+    return search
+
+  def findLib( self ):
+    #print 'findLib', self.nameAndVersion()
+    if not self._libFile:
+      self._found = 1
+      return
+    search = map( lambda x: os.path.join( x, 'lib64' ), self.searchPath() ) \
+           + map( lambda x: os.path.join( x, 'lib' ), self.searchPath() )
+    if gcclibDir:
+      search.insert( 0, gcclibDir )
+    if systemname == 'windows':
+      search.append( '${SYSTEMROOT}\\system32' )
+    # print 'findLib search path for', self._name, '/', self._libFile, ':', search
+    if self._libFile.endswith( dllExt + '.' ):
+      lib = findOneDllInPath( ldLibraryPath, self._libFile, None, search )
+    else:
+      libfiles = [ self._libFile ]
+      if self._libFile.endswith( dllExt ):
+        libfiles.append( self._libFile[:-len(dllExt)] + staticExt )
+      elif self._libFile.endswith( staticExt ):
+        libfiles.append( self._libFile[:-len(staticExt)] + dllExt )
+      else:
+        libfiles = [ self._libFile + dllExt, self._libFile + staticExt, 
+                     self._libFile ]
+      for x in libfiles:
+        lib = findInPath( ldLibraryPath, x, None, search )
+        if lib:
+          break
+    if lib:
+      # print 'found lib for:', self._name, ':', lib, self._libFile
+      self._data[ 'lib' ] = lib
+      self._data[ 'installDir' ] = \
+        os.path.normpath( os.path.join( lib, '..' ) )
+      self._found = 1
+    else:
+      # print 'NOT FOUND:', self._name
+      self._found = 0
+      self._data[ 'enabled' ] = '0'
+
+  def findInclude( self ):
+    inst = self.buildDir()
+    if inst:
+      search = [ os.path.join( inst, 'include' ) ]
+    else:
+      search = []
+    search += map( lambda x: os.path.join( x, 'include' ), self.searchPath() )
+    # print 'findInclude search path for', self._includeFile, ':', search
+    # sys.stdout.flush()
+    inc = findInPath( None, self._includeFile, None, search )
+    if inc:
+      if inc != '/usr/include':
+        self._data[ 'include' ] = inc
+      self._found = 1
+    else:
+      if self._includeFileRequired:
+        self._found = 0
+        self._data[ 'enabled' ] = '0'
+      else:
+        self._found = 1
+    if self.getOption( 'verbose' ):
+      print self._name + ' include:', self.get( 'include' )
+
+  def package( self ):
+    try:
+      systems = getattr( self, 'standardSystems' )
+      if systemname in systems:
+        # standard systems are not copied
+        return
+    except:
+      pass
+    if 'progs' not in self.getOption( 'pack', [] ):
+      return
+    print 'pack', self.nameAndVersion()
+    prefix = packageDir()
+    inc = self._data.get( 'include' )
+    if 'includes' in self.getOption( 'pack', [] ):
+      # Commented because include are not packaged
+      dst = os.path.join( prefix, 'include' )
+      if not os.path.isdir( dst ):
+        os.makedirs( dst )
+      try:
+        incf = getattr( self, '_includeFiles' )
+      except:
+        incf = None
+      if incf:
+        cp( map( lambda x, inc=inc: os.path.join( inc, x ), incf ), dst )
+      else:
+        #print 'inc:', inc
+        #print '_includeFile:', self._includeFile
+        cp( os.path.join( inc, self._includeFile ), dst )
+
+    lib = self._data.get( 'lib' )
+    if lib is None:
+      lib = '/usr/lib'
+    else:
+      lib = os.path.expandvars( lib )
+    libf = self.libraries()
+    #print 'lib for:', self._name, ':', lib
+    #print 'libf:', libf
+    if lib and libf:
+      dst = os.path.join( prefix, 'lib' )
+      if not os.path.isdir( dst ):
+        os.makedirs( dst )
+      libs = []
+      for l in libf:
+        # elf-style + darwin-style
+        lx = glob.glob( os.path.join( lib, 'lib' + l + dllExt + '*' ) ) \
+              + glob.glob( os.path.join( lib, 'lib' + l + '.*' + dllExt ) )
+        if not lx:
+          # windows style
+          lx = glob.glob( os.path.join( lib, l + '*' + dllExt ) )
+          if not lx:
+            # our windows non-standard style
+            lx = glob.glob( os.path.join( lib, l + dllExt + '*' ) )
+        if systemname == 'windows' and os.path.basename( lib ) == 'lib':
+          lx += glob.glob( os.path.join( os.path.dirname( lib ), 'bin', 'lib' + l + '*' + dllExt ) )
+        if lx:
+          libs += lx
+      if libs:
+        sym = 0
+        for l in libs:
+          if not os.path.islink( l ):
+            sym = 1
+        libs.append( dst )
+        #print 'copy libs:', libs
+        cp( *libs, **{ 'symlinks': sym } )
+    bin = self._data.get( 'bin' )
+    binf = self.binaries()
+    if bin and binf:
+      bin = os.path.expandvars( bin )
+      dst = os.path.join( prefix, 'bin' )
+      if not os.path.isdir( dst ):
+        os.makedirs( dst )
+      cp( *( map( lambda x, bin=bin: os.path.join( bin, x ), binf ) \
+              + [ dst ] ) )
+
+
+#-----------------------------------------------------------------------------
+class IceComponent( SystemComponent ):
+  _name = 'ice'
+  _includeFile = os.path.join( 'Ice', 'Ice.h' )
+  _libFile = 'libIce'
+
+  def _libraries( self ):
+    return [ 'Ice', 'IceUtil', 'IceGrid', 'Glacier2' ]
+
+
+#-----------------------------------------------------------------------------
+class BlasComponent( SystemComponent ):
+  _name = 'blas'
+  _includeFileRequired = 0
+
+  def _libraries( self ):
+    if systemname == 'solaris':
+      return [ 'blas', 'fsu', 'sunmath' ]
+    else:
+      return [ 'blas' ]
+
+  def dependencies( self ):
+    if systemname == 'solaris':
+      return []
+    else:
+      return [ FortranComponent ]
+
+
+#-----------------------------------------------------------------------------
+class LapackComponent( SystemComponent ):
+  _name = 'lapack'
+  _includeFileRequired = 0
+
+  def _libraries( self ):
+    return [ 'lapack' ]
+
+  def dependencies( self ):
+    return [ BlasComponent ]
+
+
+#-----------------------------------------------------------------------------
+class GSLComponent( SystemComponent ):
+  _name = 'gsl'
+  _includeFile = os.path.join( 'gsl', 'gsl_version.h' )
+
+  def _libraries( self ):
+    return [ 'gsl', 'gslcblas' ]
+
+#-----------------------------------------------------------------------------
+class DcmtkComponent( SystemComponent ):
+  _name = 'dcmtk'
+  _includeFile = 'osconfig.h'
+  _libFile = 'libdcmdata.a'
+  optionsDescription = Component.optionsDescription.copy()
+  optionsDescription.update( {
+    'source': ( types.StringType, 'specific source for this component' ),
+  } )
+  
+  def __init__( self, options ):
+    SystemComponent.__init__( self, options )
+    source = self.getOption( 'source' )
+    if source:
+      self._data[ 'sources' ] = source
+      self.findLib()
+      self.findInclude()
+    inc = self.get( 'include' )
+    if inc:
+      self._data[ 'include' ] = \
+                  [ inc,
+                    os.path.join( inc, 'dcmdata' ),
+                    os.path.join( inc, 'ofstd' ) ]
+    if not self._found and self.get( 'lib' ):
+      # try dcmtk >= 3.5.4 variant
+      self._includeFile = 'dcmtk/config/osconfig.h'
+      self.findInclude()
+      if self._found:
+        inc = self.get( 'include' )
+        if not inc:
+          inc = '/usr/include'
+        self._data[ 'enabled' ] = 1
+        self._data[ 'include' ] = \
+                  [ inc,
+                    os.path.join( inc, 'dcmtk', 'config' ),
+                    os.path.join( inc, 'dcmtk', 'dcmdata' ),
+                    os.path.join( inc, 'dcmtk', 'dcmjpeg' ),
+                    os.path.join( inc, 'dcmtk', 'ofstd' ) ]
+
+    if self.getOption( 'verbose' ):
+      print 'DcmTk include:', self.get( 'include' )
+      print 'DcmTk libs:', self.get( 'lib' )
+
+  def _libraries( self ):
+    return [ 'dcmdata', 'ofstd', 'dcmjpeg', 'ijg8', 'ijg12', 'ijg16' ]
+
+  def dependencies( self ):
+    deps = [ LibZComponent ]
+    if systemname == 'windows':
+      deps.append( WinSockComponent )
+    return deps
+
+  def package( self ):
+    if 'progs' in self.getOption( 'pack', [] ):
+      prefix = packageDir()
+      lib = self._data.get( 'lib' )
+      if lib:
+        lib = os.path.expandvars( lib )
+        dic = os.path.join( lib, 'dicom.dic' )
+        if os.path.exists( dic ):
+          olib = os.path.join( prefix, 'lib' )
+          if not os.path.isdir( olib ):
+            os.makedirs( olib )
+          cp( dic, olib )
+
+#-----------------------------------------------------------------------------
+class NetCDFComponent( SystemComponent ):
+  _name = 'netcdf'
+
+  def __init__( self, options ):
+    SystemComponent.__init__( self, options )
+    if not self._found:
+      source = self.getOption( 'source' )
+      if source:
+        self._data[ 'sources' ] = source
+        self.findLib()
+        self.findInclude()
+    if not self._found:
+      # linux strange RPM installations
+      if os.path.exists( '/usr/include/netcdf-3/netcdf.h' ):
+        self._data[ 'include' ] = '/usr/include/netcdf-3'
+        for l in ( '/usr/lib64', '/usr/lib' ):
+          if os.path.exists( os.path.join( l, 'netcdf-3/libnetcdf.a' ) ):
+            self._data[ 'lib' ] = os.path.join( l, 'netcdf-3' )
+            self._found = 1
+            self._data[ 'enabled' ] = 1
+            break
+          elif os.path.exists( os.path.join( l, 'libnetcdf.so' ) ):
+            self._data[ 'lib' ] = l
+            self._found = 1
+            self._data[ 'enabled' ] = 1
+            break
+
+#-----------------------------------------------------------------------------
+class MincComponent( SystemComponent ):
+  _name = 'minc'
+
+  def _libraries( self ):
+    return [ 'volume_io', 'minc' ]
+
+  def dependencies( self ):
+    return [ NetCDFComponent ]
+
+#-----------------------------------------------------------------------------
+class GLUComponent( SystemComponent ):
+  _name = 'glu'
+  _includeFile = os.path.join( 'GL', 'glu.h' )
+  if systemname == 'windows':
+    _libFile = 'libglu32.a'
+  else:
+    _libFile = 'libGLU' + dllExt
+  standardSystems = [ 'irix', 'darwin', 'solaris', 'tru64', 'windows' ]
+
+  def _libraries( self ):
+    if systemname == 'windows':
+      return [ 'glu32' ]
+    else:
+      return [ 'GLU' ]
+
+  def dependencies( self ):
+    return [ OpenGLComponent ]
+
+
+#-----------------------------------------------------------------------------
+class OpenGLComponent( SystemComponent ):
+  _name = 'opengl'
+  _includeFile = os.path.join( 'GL', 'gl.h' )
+  if systemname == 'windows':
+    _libFile = 'libopengl32.a'
+  else:
+    _libFile = 'libGL' + dllExt
+
+  def __init__( self, options ):
+    SystemComponent.__init__( self, options )
+    defines = self.get( 'defines' )
+    if systemname == 'linux' or systemname == 'darwin' \
+      or systemname == 'windows':
+      if not defines:
+        defines = []
+      defines.append( 'HAS_GLEXT' )
+      self._data[ 'defines' ] = defines
+    if systemname == 'darwin':
+      if not x11:
+        if os.path.exists( \
+	  '/System/Library/Frameworks/OpenGL.framework/Headers/gl.h' ):
+          self._data[ 'include' ] \
+	    = '/System/Library/Frameworks/OpenGL.framework/Headers'
+        self._data[ 'libLine' ] = '-framework OpenGL'
+        self._data[ 'libBuildLine' ] = '-framework OpenGL'
+	self._data[ 'lib' ] = None
+        self._found = 1
+        self._data[ 'enabled' ] = 1
+    elif systemname == 'windows':
+      if not self.get( 'lib' ):
+        self._libFile = 'opengl32.dll'
+        self.findLib()
+
+  def _libraries( self ):
+    if systemname == 'windows':
+      return [ 'opengl32' ]
+    else:
+      return [ 'GL' ]
+
+  def package( self ):
+    # always part of the system
+    pass
+
+#-----------------------------------------------------------------------------
+
+class X11Component( SystemComponent ):
+  _name = 'x11'
+  _includeFile = os.path.join( 'X11', 'Xlib.h' )
+  _libFile = 'libX11' + dllExt
+
+  def _libraries( self ):
+    return [ 'Xi', 'Xmu', 'Xt', 'Xext', 'X11' ]
+
+  def package( self ):
+    # always part of the system
+    pass
+
+#-----------------------------------------------------------------------------
+
+class GlutComponent( SystemComponent ):
+  _name = 'glut'
+  _includeFile = os.path.join( 'GL', 'glut.h' )
+
+  def dependencies( self ):
+    return [ GLUComponent, X11Component ]
+
+  def _libraries( self ):
+    return [ 'glut' ]
+
+#-----------------------------------------------------------------------------
+class QtComponent( SystemComponent ):
+  _name = 'qt'
+  _libFile = 'libqt-mt'
+  _includeFile = 'qt.h'
+
+  optionsDescription = Component.optionsDescription.copy()
+  optionsDescription.update( {
+    'libqtExtension': ( types.StringType, 'string added to Qt library name' ),
+  } )
+
+
+  def __init__( self, options ):
+    qtdir = os.environ.get( 'QTDIR' )
+    # try to determine Qt version (using moc)
+    found = 0
+    if systemname == 'windows':
+      l = glob.glob( os.path.join( qtdir, 'lib', 'qt-mt*.dll' ) )
+      if len( l ) == 1:
+        QtComponent._libFile = os.path.basename( l[0] )
+        found = 1
+    mocexe = os.path.join( qtdir, 'bin', 'moc' )
+    if not os.path.exists( mocexe ):
+      mocexe = 'moc'
+    x = os.popen4( mocexe + ' -v' )[1]
+    mocv = x.read()
+    x.close()
+    mre = re.compile( 'Qt Meta.*\(Qt (.+)\)' ).match( mocv )
+    if not mre:
+      print 'QtComponent: cannot parse Moc output'
+      SystemComponent.__init__( self, options )
+      self._found = 0
+      self._deps = None
+      return
+    mocver = mre.group(1).split( '.' )
+    mainver = int( mocver[0] )
+    if found == 0:
+      if mainver >= 4:
+        QtComponent._libFile = 'QtOpenGL'
+        if systemname != 'windows':
+          QtComponent._libFile  = 'lib' + QtComponent._libFile
+          QtComponent._includeFile = 'Qt/qobject.h'
+      elif mainver == 2 and systemname == 'windows':
+        QtComponent._libFile = 'qt-mt230nc.lib'
+      elif systemname == 'cygwin':
+        _libFile = 'qt.dll.a'
+    version = map( lambda x: int(x), mocver )
+    # print 'Qt version:', version
+
+    SystemComponent.__init__( self, options )
+    self._data[ 'version' ] = version
+    if qtdir and self._found:
+      if not self.getOption( 'source' ):
+        self._options[ 'source' ] = '${QTDIR}'
+      self._data[ 'installDir' ] = '${QTDIR}'
+      self._data[ 'sources' ] = '${QTDIR}'
+      #self.findLib()
+      #found = self._found
+      #self._found = 0
+      #self.findInclude()
+      incbase = os.path.join( qtdir, 'include' )
+      incbasesym = os.path.join( '${QTDIR}', 'include' )
+      if not os.path.exists( incbase ):
+        incbase = '/usr/include'
+        incbasesym = incbase
+      if os.path.exists( os.path.join( incbase, self._includeFile ) ):
+        if mainver >= 4:
+          self._data[ 'include' ] = \
+            [ os.path.join( incbasesym, 'QtCore' ),
+              os.path.join( incbasesym, 'QtGui' ), 
+              os.path.join( incbasesym, 'QtOpenGL' ),
+              os.path.join( incbasesym, 'QtNetwork' ), 
+              os.path.join( incbasesym, 'QtSql' ), 
+              os.path.join( incbasesym, 'QtXml' ), 
+              os.path.join( incbasesym, 'Qt3Support' ),
+              os.path.join( incbasesym ),
+            ]
+        else:
+          self._data[ 'include' ] = incbasesym
+        #self._found = 1
+      elif os.path.exists( os.path.join( qtdir, 'include', 'qt', 
+                                         self._includeFile ) ):
+        self._data[ 'include' ] = os.path.join( '${QTDIR}', 'include', 'qt' )
+        #self._found = 1
+      #self._found &= found
+      if self.getOption( 'verbose' ):
+        print 'Qt includes:', self.get( 'include' )
+        print 'Qt libs:', self.get( 'lib' )
+    d = [ 'QT_CLEAN_NAMESPACE' ]
+    for x in self._libraries():
+      if x.find( 'qt-mt' ) >= 0 or mainver >= 4:
+        d.append( 'QT_THREAD_SUPPORT' )
+        break
+    if systemname == 'windows':
+      d.append( 'QT_DLL' )
+    if version[0] >= 4:
+      d += [ 'QT_COMPAT', 'QT3_SUPPORT' ]
+    self._data[ 'defines' ] = d
+    if self._found:
+      self._data[ 'enabled' ] = 1
+    self._deps = None
+    if self.getOption( 'verbose' ):
+      print 'Qt found:', self._found, ', enabled:', self._data.get( 'enabled' )
+
+  def searchPath( self ):
+    return [ '${QTDIR}' ] + SystemComponent.searchPath( self )
+
+  def dependencies( self ):
+    if self._deps is not None:
+      return self._deps
+    self._deps = [ OpenGLComponent ]
+    if systemname == 'windows':
+      return []
+    return self._deps
+
+  def weakDependencies( self ):
+    if systemname == 'windows':
+      return []
+    lib = self._data.get( 'lib' )
+    if not lib:
+      return []
+    lib = os.path.expandvars( lib )
+    if systemname == 'darwin':
+      cmd = 'otool -L '
+    else:
+      cmd = 'ldd '
+    cmd += os.path.join( lib, self._libFile + dllExt )
+    try:
+      f = os.popen( cmd )
+      libs = f.read()
+      f.close()
+    except:
+      print 'could not popen', cmd
+      return []
+    l = libs.find( 'libpng' )
+    if l >= 0:
+      s = libs.find( ' ', l )
+      if s >= l:
+        png = os.path.basename( libs[ l:s ] )
+        PngComponent._libFile = png
+      self._deps.append( PngComponent )
+    if libs.find( 'libmng.' ) >= 0:
+      self._deps.append( MngComponent )
+    if libs.find( 'libjpeg.' ) >= 0:
+      self._deps.append( JpegComponent )
+    if libs.find( 'libz.' ) >= 0:
+      self._deps.append( LibZComponent )
+    if libs.find( 'libpthread.' ) >= 0:
+      self._deps.append( PThreadComponent )
+    if libs.find( 'libdl.' ) >= 0:
+      self._deps.append( DlopenComponent )
+    if libs.find( 'libfontconfig.' ) >= 0:
+      self._deps.append( FontConfigComponent )
+    if libs.find( 'libfreetype.' ) >= 0:
+      self._deps.append( FreetypeComponent )
+    if systemname == 'darwin' and x11:
+      # on darwin/fink Png, Mng and Jpeg support is in plugins
+      self._deps.append( PngComponent )
+      self._deps.append( JpegComponent )
+    #print 'deps of Qt:', self._deps
+    return self._deps
+
+  def _libraries( self ):
+    if not self._found:
+      return []
+    ver = self._data[ 'version' ][0]
+    if systemname == 'windows':
+      a = self._libFile.find( '.dll' )
+      if a > 0:
+        return [ self._libFile[:a] ]
+      else:
+        return [ self._libFile ]
+    if ver >= 4:
+      baselib = 'QtOpenGL'
+    else:
+      if systemname == 'cygwin':
+        return [ 'qt' ]
+      else:
+        baselib = 'qt-mt'
+    inst = self.get( 'installDir' )
+    shfjExt = self.getOption( 'libqtExtension', '' )
+    if inst and \
+       os.path.exists( os.path.join( os.path.expandvars( inst ),
+                                     'lib/' + baselib + shfjExt + dllExt ) ):
+      if ver >= 4:
+        return [ baselib + shfjExt, 'Qt3Support' + shfjExt ]
+      else:
+        return [ baselib + shfjExt ]
+    if ver >= 4:
+      return [ baselib, 'Qt3Support' ]
+    else:
+      return [ baselib ]
+
+  def binaries( self ):
+    return [ 'qtconfig' ]
+
+  def docDir( self ):
+    doc = self._data.get( 'docdir' )
+    if doc:
+      return doc
+    self._localdoc = 0
+    ver  = string.join( [ str(x) for x in self._data[ 'version' ] ], '.' )
+    d = os.path.expandvars( os.path.join( self.sourceDir(), 'doc' ) )
+    if os.path.isdir( d ):
+      doc = d
+      self._localdoc = 1
+    else:
+      d = '/usr/share/doc/qt-devel-' + ver
+      if os.path.isdir( d ):
+        doc = d
+        self._localdoc = 1
+    if not self._localdoc:
+      doc = 'http://doc.trolltech.com/3.3'
+    self._data[ 'docdir' ] = doc
+    return doc
+
+  def doxygenDir( self ):
+    doc = self._data.get( 'doxygendir' )
+    if doc:
+      return doc
+    doc2 = self.docDir()
+    self._localdoxdoc = self._localdoc
+    if self._localdoc:
+      doc = os.path.join( doc2, 'html' )
+    else:
+      doc = doc2
+    self._data[ 'doxygendir' ] = doc
+    return doc
+
+  def doxygenTagFile( self ):
+    tag = self.get( 'tagfile', None )
+    print 'doxygenTagFile for', self._name, ':', tag
+    if tag is None:
+      ver  = string.join( [ str(x) for x in self._data[ 'version' ] ], '.' )
+      tag = os.path.join( self.buildDir(), 'share', 'doc',
+                          'qt-devel-' + ver, 'qt.tag' )
+      self._data[ 'tagfile' ] = tag
+      print 'new tagfile:', tag
+      if not os.path.exists( tag ):
+        doxdir = self.doxygenDir()
+        if not self._localdoxdoc:
+          # can't use doxytag through the web...
+          return None
+        print 'Qt tagfile', tag, 'does not exist. Rebuilding it...'
+        d = os.path.dirname( tag )
+        if not os.path.exists( d ):
+          os.makedirs( d )
+        cmd = 'doxytag -t ' + tag + ' ' + doxdir
+        print cmd
+        os.system( cmd )
+    return tag
+
+  def package( self ):
+    if 'progs' in self.getOption( 'pack', [] ):
+      SystemComponent.package( self )
+      prefix = packageDir()
+      lib = os.path.expandvars( self.libDir() )
+      l = glob.glob( os.path.join( lib, 'libqassistantclient' + dllExt \
+                                    + '.?' ) )
+      if len( l ) > 0:
+        cp( *( l + [ os.path.join( prefix, 'lib' ) ] ), **{'symlinks': False} )
+      base = os.path.expandvars( self._data[ 'sources' ] )
+      plug = os.path.join( lib, 'qt3-plugins', 'imageformats' )
+      if not os.path.isdir( plug ):
+        plug = os.path.join( base, 'plugins', 'imageformats' )
+      if os.path.isdir( plug ):
+        iplug = os.path.join( prefix, 'bin', 'plugins' )
+        if not os.path.isdir( iplug ):
+          os.mkdir( iplug )
+        cp( plug, iplug )
+      if systemname == 'darwin':
+        conf = os.path.join( base, 'bin', 'qtconfig.app' )
+      else:
+        conf = os.path.join( base, 'bin', 'qtconfig' )
+      cp( conf, os.path.join( prefix, 'bin' ) )
+
+
+  def installMacOSApp( self, component, installdir, prog, icon = None ):
+    bprog = os.path.basename( prog )
+    p = os.path.join( installdir, bprog + '.app' )
+    os.mkdir( p )
+    p = os.path.join( p, 'Contents' )
+    os.mkdir( p )
+    pbin = os.path.join( p, 'MacOS' )
+    os.mkdir( pbin )
+    try:
+      os.rename( prog, os.path.join( pbin, bprog ) )
+    except:
+      print 'could not move file', prog, 'to', os.path.join( pbin, bprog )
+      raise
+    os.symlink( os.path.join( bprog + '.app', 'Contents', 'MacOS', bprog ), 
+                prog )
+    f = open( os.path.join( installdir, bprog + '.app', 'Contents', 
+                            'PkgInfo' ), 'w' )
+    print >> f, 'APPL????'
+    f.close()
+    f = open( os.path.join( installdir, bprog + '.app', 'Contents', 
+                            'Info.plist' ), 'w' )
+    print >> f, '''<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleExecutable</key>
+	<string>''' + bprog + '''</string>
+	<key>CFBundleIconFile</key>
+	<string>''' + bprog + '''.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>''' + bprog + '''</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+</dict>
+</plist>'''
+    f.close()
+    if icon and os.path.exists( icon ):
+      prsc = os.path.join( p, 'Resources' )
+      os.mkdir( prsc )
+      shutil.copyfile( icon, os.path.join( prsc, bprog + '.icns' ) )
+
+#-----------------------------------------------------------------------------
+class QtUIComponent( QtComponent ):
+  _name = 'qtui'
+
+  def _libraries( self ):
+    return [ 'qui' ]
+
+  def dependencies( self ):
+    return [ QtComponent ]
+
+  def weakDependencies( self ):
+    return []
+
+  def binaries( self ):
+    return []
+
+  def package( self ):
+    if 'progs' in self.getOption( 'pack', [] ):
+      prefix = packageDir()
+      lib = os.path.expandvars( self.libDir() )
+      # unix/elf style
+      cp( os.path.join( lib, 'lib' + self._libraries()[0] + dllExt + '.?' ), 
+          os.path.join( prefix, 'lib' ) )
+      # mac/windows style
+      cp( os.path.join( lib, 'lib' + self._libraries()[0] + '.?' + dllExt ), 
+          os.path.join( prefix, 'lib' ) )
+
+
+#-----------------------------------------------------------------------------
+class QwtComponent( SystemComponent ):
+  _name = 'qwt'
+  _includeFile = 'qwt_plot.h'
+  # _libFile = 'libqwt'
+
+  optionsDescription = Component.optionsDescription.copy()
+  optionsDescription.update( {
+    'source': ( types.StringType, 'specific source for this component' ),
+  } )
+
+  def __init__( self, options ):
+    SystemComponent.__init__( self, options )
+    if not self._found:
+      # try to find in QTDIR (with a different include system)
+      qtc = getInstance( QtComponent )
+      self._includeFile = 'qwt/qwt_plot.h'
+      self._options[ 'sources' ] = qtc.sourceDir()
+      self.findLib()
+      if self._found:
+        self.findInclude()
+        if self._found:
+          self._data[ 'include' ] = self.includeDir() + '/qwt'
+      if not self._found:
+        source = self.getOption( 'source' )
+        if not source:
+          sources = self.getOption( 'sources' )
+          if sources:
+            source = os.path.join( sources.split( os.pathsep )[0], 'qwt' )
+        # set datas
+        self._data[ 'sources' ] = source
+        self.findLib()
+        self.findInclude()
+    if self.getOption( 'verbose' ):
+      print 'Qwt include:', self.get( 'include' )
+      print 'Qwt libs:', self.get( 'lib' )
+
+  def dependencies( self ):
+    return [ QtComponent ]
+
+
+#-----------------------------------------------------------------------------
+class TiffComponent( SystemComponent ):
+  _name = 'tiff'
+  _includeFile = 'tiff.h'
+
+  def dependencies( self ):
+    return [ JpegComponent ]
+
+#-----------------------------------------------------------------------------
+class JpegComponent( SystemComponent ):
+  _name = 'jpeg'
+  _includeFile = 'jpeglib.h'
+  standardSystems = [ 'irix', 'linux' ]
+
+#-----------------------------------------------------------------------------
+class DlopenComponent( SystemComponent ):
+  _name = 'dl'
+  _includeFile = 'dlfcn.h'
+  standardSystems = [ 'irix', 'linux', 'solaris', 'tru64', 'windows' ]
+
+  def findLib( self ):
+    if systemname == 'tru64':
+      self._found = 1
+    else:
+      SystemComponent.findLib( self )
+
+  def _libraries( self ):
+    if systemname == 'tru64':
+      return ()
+    else:
+      return SystemComponent._libraries( self )
+  
+#-----------------------------------------------------------------------------
+class LibGenComponent( SystemComponent ):
+  _name = 'gen'
+  _includeFile = 'libgen.h'
+
+  def package( self ):
+    pass
+
+#-----------------------------------------------------------------------------
+class LibZComponent( SystemComponent ):
+  _name = 'zlib'
+  _includeFile = 'zlib.h'
+  _libFile = 'libz' + dllExt
+  standardSystems = [ 'darwin', 'irix', 'linux', 'solaris' ]
+
+  def _libraries( self ):
+    return [ 'z' ]
+
+#-----------------------------------------------------------------------------
+class PThreadComponent( SystemComponent ):
+  _name = 'pthread'
+  _includeFile = 'pthread.h'
+
+  def _libraries( self ):
+    libs = [ 'pthread' ]
+    if systemname == 'solaris' or systemname == 'tru64':
+      libs.append( 'rt' )
+    return libs
+
+  def package( self ):
+    pass
+
+#-----------------------------------------------------------------------------
+class LibMComponent( SystemComponent ):
+  _name = 'libm'
+  _includeFile = 'math.h'
+  _libFile = 'libm'
+
+  def _libraries( self ):
+    return [ 'm' ]
+
+  def package( self ):
+    pass
+
+#-----------------------------------------------------------------------------
+class SocketComponent( SystemComponent ):
+  _name = 'socket'
+  _includeFileRequired = 0
+
+  def _libraries( self ):
+    if systemname == 'solaris':
+      return [ 'socket' ]
+    else:
+      return []
+
+  def package( self ):
+    pass
+
+#-----------------------------------------------------------------------------
+class PngComponent( SystemComponent ):
+  _name = 'png'
+
+  def _libraries( self ):
+    if self._libFile:
+      if self._libFile[:3] == 'lib':
+        lib = self._libFile[3:]
+      x = lib.find( '.' )
+      if x >= 0:
+        return [ lib[:x] ]
+      return [ lib ]
+    else:
+      return [ self._name ]
+
+#-----------------------------------------------------------------------------
+class MngComponent( SystemComponent ):
+  _name = 'mng'
+  _includeFile = 'libmng.h'
+  _includeFileRequired = 0
+
+
+#-----------------------------------------------------------------------------
+class CryptoComponent( SystemComponent ):
+  _name = 'crypto'
+  _includeFile = ''
+  standardSystems = [ 'darwin', 'irix', 'solaris', 'windows' ]
+
+  def __init__( self, options ):
+    SystemComponent.__init__( self, options )
+    if systemname == 'linux':
+      x = glob.glob( '/lib/libcrypto.so.?' )
+      if len( x ) > 0:
+        self._data[ 'lib' ] = '/lib'
+
+#-----------------------------------------------------------------------------
+class SSLComponent( SystemComponent ):
+  _name = 'ssl'
+  _includeFile = ''
+  standardSystems = [ 'darwin', 'irix', 'solaris', 'windows' ]
+
+  def __init__( self, options ):
+    SystemComponent.__init__( self, options )
+    if systemname == 'linux':
+      x = glob.glob( '/lib/libssl.so.?' )
+      if len( x ) > 0:
+        self._data[ 'lib' ] = '/lib'
+
+  def dependencies( self ):
+    return [ CryptoComponent ]
+
+#-----------------------------------------------------------------------------
+class FreetypeComponent( SystemComponent ):
+  _name = 'freetype'
+  _includeFile = ''
+  standardSystems = [ 'irix', 'linux', 'solaris', 'windows' ]
+
+#-----------------------------------------------------------------------------
+class FontConfigComponent( SystemComponent ):
+  _name = 'fontconfig'
+  _includeFile = ''
+
+  def dependencies( self ):
+    return [ FreetypeComponent ]
+
+#-----------------------------------------------------------------------------
+class StdCppComponent( SystemComponent ):
+  _name = 'stdc++'
+  _includeFile = ''
+  standardSystems = [ 'darwin', 'irix', 'windows' ]
+
+  def __init__( self, options ):
+    SystemComponent.__init__( self, options )
+    if not self.getOption( 'pack' ) or systemname in self.standardSystems:
+      return
+
+    # under linux there are lots of differents libstdc++ installed, take only
+    # one
+    # retreive libstdc++ linked with our libs
+
+    self._installlibs = []
+    verbose = self.getOption( 'verbose' )
+
+    # make a small program
+    pname = '/tmp/buildconfig_' + str( os.getpid() )
+    f = open( pname + '.cc', 'w' )
+    f.write( 'int main()\n' )
+    f.write( '{}\n' )
+    f.close()
+    os.system( 'g++ -o ' + pname + ' ' + pname + '.cc' )
+    # read which libc++ is inked to it
+    f = os.popen( 'ldd ' + pname )
+    libscpp = f.read()
+    f.close()
+    os.unlink( pname )
+    os.unlink( pname + '.cc' )
+    cre = re.compile( '=>[ \t]*([^ \t]*libstdc\+\+[^ \t\n]*)', 
+                      re.M ).search( libscpp )
+    if cre:
+      libcpp = cre.group(1)
+    else:
+      cre = re.compile( 'libstdc\+\+[^ \t\n]*', re.M ).search( libscpp )
+      if cre:
+        libcpp = cre.groups(0)
+        libcpp = findInPath( ldLibraryPath, libcpp )
+      else:
+        libcpp = None
+    if libcpp:
+      if verbose:
+        print 'C++ lib:', libcpp
+      self._data[ 'lib' ] = os.path.dirname( libcpp )
+      self._libFile = os.path.basename( libcpp )
+      self._installlibs.append( libcpp )
+      self._found = 1
+      self._data[ 'enabled' ] = 1
+    else:
+      if verbose:
+        print 'warning: no libstdc++ found, maybe statically linked?'
+    # libgcc_s.so
+    cre = re.compile( '=>[ \t]*([^ \t]*libgcc_s[^ \t\n]*)', 
+                      re.M ).search( libscpp )
+    if cre:
+      libgcc = cre.group(1)
+    else:
+      cre = re.compile( 'libgcc_s[^ \t\n]*', re.M ).search( libscpp )
+      if cre:
+        libgcc = cre.groups(0)
+        libgcc = findInPath( ldLibraryPath, libgcc )
+      else:
+        libgcc = None
+    if libgcc:
+      self._installlibs.append( libgcc )
+
+  def package( self ):
+    if systemname not in self.standardSystems \
+      and 'progs' in self.getOption( 'pack', [] ):
+      prefix = packageDir()
+      if len( self._installlibs ) > 0:
+        lib = os.path.join( prefix, 'lib' )
+        if not os.path.isdir( lib ):
+          os.makedirs( lib )
+        cp( *( self._installlibs + [ lib ] ) )
+
+
+#-----------------------------------------------------------------------------
+class WinSockComponent( SystemComponent ):
+  _name = 'wsock32'
+  _includeFile = 'winsock.h'
+  _libFile = 'libwsock32.a'
+
+  def package( self ):
+    pass
+
+#-----------------------------------------------------------------------------
+class SigCppComponent( SystemComponent ):
+  _name = 'libsigc++'
+  _includeFile = os.path.join( 'sigc++', 'object.h' )
+  _libFile = 'sigc-*' + dllExt
+
+  def libraries( self ):
+    ver = self._data.get( 'version' )
+    if ver is None:
+      return [ 'sigc' ] # not found
+    return [ 'sigc-' + ver ]
+
+  def findLib( self ):
+    #print 'sigc++ findLib'
+    search = [ os.path.join( x, 'lib64' ) for x in self.searchPath() ] + \
+             [ os.path.join( x, 'lib' ) for x in self.searchPath() ]
+    ldl = os.environ.get( ldLibraryPath, '' ).split( os.pathsep )
+    for x in ldl:
+      if x and x not in search:
+        search.append( x )
+    #print 'sigc++ search:', search
+    verre = re.compile( '.*libsigc-([0-9]+)\.([0-9]+)' )
+    vmaj = 0
+    vmin = 0
+    found = None
+    for x in search:
+      #print 'look into', x
+      files = glob.glob( os.path.join( x, 'libsigc-*' + dllExt ) ) \
+              + glob.glob( os.path.join( x, 'libsigc-*' + staticExt ) )
+      if files:
+        #print 'sigc++ libs:', files
+	for f in files:
+          #print 'try:', f
+	  m = verre.match( f )
+	  if m:
+	    vm1 = int( m.group(1) )
+	    vm2 = int( m.group(2) )
+	    # print vm1, vm2
+	    if vm1 > vmaj or ( vm1 == vmaj and vm2 > vmin ):
+	      ver = str( vm1 ) + '.' + str( vm2 )
+	      l = os.path.dirname( f )
+	      if os.path.basename( l ) in ( 'lib64', 'lib' ):
+	        d = os.path.dirname( l )
+	      else:
+	        d = l
+	      #print 'dir:', d
+	      #print 'lib:', l
+	      #print 'ver:', ver
+	      inc = os.path.join( d, 'include', 'sigc++-' + ver )
+	      if os.path.exists( inc ):
+	        #print 'incdir found:', inc
+	        self._data[ 'source' ] = d
+	        self._data[ 'lib' ] = l
+	        self._found = 1
+	        found = f
+	        self._data[ 'version' ] = ver
+		self._data[ 'include' ] = inc
+		vmaj = vm1
+		vmin = vm2
+		if self.getOption( 'verbose' ):
+	          print 'sigc++ libs: found ver:', ver, ':', l
+                return found
+    if not found:
+      self._found = 0
+      self._data[ 'enabled' ] = 0
+    return found
+
+  def findInclude( self ):
+    # print 'sigc++ findInclude'
+    inst = self._data.get( 'include' )
+    inc = []
+    incf = None
+    # print 'inst:', inst
+    if inst:
+      incf = os.path.join( inst, self._includeFile )
+      # print 'inc:', incf
+      if os.path.exists( incf ):
+        # print 'found'
+	inc.append( inst )
+        self._data[ 'include' ] = inc
+        self._found = 1
+        if self.getOption( 'verbose' ):
+          print self._name + ' include:', inc
+    # sigc++ uses a config.h file in <lib>/sigc++-<ver>/include
+    lib = self._data.get( 'lib' )
+    if lib:
+      inc.append( os.path.join( lib, 'sigc++-' + self._data[ 'version' ], 
+                                'include' ) )
+      self._data[ 'include' ] = inc
+    if not incf:
+      return SystemComponent.findInclude( self )
+
+  def docDir( self ):
+    doc = self._data.get( 'docdir' )
+    if doc:
+      return doc
+    self._localdoc = 0
+    lib = self._data.get( 'lib' )
+    if lib is None:
+      lib = '/usr/lib'
+    share = os.path.join( os.path.dirname( lib ), 'share', 'doc' )
+    dirs = glob.glob( os.path.join( share, 'libsigc*' ) )
+    if len( dirs ) == 1:
+      doc = os.path.join( dirs[0], 'docs' )
+      if not os.path.isdir( doc ):
+        self._localdoc = 0
+      else:
+        self._localdoc = 1
+    elif len( dirs ) == 0:
+      self._localdoc = 0
+    else:
+      ddirs = filter( lambda x: x.find( 'devel-' + self.get( 'version' ) ) \
+                      >= 0, dirs )
+      dirs = filter( lambda x: \
+                     os.path.exists( os.path.join( x, 'docs' ) ),
+                     ddirs + dirs )
+      if len( dirs ) > 0:
+        doc = os.path.join( dirs[0], 'docs' )
+        self._localdoc = 1
+      else:
+        self._localdoc = 0
+    if self._localdoc == 0:
+      # not found locally
+      doc = 'http://libsigc.sourceforge.net/libsigc2/docs'
+    self._data[ 'docdir' ] = doc
+    return doc
+
+  def doxygenDir( self ):
+    doc = self._data.get( 'doxygendir' )
+    if doc:
+      return doc
+    self._localdoxdoc = 0
+    lib = self._data.get( 'lib' )
+    if lib is None:
+      lib = '/usr/lib'
+    share = os.path.join( os.path.dirname( lib ), 'share', 'doc' )
+    dirs = glob.glob( os.path.join( share, 'libsigc*' ) )
+    if len( dirs ) == 1:
+      doc = os.path.join( dirs[0], 'docs', 'reference', 'html' )
+      if not os.path.isdir( doc ):
+        self._localdoxdoc = 0
+      else:
+        self._localdoxdoc = 1
+    elif len( dirs ) == 0:
+      self._localdoxdoc = 0
+    else:
+      ddirs = filter( lambda x: x.find( 'devel-' + self.get( 'version' ) ) \
+                      >= 0, dirs )
+      dirs = filter( lambda x: \
+                     os.path.exists( os.path.join( x, 'docs',
+                                                   'reference', 'html' ) ),
+                     ddirs + dirs )
+      if len( dirs ) > 0:
+        doc = os.path.join( dirs[0], 'docs', 'reference', 'html' )
+        self._localdoxdoc = 1
+      else:
+        self._localdoxdoc = 0
+    if self._localdoxdoc == 0:
+      # not found locally
+      doc = 'http://libsigc.sourceforge.net/libsigc2/docs'
+    self._data[ 'doxygendir' ] = doc
+    return doc
+
+  #def doDoxygen( self ):
+  #  return 1
+
+  def doxygenTagFile( self ):
+    tag = self.get( 'tagfile', None )
+    if tag is None:
+      tag = os.path.join( self.buildDir(), 'share', 'doc',
+                          'libsigc-' + self.get( 'version' ), 'libsigc.tag' )
+      self._data[ 'tagfile' ] = tag
+      if not os.path.exists( tag ):
+        doxdir = self.doxygenDir()
+        if not self._localdoxdoc:
+          # can't use doxytag through the web...
+          return None
+        print 'libsigc++ tagfile', tag, 'does not exist. Rebuilding it...'
+        d = os.path.dirname( tag )
+        if not os.path.exists( d ):
+          os.makedirs( d )
+        cmd = 'doxytag -t ' + tag + ' ' + doxdir
+        print cmd
+        os.system( cmd )
+    return tag
+
+
+#-----------------------------------------------------------------------------
+
+class Libxml2Component( SystemComponent ):
+  _name = 'libxml2'
+  _includeFile = os.path.join( 'libxml2', 'libxml', 'parser.h' )
+  _libFile = 'libxml2' + dllExt
+
+  def _libraries( self ):
+    if systemname == 'darwin':
+      return [ 'xml2', 'iconv' ]
+    return [ 'xml2' ]
+
+  def findInclude( self ):
+    inst = self.buildDir()
+    if inst:
+      search = [ os.path.join( inst, 'include' ) ]
+    else:
+      search = []
+    search += map( lambda x: os.path.join( x, 'include' ), self.searchPath() )
+    # print 'findInclude search path for', self._includeFile, ':', search
+    # sys.stdout.flush()
+    inc = findInPath( None, self._includeFile, None, search )
+    if inc:
+      self._data[ 'include' ] = os.path.join( inc, 'libxml2' )
+      self._found = 1
+    else:
+      if self._includeFileRequired:
+        self._found = 0
+        self._data[ 'enabled' ] = '0'
+      else:
+        self._found = 1
+    if self.getOption( 'verbose' ):
+      print self._name + ' include:', self.get( 'include' )
+
+
+#-----------------------------------------------------------------------------
+
+class BoostComponent( SystemComponent ):
+  _name = 'boost'
+  _includeFile = os.path.join( 'boost', 'config.hpp' )
+  _libFile = None
+
+  def _libraries( self ):
+    return []
+
+
+#-----------------------------------------------------------------------------
+class PythonComponent( Component ):
+  _name = 'python'
+
+  def __init__( self, options ):
+    Component.__init__( self, options )
+    if systemname == 'windows':
+      pythondir = sys.prefix
+    else:
+      for i in sys.path:
+        if os.path.exists( os.path.join( i, 'os.py' ) ) \
+               or os.path.exists( os.path.join( i, 'os.pyc' ) ):
+          pythondir = i
+          break
+    # print 'pythondir: ', pythondir
+    self._pythondir = pythondir
+    self._data[ 'enabled' ] = 1
+    self._found = 1
+    
+    ver = str( sys.version_info[0] ) + '.' + str( sys.version_info[1] )
+    self._data[ 'version' ] = ver
+    pythonInclude = os.path.normpath( os.path.join( pythondir, '..', '..', 
+                                                    'include',
+                                                    'python' + ver ) )
+    if not os.path.exists( pythonInclude ):
+      # maybe windows-like installation
+      pythonInclude = os.path.normpath( os.path.join( pythondir, 'include' ) )
+    if not os.path.exists( pythonInclude ):
+      print 'warning: Python include directory not found'
+    self._data[ 'include' ] = pythonInclude
+    if systemname == 'windows':
+      self._data[ 'lib' ] = os.path.join( pythondir, 'libs' )
+    else:
+      lfile = os.path.join( sys.prefix, 'lib', 'libpython' + ver + dllExt )
+      if os.path.exists( lfile ):
+        self._data[ 'lib' ] = os.path.dirname( lfile )
+      else:
+        self._data[ 'lib' ] = os.path.join( pythondir, 'config' )
+    self._data[ 'site-packages' ] = os.path.join( pythondir, 'site-packages' )
+    if systemname == 'darwin':
+      self._data[ 'libLine' ] = '-framework Python'
+      self._data[ 'libBuildLine' ] = '-framework Python'
+
+  def _libraries( self ):
+    if systemname == 'windows':
+      return [ 'Python' + string.join( self.version().split( '.' )[:2], '' ) ]
+    elif systemname == 'solaris':
+      return [ 'python' + self.version() ]
+    else:
+      return [ 'python' + self.version(), 'util' ]
+
+  def pluginsInstallDir( self ):
+    pid = self._data.get( 'pluginsInstallDir' )
+    if pid:
+      return pid
+    prefix = self.getOption( 'prefix' )
+    if systemname == 'windows':
+      pid = os.path.join( prefix, 'python', 'Lib', 'site-packages' )
+    else:
+      ver = str( sys.version_info[0] ) + '.' + str( sys.version_info[1] )
+      pid = os.path.join( prefix, 'lib', 'python' + ver, 'site-packages' )
+    self._data[ 'pluginsInstallDir' ] = pid
+    return pid
+
+  def package( self ):
+    if 'progs' not in self.getOption( 'pack', [] ):
+      return
+    print 'packaging python'
+    prefix = packageDir()
+    verbose = self.getOption( 'verbose' )
+    pythondir = self._pythondir
+    if systemname == 'windows':
+      dst = os.path.join( prefix, 'lib', 'python' )
+      if not os.path.isdir( dst ):
+        os.makedirs( dst )
+      cp( os.path.join( pythondir, '*' ), dst )
+      copyFile( sys.executable, os.path.join( prefix, 'bin', 'python.exe' ) )
+      # copy pythonxx.dll in windows/system32
+      windir = os.getenv( 'SystemRoot' )
+      if not windir:
+        windir = os.getenv( 'windir' )
+      v = str( sys.version_info[0] ) + str( sys.version_info[1] )
+      cp( os.path.join( windir, 'system32', 'python' + v + '.dll' ),
+          os.path.join( prefix, 'lib' ) )
+      # copy PyWinTypesxx.dll and PythonCOMxx.dll
+      cp( os.path.join( windir, 'system32', 'Py*' + v + '.dll' ),
+          os.path.join( prefix, 'lib' ) )
+      # mingwm10.dll
+      mingw = 'mingwm10.dll'
+      paths = getInstance( SipComponent ).searchPath()
+      mp = findInPath( ldLibraryPath, mingw, None, paths )
+      if mp:
+        cp( os.path.join( mp, mingw ), os.path.join( prefix, 'lib' ) )
+    else:
+      dst = prefix
+      ver = str( sys.version_info[0] ) + '.' + str( sys.version_info[1] )
+      pydir = os.path.join( 'lib', 'python' + ver )
+      if not os.path.isdir( os.path.join( dst, pydir ) ):
+        os.makedirs( os.path.join( dst, pydir ) )
+      # python libs
+      if verbose:
+        print 'pyhton libs are in ', pythondir, ', copied to ', \
+              os.path.join( dst, pydir )
+      ldir = self.libDir()
+      l = 'libpython' + ver + dllExt
+      if ldir and l and os.path.exists( os.path.join( ldir, l ) ):
+        cp( os.path.join( ldir, l + "*" ), os.path.join( dst, 'lib' ),
+            symlinks = True )
+      cp( os.path.join( pythondir, '*' ), os.path.join( dst, pydir ),
+          symlinks=True )
+      pythonInclude = os.path.normpath( os.path.join( pythondir, '..', '..', 
+                                                      'include',
+                                                      'python' + ver ) )
+      if not os.path.exists( pythonInclude ):
+        # maybe windows-like installation
+        pythonInclude = os.path.normpath( os.path.join( pythondir, '..',
+                                          'include' ) )
+      if not os.path.exists( pythonInclude ):
+        print 'warning: Python include directory not found'
+      else:
+        pythonIncludeDest = os.path.join( dst, 'include' )
+        if verbose:
+          print 'pyhton include directory is', pythonInclude, ', copied to', \
+              pythonIncludeDest
+        if not os.path.isdir( pythonIncludeDest ):
+          os.makedirs( pythonIncludeDest )
+        cp( pythonInclude, pythonIncludeDest )
+      # python executable
+      if not os.path.isdir( os.path.join( dst, 'bin' ) ):
+        os.makedirs( os.path.join( dst, 'bin' ) )
+      if os.path.isdir( os.path.join( sys.prefix, 'bin' ) ):
+        exedir = os.path.join( sys.prefix, 'bin' )
+      else:
+        exedir = sys.prefix
+      if systemname == 'windows':
+        dexe = 'python.exe'
+      else:
+        dexe = 'python'
+      otherexe = map( lambda x: os.path.join( exedir, x ), 
+                      [ 'ipython', 'pycolor' ] )
+      exe = os.path.join( exedir, dexe )
+      if verbose:
+        print 'copying python exe'
+      cp( exe, os.path.join( dst, 'bin' ) )
+      for x in otherexe:
+        if os.path.exists( x ):
+          cp( x, os.path.join( dst, 'bin' ) )
+      if dst != prefix:
+        if not os.path.isdir( os.path.join( prefix, 'bin' ) ):
+          os.makedirs( os.path.join( prefix, 'bin' ) )
+        os.chdir( os.path.join( prefix, 'bin' ) )
+        symlink( '../python/bin/*' , '.' )
+        if not os.path.isdir( os.path.join( prefix, 'lib' ) ):
+          os.makedirs( os.path.join( prefix, 'lib' ) )
+          os.chdir( os.path.join( prefix, 'lib' ) )
+          try:
+            symlink( '../python/lib/python*/site-packages/lib*' + dllExt \
+                      + '*' , '.' )
+          except:
+            pass
+      else:
+          os.chdir( os.path.join( prefix, 'lib' ) )
+          try:
+            symlink( 'python*/site-packages/lib*' + dllExt + '*' ,
+                      '.' )
+          except:
+            pass
+      # pymat module / matlab libs
+      pymat = os.path.join( pythondir, 'site-packages', 'pymatmodule.so' )
+      if os.path.exists( pymat ):
+        pymatlibs = lddLibs( pymat )
+        search = map( lambda x: x + dllExt,
+                      ( 'libeng', 'libmx', 'libmat', 'libut' ) )
+        for l, ll in pymatlibs.items():
+          if ll is not None and ( l in search \
+                                  or ll.lower().find( 'matlab' ) >= 0 ):
+            cp( ll, os.path.join( prefix, 'lib' ) )
+      # Mac clickable app
+      if systemname == 'darwin':
+        def macapp( prog ):
+          papp = prog +  '.app'
+          os.mkdir( os.path.join( prefix, 'bin', papp ) )
+          os.mkdir( os.path.join( prefix, 'bin', papp, 'Contents' ) )
+          os.mkdir( os.path.join( prefix, 'bin', papp, 'Contents', 
+                    'MacOS' ) )
+          os.rename( os.path.join( prefix, 'bin', prog ), 
+                      os.path.join( prefix, 'bin', papp, 'Contents', 
+                                    'MacOS', prog ) )
+          os.chdir( os.path.join( prefix, 'bin' ) )
+          os.system( 'ln -s "' + os.path.join( papp, 'Contents', 'MacOS', 
+                                    prog ) + '" "' + prog + '"' )
+          cp( os.path.join( pythondir, '..', '..', prog ), 
+              os.path.join( prefix, 'lib', prog ) )
+        macapp( 'Python' )
+        macapp( 'ipython' )
+      if systemname == 'linux':
+        # try to find old libc++ for matlab module
+        libcpp = 'libstdc++-libc6.1-2.so.3'
+        pathcpp = findInPath( ldLibraryPath, libcpp )
+        if not pathcpp:
+          sources = self.getOption( 'sources' )
+          if sources:
+            libcpp = os.path.join( 'install-main', 'linux', 
+                                    'python_for_brainvisa', 'version-2.0', 
+                                    'pymat', libcpp )
+            pathcpp = findInPath( None, libcpp, None, sources )
+        # print 'pathcpp:', pathcpp
+        if pathcpp:
+          # print 'old libc++:', os.path.join( pathcpp, libcpp )
+          cp( os.path.join( pathcpp, libcpp ),
+              os.path.join( prefix, 'lib' ) )
+
+
+#-----------------------------------------------------------------------------
+class NumpyComponent( SystemComponent ):
+  _name = 'numpy'
+
+  def dependencies( self ):
+    return [ PythonComponent ]
+
+  def _libraries( self ):
+    return []
+
+  def __init__( self, options ):
+    SystemComponent.__init__( self, options )
+    inc = self._data.get( 'include' )
+    if type( inc ) is not types.ListType:
+      if inc is None:
+        inc = [ self.includeDir() ]
+      else:
+        inc = [ inc ]
+      # use numpy
+      try:
+        import numpy.distutils.misc_util
+        self._data[ 'include' ] = inc \
+          + numpy.distutils.misc_util.get_numpy_include_dirs()
+        self._found = 1
+        self._data[ 'enabled' ] = 1
+      except:
+        self._found = 0
+        self._data[ 'enabled' ] = 0
+
+#-----------------------------------------------------------------------------
+class SipComponent( SystemComponent ):
+  _name = 'sip'
+
+  def __init__( self, options ):
+    SystemComponent.__init__( self, options )
+    try:
+      import sipconfig
+    except:
+      self._found = 0
+      self._data[ 'enabled' ] = 0
+      return
+    self._found = 1
+    self._data[ 'enabled' ] = 1
+    sipconf = sipconfig.Configuration()
+    # SIP version
+    version = [int(i) for i in sipconfig.version_to_string(
+                  sipconf.sip_version ).split( '.' )]
+    self._data[ 'version' ] = version
+    # SIP include path
+    sipinclude = sipconf.default_sip_dir
+    self._data[ 'sipinclude' ] = [ '-I',  sipinclude ]
+    # print 'SIP include:', sipinclude
+    #py = getInstance( PythonComponent )
+    self._data[ 'lib' ] = sipconf.sip_mod_dir # py._data[ 'site-packages' ]
+
+  def _libraries( self ):
+    if not self._found:
+      return []
+    if self.version()[0] < 4:
+      return [ 'sip' ]
+    return []
+
+  def dependencies( self ):
+    return [ PythonComponent, QtComponent ]
+
+  def sipinclude( component ):
+    if hasattr( component, 'sipinclude_done' ):
+      component.sipinclude_done = 1
+      return component.get( 'sipinclude', [] )
+    component.sipinclude_done = 1
+    i = []
+    deps = component.cleanDependencies()
+    for c in deps:
+      comp = getInstance( c )
+      i += SipComponent.sipinclude( comp )
+    i += component.get( 'sipinclude', [] )
+    return i
+
+  sipinclude = staticmethod( sipinclude )
+
+#-----------------------------------------------------------------------------
+class PyQtComponent( SystemComponent ):
+  _name = 'pyqt'
+
+  def __init__( self, options ):
+    SystemComponent.__init__( self, options )
+    try:
+      import pyqtconfig
+    except:
+      self._found = 0
+      self._data[ 'enabled' ] = 0
+      print 'pyqt component disabled'
+      return
+    self._found = 1
+    self._data[ 'enabled' ] = 1
+    conf = pyqtconfig.Configuration()
+    # SIP include path
+    sipinclude = [ '-I', conf.pyqt_sip_dir ]
+    if sipinclude:
+      sipinclude += [ '-I', os.path.join( sipinclude[1], 'qtui' ) ]
+      # Some sip versions do not support %Import qt/... in sip file.
+      # Therefore, I added qt path
+      sipinclude += [ '-I', os.path.join( sipinclude[1], 'qt' ) ]
+    self._data[ 'sipinclude' ] = sipinclude
+    self._data[ 'lib' ] = conf.pyqt_mod_dir
+
+  def _libraries( self ):
+    if not self._found:
+      return
+    if getInstance( SipComponent ).version()[0] >= 4:
+      return []
+    else:
+      return [ 'qtcmodule' ]
+
+  def dependencies( self ):
+    return [ SipComponent ]
+
+
+#-----------------------------------------------------------------------------
+class UnuranComponent( SystemComponent ):
+  _name = 'unuran'
+  _includeFile = 'unuran.h'
+  _libFile = 'libunuran'
+
+
+#-----------------------------------------------------------------------------
+class PrngComponent( SystemComponent ):
+  _name = 'prng'
+  _includeFile = 'prng.h'
+  _libFile = 'libprng'
+
+
+#-----------------------------------------------------------------------------
+class FortranComponent( SystemComponent ):
+  _name = 'fortran'
+  _libFile = 'gfortran'
+
+  def __init__( self, options ):
+    Component.__init__( self, options )
+
+    if not self._found:
+      totry = ( 'libgfortran', 'libgfortran.so.', 'libg2c', 'libg2c.so.' )
+      for l in totry:
+        self._libFile = l
+        self.findLib()
+        if self._found:
+          break
+    if not self._found:
+      return
+    if self._libFile.startswith( 'lib' ):
+      self._libFile = self._libFile[ 3: ]
+    index = self._libFile.find( '.so.' )
+    if index > 0:
+      self._libFile = self._libFile[ :index ]
+
+    comp = ( 'gfortran', 'f77', 'g77' )
+    for c in comp:
+      source = distutils.spawn.find_executable( c )
+      if source:
+        break
+    if not source:
+      self._found = 0
+      self._data[ 'enabled' ] = 0
+    else:
+      self._found = 1
+      self._data[ 'enabled' ] = 1
+
+  def _libraries( self ):
+    return [ self._libFile ]
+
+
+#-----------------------------------------------------------------------------
+
+def makeDocbookDocs( comps ):
+  docomps = []
+  xmldir = None
+  for comp in comps:
+    comp = getInstance( comp )
+    if comp._name == 'xmldocumentation':
+      xmldir = comp.sourceDir()
+    if comp not in docomps:
+      docomps.append( comp )
+    for y in comp.cleanDependencies():
+      y = getInstance( y )
+      if y._name == 'xmldocumentation':
+        xmldir = y.sourceDir()
+      if y not in docomps:
+        docomps.append( y )
+  comps = filter( lambda y: y.getOption( 'doc' ) \
+                  and int( y.getOption( 'doc' ) ) != 0, 
+                  docomps )
+  if len( comps ) == 0:
+    return
+  try:
+    import buildDoc
+  except:
+    print 'BuildDoc module cannot be imported. Docbook docs will not be '
+    'generated.'
+    return
+  try:
+    comps = filter( lambda x: isinstance( x, GenericMakerComponent ), comps )
+    if len( comps ) == 0:
+      return # nothing to do
+    builddir = comps[0].buildDir()
+    if not xmldir:
+      xmldir = os.getenv( 'DOC' )
+    if xmldir:
+      xml = os.path.join( xmldir, 'project' )
+      comps = filter( lambda x: x.docbookProjects() and \
+                        os.path.isdir( os.path.join( xml, 
+                          x.docbookProjects().keys()[0] ) ), comps )
+    else:
+      print 'DOC environment variable not set. DocBook documentation will ' \
+            'not be generated'
+      return
+    projs = {}
+    for x in comps:
+      projs.update( x.docbookProjects() )
+    for g in ( '', None ):
+      if g in projs:
+        del projs[ g ]
+    if len( projs ) == 0:
+      return # nothing to do
+    print 'building docbook docs for components:', projs.keys()
+    output = os.path.join( builddir, 'share', 'doc' )
+    if not os.path.isdir( output ):
+      os.makedirs( output )
+    os.environ[ 'DOC' ] = xmldir
+    # old style
+    ver = None
+    for x,y in projs.items():
+      ver = y.get( 'version' )
+      if ver:
+        break
+    args = [ '-f', 'html', '-l', 'all', '-o', output, '-c', '--verbose', '-m',
+             'a', '-p', string.join( projs.keys(), ',' ), '--total', '--id' ]
+    if ver:
+      args += [ '--doc_ver', ver ]
+    print 'buildDoc.py', string.join( args )
+    buildDoc.main( *args )
+    # new style (not available yet)
+    # buildDoc.buildDoc( projects=projs, output=output, format='html',
+    #   mode='all', lang='all' )
+    # buildDoc.buildDoc( projects=projs, output=output, format='pdf',
+    #   mode='all', lang='all' )
+  except RuntimeError, e:
+    print e
+  except:
+    traceback.print_exc()
+
+#-----------------------------------------------------------------------------
+# Import personal components
+def importPerso():
+  homedir = os.getenv( 'HOME' )
+  if not homedir:
+    homedir = os.getenv( 'HOMEPATH' )
+    if not homedir:
+      return
+    homedir = os.getenv( 'HOMEDRIVE', '' ) + homedir
+  bdir = os.path.join( homedir, '.build-config' )
+  if os.path.isdir( bdir ):
+    configs = os.listdir( bdir )
+    for f in configs:
+      pf = os.path.join( bdir, f )
+      if f[len(f)-1] != '%' and f[len(f)-1] != '~' and f[len(f)-4:] != '.bak' \
+             and f[len(f)-4:] != '.bck' and os.path.isfile( pf ):
+        try:
+          execfile( pf, globals(), globals() )
+          print pf, 'imported'
+        except Exception, e:
+          print 'could not import', pf
+          print e
+
+
+importPerso()
+
+
+#-----------------------------------------------------------------------------
+# install scripts
+
+def makeInstallScripts( prefix, version ):
+  if not os.path.isdir( prefix ):
+    os.makedirs( prefix )
+  # Create main shell script
+  baseName = os.path.basename( prefix )
+  dllvar = 'LD_LIBRARY_PATH'
+  if systemname == 'darwin':
+    dllvar = 'DYLD_LIBRARY_PATH'
+  elif systemname == 'windows':
+    dllvar = 'PATH'
+  if systemname != 'windows':
+    package = os.path.join( prefix, 'setup.sh' )
+    pckFile = open( package, 'w' )
+    pckFile.write( '''#! /bin/sh
+
+splitPath() {
+  echo "$@" |  awk '{ x=split($0,l,":"); for (n=1;n<=x;n=n+1) print l[n]; }'
+}
+
+findInPath() {
+  path="$1"
+  name="$2"
+  paths=`splitPath $path`
+  for p in $paths; do
+    file=$p'/'$name
+    if [ -f $file ]; then
+      printf $file
+      return 0
+    fi
+  done
+}
+
+self=$0
+''' )
+
+    if systemname == 'darwin':
+      pckFile.write( '''x=`dirname $self`
+if [ `basename "$x"` = 'MacOS' ]; then
+  self=`dirname "$x"`
+  self=`dirname "$self"`
+  self=`dirname "$self"`/setup.sh
+fi
+''' )
+
+    pckFile.write( '''p=$PATH:`dirname $self`
+n=`basename $self`
+prefix=`findInPath $p $n`
+prefix=`dirname $prefix`
+cd $prefix
+prefix=`pwd`
+PYTHONHOME="$prefix"
+export PYTHONHOME
+''' + dllvar + '''="$prefix/lib"
+export ''' + dllvar + '\n\n' )
+    if systemname == 'darwin':
+      pckFile.write( 'exec "$prefix/bin/Python.app/Contents/MacOS/Python" ' \
+                     '"$prefix/build-configSubInstall.py" "$@"\n' )
+    else:
+      pckFile.write( 'exec "$prefix/bin/python" "$prefix/build-configSubInstall.py" "$@"\n' )
+
+    pckFile.close()
+    os.chmod( package, 0755 )
+    if systemname == 'darwin':
+      os.mkdir( os.path.join( prefix, 'setup.app' ) )
+      os.mkdir( os.path.join( prefix, 'setup.app', 'Contents' ) )
+      os.mkdir( os.path.join( prefix, 'setup.app', 'Contents', 'MacOS' ) )
+      os.symlink( '../../../setup.sh', 
+                  os.path.join( prefix, 'setup.app', 'Contents', 'MacOS', 
+                  'setup' ) )
+
+  else:	# windows
+    package = os.path.join( prefix, 'setup.c' )
+    pckFile = open( package, 'w' )
+    pckFile.write( '''#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int main( int argc, char** argv )
+{
+  char		*progname, *dir, *python, *setup;
+  size_t	len;
+  int		i;
+  char		s;
+#ifdef _WIN32
+  char		*path, *oldpath, *absdir;
+#endif
+
+#ifdef _WIN32
+  s = '\\\\';
+#else
+  s = '/';
+#endif
+  progname = argv[0];
+  len = strlen( progname );
+  for( i=(int)len-1; i>=0; --i )
+    if( progname[i] == '/' || progname[i] == '\\\\' )
+      break;
+  dir = strdup( progname );
+  if( i < 0 )
+    i = 0;
+  dir[i] = '\\0';
+  if( i == 0 )
+    sprintf( dir, "." );
+  python = (char *) malloc( strlen( dir ) + 100 );
+#ifdef _WIN32
+  strcpy( python, ".\\\\lib\\\\python\\\\python.exe" );
+#else
+  sprintf( python, "\\"%s%cbin%cpython\\"", dir, s, s );
+#endif
+  setup = (char *) malloc( strlen( dir ) + 50 );
+  sprintf( setup, "\\"%s%cbuild-configSubInstall.py\\"", dir, s );
+
+#ifdef _WIN32
+  /* on windows we must provide access to python.dll */
+  chdir( dir );
+  oldpath = getenv( "PATH" );
+  absdir = malloc( 4000 );
+  getcwd( absdir, 3999 );
+  if( oldpath )
+    {
+      path = malloc( strlen( oldpath ) + strlen( absdir ) + 100 );
+      sprintf( path, "PATH=%s\\\\lib;%s", absdir, oldpath );
+    }
+  else
+    {
+      path = malloc( strlen( absdir ) + 100 );
+      sprintf( path, "PATH=%s\\\\lib", absdir );
+    }
+  putenv( path );
+#endif
+
+  sprintf( python, "%s %s", python, setup );
+  system( python );
+
+#ifdef _WIN32
+  free( path );
+  free( absdir );
+#endif
+  free( setup );
+  free( python );
+  free( dir );
+}
+''' )
+
+    pckFile.close()
+    os.system( 'gcc -o ' + os.path.join( prefix, 'setup' ) + ' ' + package )
+    os.unlink( package )
+
+  # copy python setup script
+  script = os.path.join( myPath, 'build-configSubInstall.py' )
+  outscript = os.path.join( prefix, 'build-configSubInstall.py' )
+  if os.path.exists( outscript ):
+    os.chmod( outscript, 0777 )
+    os.unlink( outscript )
+  shutil.copy( script, outscript )
+
+  setuptype = '.sh'
+  if systemname == 'windows':
+    setuptype = ''
+  readme = os.path.join( prefix, "README" )
+  rdme = open( readme, 'w' )
+  rdme.write( '''                            BRAINVISA / ANATOMIST
+                            INSTALL INSTRUCTIONS
+
+Pack Version : ''' + version + '''
+Release date : ''' + time.strftime( '%Y_%m_%d', time.localtime() ) + '\n\n\n' )
+  if systemname == 'windows':
+    rdme.write( '''####################
+# INSTALLATION
+
+1) uncompress the ZIP archive wherever you want to install the package
+
+2) run the "setup.exe" program in the main directory, by double-clicking it in
+   the file manager.
+
+   If you are using Windows XP (or maybe NT) and the system asks if you
+   want to run the setup program on your personal account or as administrator,
+   answer your personal account.
+
+3) The file ''' + baseName + '''.zip is not longer needed (except
+if you want to reinstall), and can be deleted.
+
+
+#####################
+# RUNNING
+
+The package consists of two main programs, anatomist and brainvisa, and a suite
+of utility programs. All are located in the 'bin' directory of the package.
+
+1. To start brainvisa or anatomist, double-click on "brainvisa.bat" or
+   "anatomist.bat" program in the 'bin' directory of the package.
+   (You can run the programs from a cmd shell if you like)
+
+~/''' + baseName + '''/bin/anatomist
+
+(or create symbolic links to 'anatomist' and 'brainvisa' in a directory listed 
+in your path (maybe /home/yourlogin/bin)
+
+2. To use the other commands (Aims*.exe, Vip*.exe, si*.exe etc), you must
+   first set some environment variables. This is done by a small script:
+   cartopack.bat
+   For instance if you installed the SHFJ package in C:\\''' + \
+baseName + ''', you can run from a cmd shell:
+
+   C:\\''' + baseName + '''\\bin\\cartopack.bat
+
+   Then all programs will be available from this command shell: simply
+   type:
+   
+   anatomist
+
+   or:
+
+   AimsFileInfo --help
+
+   If you often launch anatomist, you can perhaps call the small script from
+   the AUTOEXEC.BAT script of your system by adding the following line at
+   the end of it:
+
+   call C:\\''' + baseName + '''\\bin\\cartopack.bat
+
+   (to be honest, I must confess that I\'m not sure AUTOEXEC.BAT is executed
+   on NT/XP systems)
+
+
+########################
+# UNINSTALLING
+
+To delete brainvisa from your system, just remove the whole
+brainvisa directory. Nothing has been installed elsewhere except the 
+user config files (no DLLs in windows directories, no registers modified).
+
+
+########################
+# PROBLEMS OR QUESTIONS
+
+
+Visit http://www.anatomist.info or http://www.brainvisa.info web sites.
+
+''')
+
+  else:	# unix
+    rdme.write( '''####################
+# INSTALLATION
+
+1) cd to the directory where to install the top directory of
+   the BrainVISA package, e.g.:
+
+  cd /home/yourlogin
+
+  (or maybe 'cd /usr/local' if you are root)
+
+
+2) uncompress the archive file:
+
+  gunzip -c ''' + baseName + '''.tar.gz | tar xf -
+
+3) Optionally, change the main direcory name, e.g:
+
+  mv ''' + baseName + ''' brainvisa
+
+4) run the setup script:
+
+  ./brainvisa/setup''' + setuptype + '''
+  or:
+  ./''' + baseName + '''/setup''' + setuptype + '''
+
+5) The file ''' + baseName + '''.tar.gz is not longer needed (except
+if you want to reinstall), and can be deleted.
+
+
+#####################
+# RUNNING
+
+The package consists of two main programs, anatomist and brainvisa, and a suite
+of utility programs. All are located in the 'bin' directory of the package.
+
+It is *not recommended* to permanently add this directory to your path,
+because this can create conflicts with other programs on your system (e.g.
+python). We suggest two possibilities.
+
+
+1. To start a program, type the full path along with the name of the program, e.g.:
+
+~/''' + baseName + '''/bin/anatomist
+
+(or create symbolic links to 'anatomist' and 'brainvisa' in a directory listed 
+in your path (maybe /home/yourlogin/bin)
+
+2. If you often launch anatomist, brainvisa or the accompanying programs.
+you can run a small shell script that modifies the paths and other shell
+variables before each working session. Depending on your shell (bash,
+csh...; use 'echo $SHELL' to determine which shell is running),
+you need to run:
+
+
+for sh or bash:
+  . ./''' + baseName + '''/bin/cartopack.sh
+
+for csh or tcsh:
+
+  source ./''' + baseName + '''/bin/cartopack.csh
+
+
+To avoid typing this long line, Bash users may add the following four
+ lines to the '~/.bashrc' file:
+
+function brainvisa_setup
+{
+ . ~/''' + baseName + '''/bin/cartopack.sh
+}
+
+Then typing 'brainvisa_setup' (completion works) will initialize the
+variables and allow you to use the various commands from any place.
+
+
+########################
+# UNINSTALLING
+
+To delete brainvisa from your system, just remove the whole
+brainvisa directory (with 'rm -rf ''' + baseName + '''')
+
+
+########################
+# PROBLEMS OR QUESTIONS
+
+
+Visit http://www.anatomist.info or http://www.brainvisa.info web sites.
+
+''')
+
+  rdme.close()
+
+
+def componentsAndDependencies( comps, cdeps=[], done=[] ):
+  for c in comps:
+    c = getInstance( c )
+    if c not in done:
+      done.append( c )
+      for x in c.cleanDependencies():
+        x = getInstance( x )
+        if x not in cdeps:
+          y = componentsAndDependencies( [ x ], cdeps, done )
+          for z in y:
+            if z not in cdeps:
+              cdeps.insert( 0, z )
+      cdeps.append( c )
+  return cdeps
+
+
+#-----------------------------------------------------------------------------
+# BEGINNING OF MAIN PROG
+
+#-----------------------------------------------------------------------------
+# Build non generic component dictionary: name --> component class
+components = {}
+instances = {}
+for component in filter( lambda x: inspect.isclass( x ) and issubclass( x, Component ) and hasattr( x, '_name' ), globals().values() ):
+  components[ component._name ] = component
+components[ 'GenericMakerComponent' ] = GenericMakerComponent
+
+
+#-----------------------------------------------------------------------------
+# Retrieve and merge options from all components
+globalOptions = {
+  'sources': ( types.StringType, 'components directory search list\n' \
+  	'                        [default: $BUILDCONFIG_SOURCES or <current_directory>:$P4]' ),
+  'configure': ( None, 'configure components [default: yes]' ),
+  'build': ( None, 'build components [default: yes]' ),
+  'verbose': ( None, 'show as much information as possible' ),
+  'help': ( None, 'show help message' ),
+  'system': ( types.StringType, 'fake system name' ),
+  'doc': ( None, 'configure/build documentations (XML/docbook, doxygen or epydoc API ' \
+           'documentations)'),
+  'symlinks': ( None,
+                'Make symbolic links instead of copying files from the sources ' \
+                'directories to the build directory (e.g. for *.h or *.py files)\n'
+                '(default: on)' ),
+  'pack': ( types.ListType, 'build a package with selected elements ' \
+            '[default: none]. Possible elements may be one or more ' \
+            'coma-separated identifiers (with no space) amongst: progs, ' \
+            'includes, userdoc, progdoc, private, and possibly some ' \
+            'component-specific elements' ),
+  'tar': ( None, 'tar/zip the package [default: yes]' ),
+  'packversion': ( types.StringType, 
+                   'version to assign to a package [default: date]' ),
+  'packname': ( types.StringType, 
+                'basename  to assign to a package [default: SHFJ_pack]' ),
+  'packdir': ( types.StringType, 
+              'package directory [default: current directory]' ),
+  'x11': ( None, 'use X11 (Mac and Windows only)' ),
+  'shfj': ( None, 'build a SHFJ-specific package [default: no]' ),
+}
+allOptions = globalOptions.copy()
+for component in components.values():
+  componentOptions = getattr( component, 'optionsDescription', Component.optionsDescription )
+  for name, ( valueType, description ) in componentOptions.items():
+    oldType, oldDescription = allOptions.setdefault( name, ( valueType, description ) )
+    if oldType is not valueType:
+      raise TypeError( 'type of option "' + name + '" has been defined as "' + str( oldType ) + '" and redefined as "' + str( valueType ) + '" in ' + component.__name__ )
+
+#-----------------------------------------------------------------------------
+# Parameters
+componentsToBuild = []
+externalComponents = []
+componentsWithDeps = []
+
+#-----------------------------------------------------------------------------
+# Parse command line options
+def defX11():
+  if systemname in ( 'darwin', 'windows' ):
+    return 0
+  return 1
+
+argv = sys.argv[ 1: ]
+options = {}
+options[ None ] = Component._globalOptions
+dependencies = []
+currentComponent = None
+currentOptions = allOptions
+storedCurrentComponent = None
+sources = os.environ.get( 'BUILDCONFIG_SOURCES' )
+if sources:
+  sources = sources.split( os.pathsep )
+else:
+  sources = [ os.getcwd() ]
+  P4 = os.environ.get( 'P4' )
+  if P4:
+    sources.append( P4 )
+sources = os.pathsep.join( [os.path.abspath(x) for x in sources] )
+options[ None ].update( { # None = options for all components
+  'sources': sources,
+  'buildDir': None,
+  'configure': 1,
+  'build': 1,
+  'help': 0,
+  'verbose': 0,
+  'pack': [],
+  'packversion' : None, 
+  'packname' : None, 
+  'packdir': None, 
+  'x11': defX11(), 
+  'tar': 1,
+  'doc': 0,
+  'symlinks': 1,
+} )
+while argv:
+  arg = argv.pop( 0 )
+  if arg == '-h': arg = '--help'
+  recognized = 0
+  for name, ( valueType, description ) in currentOptions.items():
+    if valueType is None:
+      # Try to match a boolean option
+      if arg in ( '--' + name, '--with-' + name, '--enable-' + name ):
+        recognized = 1
+        options[ currentComponent ][ name ] = 1
+      elif arg in ( '--no-' + name, '--without-' + name, '--disable-' + name ):
+        recognized = 1
+        options[ currentComponent ][ name ] = 0
+    elif valueType is types.StringType:
+      # Try to match a string option
+      if arg == '--' + name:
+        recognized = 1
+        if argv:
+          options[ currentComponent ][ name ] = argv.pop( 0 )
+        else:
+          raise ValueError( 'Missing value for option ' + arg )
+    elif valueType is types.IntType:
+      # Try to match an int option
+      if arg == '--' + name:
+        recognized = 1
+        if argv:
+          options[ currentComponent ][ name ] = int( argv.pop( 0 ) )
+        else:
+          raise ValueError( 'Missing value for option ' + arg )
+    elif valueType is types.ListType:
+      # Try to match a list of string option
+      if arg == '--' + name:
+        recognized = 1
+        if argv:
+          options[ currentComponent ][ name ] = string.split( argv.pop( 0 ),
+                                                              ',' )
+        else:
+          raise ValueError( 'Missing value for option ' + arg )
+    else:
+      # No other option type recognize right now
+      raise TypeError( 'Option type "' + str( valueType ) \
+                       + '" not implemented' )
+  if not recognized:
+    # Look for a new current component
+    component = components.get( arg )
+    if component is not None:
+      currentOptions = component.optionsDescription
+      component = component._name
+    elif arg[0] != '-':
+      # print 'external component', arg
+      externalComponents.append( arg )
+      component = arg
+      currentOptions = {}
+    if component is not None:
+      currentComponent = component
+      if options.get( currentComponent ) is None:
+        options[ currentComponent ] = {}
+      options.setdefault( currentComponent, {} )
+      componentsToBuild.append( currentComponent )
+    else:
+      if currentComponent is None:
+        raise ValueError( 'Invalid option: ' + arg )
+      #storedCurrentComponent = currentComponent
+      #currentComponent = None
+      #currentOptions = allOptions
+      # argv.insert( 0, arg )
+      recognized = 1
+      if argv:
+        name = arg
+        if name[0] == '-':
+          name = name[ 1: ]
+          if name[0] == '-':
+            name = name[ 1: ]
+        options[ currentComponent ][ name ] = argv.pop( 0 )
+      else:
+        raise ValueError( 'Missing value for option ' + arg )
+  #else:
+  #  raise 'deprecated code'
+  #  if storedCurrentComponent is not None:
+  #    currentComponent = storedCurrentComponent
+  #    if options.get( currentComponent ) is None:
+  #      options[ currentComponent ] = {}
+  #    currentOptions = options[ currentComponent ] #currentComponent.optionsDescription
+
+#-----------------------------------------------------------------------------
+# Show help message
+if options[ None ][ 'help' ]:
+  commandName = os.path.basename( sys.argv[0] )
+  print commandName + ' version', buildconfigVersion, '(C) CEA 2003-2006'
+  print 'usage:', commandName, '[global-options] [all-components-options]\n       component [component-options] [component [component-options] ...]'
+  print 'global options:'
+  for name, ( valueType, description ) in globalOptions.items():
+    if valueType is None:
+      option = '--' + name
+      whitespace = 24 - 2 - len(option)
+      if whitespace > 0:
+        tab = ' ' * whitespace
+        print '  ' + option + tab + description
+      else:
+        whitespace = 24
+        tab = '\n' + ' ' * whitespace
+        print '  ' + option + tab + description
+    else:
+      option = '--' + name + ' <' + valueType.__name__ + '>'
+      whitespace = 24 - 2 - len(option)
+      if whitespace > 0:
+        tab = ' ' * whitespace
+        print '  ' + option + tab + description
+      else:
+        whitespace = 24
+        tab = '\n' + ' ' * whitespace
+        print '  ' + option + tab + description
+  for component in components.values():
+    print '"' + component._name + '" options:'
+    componentOptions = getattr( component, 'optionsDescription', Component.optionsDescription )
+    for name, ( valueType, description ) in componentOptions.items():
+      whitespace = 8 - len(name)
+      if valueType is None:
+        option = '--with[out]-' + name
+        whitespace = 24 - 2 - len(option)
+	if whitespace > 0:
+          tab = ' ' * whitespace
+          print '  ' + option + tab + description
+	else:
+	  whitespace = 24
+          tab = '\n' + ' ' * whitespace
+          print '  ' + option + tab + description
+      else:
+        option = '--' + name + ' <' + valueType.__name__ + '>'
+        whitespace = 24 - 2 - len(option)
+	if whitespace > 0:
+          tab = ' ' * whitespace
+          print '  ' + option + tab + description
+	else:
+	  whitespace = 18
+          tab = '\n' + ' ' * whitespace
+          print '  ' + option + tab + description
+
+fakesys = options[None].get('system')
+if fakesys:
+  systemname = fakesys
+
+# finish setup default parameters
+x11 = options[ None ][ 'x11' ]
+
+
+#-----------------------------------------------------------------------------
+# Temporary warning during renaming of cartograph to soma
+cartograph=False
+soma=False
+for n in options[ None ][ 'sources' ].split( ':' ):
+  if os.path.isdir( os.path.join( n, 'soma-main' ) ):
+    soma = True
+  if os.path.isdir( os.path.join( n, 'cartograph-main' ) ):
+    cartograph = True
+if cartograph and not soma:
+  print '''
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!                   W A R N I N G                        !!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!                                                        !!
+  !! The cartograph project has been renamed to soma.       !!
+  !! As a consequence, the Perforce project cartograph-main !!
+  !! is now soma-main and its namespace is soma instead of  !!
+  !! carto.                                                 !!
+  !!                                                        !!
+  !! Therefore, you must change your Perforce client to     !!
+  !! replace cartograph by soma. If you have Python code    !!
+  !! that uses modules from cartograph, you must change     !!
+  !! "import carto.*" into "import soma.*".                 !!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+'''
+
+#-----------------------------------------------------------------------------
+buildDir = options[ None ][ 'buildDir' ]
+if not buildDir:
+  sysname = systemname
+  if platform.machine() == 'x86_64':
+    sysname = systemname + '-x86_64'
+  buildDir = os.path.join( os.environ.get( 'P4', os.getcwd() ),
+    'build-' + options[ None ].get( 'version', 'main' ) + '-' + sysname + '-' + \
+               options[ None ].get( 'buildMode', 'default' ) )
+  options[ None ][ 'buildDir' ] = buildDir
+if not os.path.exists( buildDir ):
+  os.mkdir( buildDir )
+
+#-----------------------------------------------------------------------------
+verbose = options[ None ].get( 'verbose' )
+if verbose:
+  print 'build-config:'
+  print 'components to build:', componentsToBuild
+  print 'options:', options
+  
+#-----------------------------------------------------------------------------
+# Build components instances
+Component._globalOptions.update( options[ None ] )
+if verbose:
+  print 'buildInstances'
+buildInstances( componentsToBuild )
+componentsWithDeps = componentsAndDependencies( componentsToBuild )
+
+#-----------------------------------------------------------------------------
+# Change components versions
+if verbose:
+  print 'changeVersion.'
+for instance in instances.values():
+  instance.changeVersionWithDependencies( instances )
+
+#-----------------------------------------------------------------------------
+# Configure components
+if verbose:
+  print 'configure.'
+for comp in componentsToBuild:
+  instance = instances[componentName(comp)]
+  b = int( instance.getOption( 'configure', 0 ) )
+  if b:
+    instance.configureWithDependencies( instances )
+
+#-----------------------------------------------------------------------------
+# setup libraries / python path
+lp = os.environ.get( ldLibraryPath )
+if not lp:
+  lp = []
+else:
+  lp = lp.split( os.pathsep )
+pp = os.environ.get( 'PYTHONPATH' )
+if not pp:
+  pp = []
+else:
+  pp = pp.split( os.pathsep )
+for comp in componentsWithDeps:
+  lib = comp.get( 'lib' )
+  if lib:
+    if lib not in lp:
+      lp.append( lib )
+  ppth = os.path.join( comp.buildDir(), 'python' )
+  if ppth not in pp:
+    pp.append( ppth )
+if lp:
+  os.environ[ ldLibraryPath ] = string.join( lp, os.pathsep )
+#print os.environ[ ldLibraryPath ]
+if pp:
+  os.environ[ 'PYTHONPATH' ] = string.join( pp, os.pathsep )
+
+#-----------------------------------------------------------------------------
+# Build components
+if verbose:
+  print 'build.'
+#if options[ None ][ 'build' ]:
+for comp in componentsToBuild:
+  instance = instances[componentName(comp)]
+  b = instance.getOption( 'build' )
+  if b and int(b):
+    instance.buildWithDependencies( instances )
+
+#-----------------------------------------------------------------------------
+# Build components docs
+if verbose:
+  print 'build docs.'
+for comp in componentsWithDeps:
+  b = int( comp.getOption( 'doc', 0 ) )
+  if b:
+    comp.makeDocumentation()
+makeDocbookDocs( componentsWithDeps )
+
+#-----------------------------------------------------------------------------
+def packageDir():
+  return os.path.abspath( os.path.join( options[ None ][ 'packdir' ],
+                                        options[ None ][ 'packname' ] + '-' \
+                                        + options[ None ][ 'packversion' ] ) )
+
+#-----------------------------------------------------------------------------
+# Build a binary package
+pack = False
+for comp in componentsWithDeps:
+  x = comp.getOption( 'pack' )
+  if type( x ) is types.StringType:
+    # ugly hack...
+    comp.options()[ 'pack' ] = x.split( ',' )
+  if x:
+    pack = True
+if pack:
+  if verbose:
+    print 'pack.'
+  # may need also some system libraries and programs:
+  addcomp = []
+  if systemname == 'linux':
+    addcomp.append( SSLComponent )
+  if systemname not in ( 'windows', 'darwin' ):
+    addcomp.append( StdCppComponent )
+  for x in addcomp:
+    if x not in componentsToBuild:
+      componentsToBuild.append( x )
+  if not options[ None  ].get( 'packname' ):
+    sysn = systemname
+    if sysn == 'windows':
+      sysn = 'win32'
+    elif sysn == 'darwin':
+      sysn = 'macos-' \
+        + string.join( platform.mac_ver()[0].split( '.' )[:2], '.' )
+    options[ None ][ 'packname' ] = 'cartopack-' + sysn
+  if not options[ None  ].get( 'packversion' ):
+    buildVersion = options[ None ].get( 'version' )
+    if buildVersion is None:
+      buildVersion = 'main'
+    options[ None  ][ 'packversion' ] = \
+      buildVersion + '-' + time.strftime( '%Y_%m_%d', time.localtime() )
+  if options[ None ].get( 'shfj' ):
+    options[ None  ][ 'packversion' ] += 'shfj'
+  if options[ None ][ 'packdir' ] is None:
+    options[ None ][ 'packdir' ] = os.getcwd()
+  
+  prefix = packageDir()
+  version = options[ None ][ 'packversion' ]
+  
+  componentspack = componentsAndDependencies( componentsToBuild )
+  for comp in componentspack:
+    if comp.getOption( 'pack', [] ):
+      comp.package()
+  makeInstallScripts( prefix, version )
+  shutil.copyfile( os.path.join( prefix, 'README' ), prefix + '.README' )
+  for comp in componentspack:
+    if comp.getOption( 'pack', [] ):
+      comp.postPackAction()
+
+  # zip / targz the package
+  if options[ None ][ 'tar' ]:
+    print 'compressing package', prefix, '...'
+    sys.stdout.flush()
+    os.chdir( os.path.dirname( prefix ) )
+    pf = os.path.basename( prefix )
+    if systemname != 'windows':
+      tar = 'tar'
+      if systemname == 'darwin':
+         tar = '/usr/bin/tar'
+      cmd = tar + ' -cf - ' + pf + ' | gzip -9 > ' + prefix + '.tar.gz'
+      print cmd
+      os.system( cmd )
+    else:
+      import zipfile
+      zf = zipfile.ZipFile( prefix + '.zip', 'w', zipfile.ZIP_DEFLATED )
+      def _store( zf, file ):
+        if os.path.isdir( file ):
+          files = os.listdir( file )
+          for f in files:
+            _store( zf, os.path.join( file, f ) )
+        else:
+          print 'zipping', file
+          zf.write( file )
+      _store( zf, pf )
+      zf.close()
+    # Remove compressed directory
+    rm( prefix )

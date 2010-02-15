@@ -1,0 +1,37 @@
+TODO :
+
+* Levels editor
+  - minor improvements in levels editor, like stipple drawing, undo 
+    modifications...
+
+* Finish the network interface:
+  - allow transmission of the whole level to play
+  - allow incoming connections / new players during game
+  - still some bugs I think...
+
+* Finish the missing game elements
+
+* Make some game parameters more flexible: for instance allow explosions or 
+  blob transformation patterns of variable size (it's always 3x3 now).
+
+* Rework graphics
+  - modify old Atari's images to the higher resolution used now, use more 
+    colors
+  - add intermediate animations
+
+* Rework sounds
+
+* Finish porting to windows:
+  - sound
+  - fix little timing problem (maybe due to Qt ?)
+
+
+BUGS :
+
+* Bombs delaying doesn't work exactly like in the original Atari ST version, 
+  so many "bonus life" levels with precise timing tweakings don't work anymore
+
+* (Windows only): the new raw format has some problems...
+
+* (Windows only): timing is not precise at all, so the game is slow (under w98 
+  at least). I think it's a problem with timers in windows9x used by Qt

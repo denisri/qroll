@@ -1,0 +1,25 @@
+
+class QRollComponent( GenericMakerComponent ):
+  _name = 'qroll'
+
+  def postInit( self ):
+    if not self._initialized:
+      GenericMakerComponent.postInit( self )
+      # Define substitution variables
+      defines = self.get( 'defines' )
+      if not defines:
+        defines = []
+      if not weakDependency( GLUComponent, self ):
+        defines.append( 'RR_NO_OPENGL' )
+      if os.path.exists( '/usr/include/sys/soundcard.h' ) \
+        or os.path.exists( '/usr/include/sys/audioio.h' ):
+        defines.append( 'RR_DSP' )
+      self._data[ 'defines' ] = defines
+
+  def dependencies( self ):
+    res = [ QtComponent ]
+    if systemname == 'windows':
+      res.append( WinSockComponent )
+    if weakDependency( GLUComponent, self ):
+      res.append( GLUComponent )
+    return res

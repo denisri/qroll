@@ -1,0 +1,48 @@
+/***************************************************************************
+                          glcontext.h  -  description
+                             -------------------
+    begin                : 2001
+    copyright            : (C) 2001 by SHFJ - CEA Orsay (France)
+    email                : nudz@free.fr
+ ***************************************************************************/
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+
+/* These classes have been 'stolen' to my lab (SHFJ/CEA), made by 
+   Dimitri Papadopoulos (papadopo@shfj.cea.fr) to work around a problem 
+   with Sun X server at least on Creator3D and Elite3D cards: the first 
+   (default) visual chosen by Qt has a strange alpha setting and is too 
+   bright, which is especially ugly.
+   With this hack we can choose the correct visual */
+
+#ifndef ROLL_GUI_GLCONTEXT_H
+#define ROLL_GUI_GLCONTEXT_H
+
+#ifndef RR_NO_OPENGL
+
+
+#include <qgl.h>
+
+
+class GLWidget : public QGLWidget
+{
+    Q_OBJECT
+public:
+    GLWidget( QWidget* parent=0, const char* name=0,
+              const QGLWidget* shareWidget = 0, Qt::WFlags f=0 );
+    GLWidget( const QGLFormat& format, QWidget* parent=0, const char* name=0,
+              const QGLWidget* shareWidget = 0, Qt::WFlags f=0 );
+    virtual ~GLWidget();
+};
+
+
+#endif
+
+#endif
+

@@ -1,0 +1,101 @@
+	Installation of Rock'N'Roll
+	---------------------------
+
+
+
+** What is necessary to compile and use this marvelous game: **
+
+- UNIX system (tested under Linux ans Solaris)
+  or Windows 9x/NT/XP
+  or Mac OS 10.x
+
+- C++ compiler (tested with GNU gcc, versions 2.95 to 4.1)
+
+- Qt graphics librairy (http://www.trolltech.com) v3.x
+
+- Python language (2.2 or newer sould be OK): the compilation tools provided
+  to generate Makefiles are written in Python. Without it you'll have to
+  write the Makefiles by hand...
+
+
+
+1) Uncompress the tar file:
+   ------------------------
+
+- with GNU tar:
+
+tar xfz qroll-0.5.tar.gz
+
+- with another tar programm without the -z option (Sun tar...):
+
+gunzip qroll-0.5.tar.gz
+tar xf qroll-0.5.tar
+
+
+2) configure / compile the sources:
+   --------------------------------
+
+./qroll-0.7/build-config --buildMode release --version 0.7 qroll
+
+* The compilation generates a build tree outside the source tree: here,
+  qroll-0.7-linux-release for instance. In this build tree,
+* The library is installed in the lib/ directory.
+  It is named libqroll.so.0.7 (unix/elf), or libqroll.dylib.0.7 (Mac), or
+  libqroll.dll.0.7 (windows)
+* The executable program is in bin/
+
+
+3) Allow access to the dynamic library:
+   ------------------------------------
+
+- either by copying it into a place refered by the LD_LIBRARY_PATH variable, 
+  or by putting there a suitable link
+  * On Mac, the environment variable governing dynamic libraries loading is
+    DYLD_LIBRARY_PATH
+  * On Windows, it is PATH (same as for executable programs)
+
+- either by adding the libs directory /.../qroll-x.x-linux-release/lib in your
+  LD_LIBRARY_PATH variable:
+
+  * csh, tcsh shells:
+setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH\:/...whatever.../qroll-0.7-linux-release/lib
+
+  * sh, bash shells:
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/...whatever.../qroll-0.7-linux-release/lib
+
+
+4) Put the executable in the PATH:
+   -------------------------------
+
+- either by copying it into a place in the PATH, or by putting there a 
+  suitable link
+
+- or by adding the R&R executable directory to your PATH variable:
+
+  * csh, tcsh shells:
+setenv PATH $PATH\:/...whatever.../qroll-0.7-linux-release/bin
+
+  * sh, bash shells:
+export PATH=$PATH:/...whatever.../qroll-0.7-linux-release/bin
+
+
+5) On csh/tcsh shells only: type: rehash (to rescan the PATH)
+   ----------------------------------------------------------
+
+
+6) Define the ROLLDIR variable with the path to R&R data:
+   ------------------------------------------------------
+
+  * csh, tcsh shells:
+setenv ROLLDIR /...whatever.../qroll-0.7/share/qroll
+
+  * sh, bash shells:
+export ROLLDIR=/...whatever.../qroll-0.7/share/qroll
+
+
+8) That's it...
+   ------------
+
+qroll can be executed (by typing qroll)
+
+

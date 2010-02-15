@@ -1,0 +1,207 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" 
+   content="Mozilla/4.78 [fr] (X11; U; Linux 2.4.15-greased-turkey i686) [Netscape]">
+   <title>Rock'n'Roll changelog</title>
+<style type="text/css">
+BODY {
+      text-align: justify; margin: 1cm;
+}
+</style>
+</head>
+<body text="#000000" bgcolor="#FFFFE9" link="#0000EE" vlink="#551A8B" 
+alink="#FF0000">
+
+<center>
+<h2>
+<b><font color="#000099">&nbsp;ROCK'N'ROLL Changes list</font></b></h2></center>
+
+<hr width="100%">
+<h4>
+02/09/07 - version 0.7-non-final</h4>
+Version 0.7 is <b>NOT finished</b>, it's just a pre-release
+<ul>
+<li>
+<b>Porting to MacOS X:</b> QRoll now runs on Mac too...</li>
+<li>Porting to Irix (SGI), without sound.</li>
+<li>Compatibility improvements: QRoll now also works on Windows with MinGW 
+compiler. In the future I will probably use this solution to make the binary 
+packages because it is simpler for me, even if executables are much bigger,
+I don't care, it's your problem when downloading ;-)</li>
+<li>Porting to Qt 4. QRoll bulds either wuth Qt 3 or 4.</li>
+<li>Sound:
+  <ul>
+  <li>all sounds now use the standard .wav format</li>
+  <li>on platforms where the Qt sound system works, it can be used to make the 
+  game sounds. I have tested it on Windows and Mac.
+  However my own sound server is far better on Linux/Solaris (it allows sound
+  mixing and priority handling, which QSound does not apparently)
+  </li>
+  <li>So, Linux and Solaris continue to use my sound system</li>
+  </ul>
+</li>
+<li>I now use a more recent build system, still developped in my work,
+which configures/builds everything automatically
+</li>
+<li>QRoll can save a config file to remember some settings (like openGL options)
+</li>
+</ul>
+
+
+<h4>24/01/02 - version 0.6</h4>
+
+<ul>
+<li>
+<b>Series formats:</b> re-wrote storage stuff (IO routines, series storage
+classes, etc.). I have created a new file format different from the old
+Atari inherited one, and which does not suffer its limitations. I hope
+both formats will be supported, QRoll can read both formats but only write
+the newer right now. This new IO routines will also be useful for transmitting
+level maps in networked games.</li>
+
+<br>You can also merge several series by appending one to the currently
+loaded one.
+<br>The new format is less compact than the older one, files are about
+twice as big as they used to be, since elements are now coded in 16 bits
+rather than "paletted 8 bits", and all parameters are ASCII tags. But we
+don't have the same memory/disk savings constraints as we had 15 years
+ago, do we ? (alternately we could compress them)
+<br><b><i><font color="#990000">Be careful</font></i></b>: the new "raw"
+format has changed between QRoll-0.6alpha/beta and the final 0.6 version:
+sizes have been added in the redefined explosions and blobs, so it's <i>NOT</i>
+compatible. Such incompatible changes won't happen anymore in the future
+(changes in the format will cause a new format version). I think nobody
+wrote levels with the non-final version, but if it happens to be, write me
+(<a href="mailto:nudz@free.fr">nudz@free.fr</a>) and I'll make a converter.
+<li>
+<b>Network:</b> synchronization on server side to wait for slow clients
+- still lots of things to be done to have all network things working.</li>
+
+<li>
+<b>Edition:</b> a bunch of new functionalities and new windows... you can
+now:</li>
+
+<br>- edit existing levels, draw in them using elements from an "<b><i>element
+palette</i></b>" window. This window look is maybe not the best of computer
+graphics interface science: to be improved...
+<br>- framework for multiple drawing modes (paint, fill, airbrush etc)
+is implemented and you can already paint, fill or draw rectangles, copy
+regions, paste &amp; pattern draw. Supplementary drawing operations like
+airbrush may be done in the "near future"...
+<br>- play modified maps
+<br>- save levels to disk
+<br>- edit levels parameters such as number of needed diams, time etc.
+using a "<b><i>levels parameters</i></b>" window which can also prove useful
+to quickly change to another level.
+<br>- resize levels
+<br>- edit colors
+<br>- edit explosions and blobs redefinitions: modify, add, delete them.
+<br>- add / delete levels
+<br>- new "<b><i>Series arranger</i></b>" window: allows to move, copy/cut/paste/drag&amp;drop
+levels and reorder a whole series. <i>The</i> tool which was crually missing
+on the original Atari ST version and which will be necessary to make a
+little cleanup in the mess of our level series. You can also use drag&amp;drop
+or copy/paste for cross-application copying (between two QRoll processes).
+Hint: double-clicking on a level instantly makes it the current level of
+the main window.
+<br>You can <b><i>STILL NOT</i></b>:
+<br>- undo drawings or modifications
+<br>- draw, copy or paste background elements (things behind a portcullis
+or in a container wall)
+<br>Now ALL levels and series data and parameters can be edited, even if
+some operations could be made more easy.
+<li>
+Tested and modified Qroll to <b>work with Qt 3</b> or Qt 2, but there are
+still minor layout issues with Qt-3 (but I think it's a bug in Qt!)</li>
+
+<li>
+Little fixes in some game elements behaviour or animation, mainly in elements
+unused in existing levels. A little bit of cleaning has been done in the
+game elements object structure (not finished, many parameters still rely
+on a bit flags file loaded from the old Atari version).</li>
+
+<li>
+Minor tiny things (don't force font sizes anymore, this Changelog has moved
+to HTML version, small fixes in the about window, changed the about window
+music for a more "rock'n'roll" one (but sorry I'm still not a musician),
+little fixes in drawing limits on game windows, ...)</li>
+</ul>
+<b>Known bugs:</b>
+<ul>
+<li>
+<b><i>Under windows,</i></b> the new "raw" disk format has some problems
+I don't understand yet. It's apparently due to a different handling of
+end of lines in ASCII mode and switching between ASCII and binary reading
+in the same file. As a result, files are not read correctly but fail at
+some point in the file (sometimes after 30 levels have been successfully
+read). Quite mysterious...</li>
+</ul>
+
+<h4>
+27/07/01 - version 0.5</h4>
+
+<ul>
+<li>
+<b>Porting to Windows:</b> as TrollTech released a freeware version of
+Qt/Windows it became possible to compile most of the code under Windows.
+Sound is disabled in this version, but the remaining compiles OK, including
+OpenGL stuff and networking things. Tested with Microsoft VC++ and Intel
+C++.</li>
+
+<li>
+<b>Network</b> interface entirely remade from scratch. Everything doesn't
+work yet - you can't join an already running game, but the main things
+do work: start R&amp;R, connect every player, then start game from the
+server - it should work OK (I hope).</li>
+
+<li>
+Sources: <b>reorganization of the source tree</b>, now uses <a href="http://papadopo.free.fr/">Dimitri
+Papadopoulos</a> 's "<b><i>maker</i></b>" to build Makefiles (it is similar
+to Trolltech's tmake). It's easier to compile now...</li>
+
+<li>
+<b>Internationalization:</b> Version 0.3 was french-only, 0.5 supports
+Qt's translation system, so it's now french and english, and can be translated
+to any other language. (uh, I'm not really sure it will be useful in fact...)</li>
+
+<li>
+<b>Alternative graphics routines:</b> Rock'n'Roll can now use <b>OpenGL</b>
+to draw the game, it can be much faster (hardware scaling...) but it doesn't
+work well in all cases. Two alternative rendering methods can be used,
+one which uses lots of textures and some are not drawn, one using only
+2D functions but isn't accelerated with all graphics drivers (or cards).</li>
+
+<li>
+<b>Bugfixes</b> in some of the elements behaviours</li>
+
+<li>
+<b>Config window:</b> you can choose there some options (game, graphics,
+levels debugging options, ...)</li>
+
+<li>
+<b>Mouse actions:</b> you can now scroll levels with the mouse (right button)
+like in Atari ST version...</li>
+
+<li>
+<b>Levels editor embryo</b>, but the edit mode is <b><i>useless</i></b>
+right now: edited levels are highly volatile: you can only paint and lose
+your drawings, they are never saved and disapear as soon as you change
+level or start the game... Anyway, it's promising, isn't it ?</li>
+</ul>
+
+<h4>
+version 0.4</h4>
+
+<blockquote>This version was a transition, it never really existed. But
+it is just to say that I started working on R&amp;R again (after a pause
+of about 1 1/2 years...)</blockquote>
+
+<h4>
+version 0.3, jan or feb. 1999</h4>
+
+<blockquote>Base verison, the game is working.</blockquote>
+
+</body>
+</html>

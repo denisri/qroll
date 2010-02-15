@@ -1,0 +1,102 @@
+	Installation de Rock'N'Roll
+	---------------------------
+
+
+
+** Ce qui est nécessaire pour compiler et utiliser ce magnifique jeu: **
+
+- Système UNIX (testé sous Linux et Solaris)
+  ou Windos 9x/NT/XP
+  ou Mac OS 10.x
+
+- Compilateur C++ (testé avec GNU gcc, versions 2.95 à 4.1)
+
+- Librairie graphique Qt (http://www.trolltech.com) v3.x
+
+- Python (2.2 ou plus récent), langage avec lequel sont écrits les outils de
+  compilation qui sont fournis pour générer les Makefiles. Sans lui, vous
+  devrez réécrire les Makefiles à la main...
+
+
+
+1) Décompresser le fichier:
+   ------------------------
+
+- avec GNU tar:
+
+tar xfz qroll-0.5.tar.gz
+
+- avec un tar qui n'a pas l'option -z (Sun...):
+
+gunzip qroll-0.5.tar.gz
+tar xf qroll-0.5.tar
+
+
+2) configurer / compiler les sources:
+   ----------------------------------
+
+./qroll-0.7/build-config --buildMode release --version 0.7 qroll
+
+* La compilation crée un arbre de répertoires pour la compilation en dehors
+  de l'arborescence des sources. Dans cet arbre de compilation, 
+* La librairie est compilée dans lib/
+  Elle s'appelle libqroll.so.0.7 (unix/elf), ou libqroll.dylib.0.7 (Mac), ou
+  libqroll.dll.0.7 (windows)
+* L'exécutable est dans bin/
+
+
+3) Permettre l'accès à la librairie dynamique:
+   -------------------------------------------
+
+- soit en la copiant à un endroit qui est dans le LD_LIBRARY_PATH, ou en y 
+  mettant un lien qui va bien
+  * sous MacOS, la variable d'environnement guidant le chargement des
+    librairies dynamiques est DYLD_LIBRARY_PATH
+  * sous Windows, c'est PATH (comme pour les programmes exécutables)
+
+- soit en ajoutant le répertoire /.../qroll-x.x-linux-release/lib dans la 
+  variable LD_LIBRARY_PATH:
+
+  * shells csh, tcsh:
+setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH\:/...trucmachin.../qroll-0.7-linux-release/lib
+
+  * shells sh, bash:
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/...trucmachin.../qroll-0.7-linux-release/lib
+
+
+4) Mettre l'exécutable dans le PATH:
+   ---------------------------------
+
+- soit en le copiant dans un endroit qui est dans le PATH, ou en y mettant 
+  un lien qui va bien
+
+- soit en modifiant la variable PATH:
+
+  * shells csh, tcsh:
+setenv PATH $PATH\:/...trucmachin.../qroll-0.7-linux-release/bin
+
+  * shells sh, bash:
+export PATH=$PATH:/...trucmachin.../qroll-0.7-linux-release/bin
+
+
+5) Dans le cas des shells csh/tcsh uniquement:
+   faire un: rehash (pour mettre le PATH à jour)
+   ---------------------------------------------
+
+
+6) Définir la variable ROLLDIR avec le chemin des données nécessaires:
+   -------------------------------------------------------------------
+
+  * shells csh, tcsh:
+setenv ROLLDIR /...trucmachin.../qroll-0.7-linux-release/share/qroll
+
+  * shells sh, bash:
+export ROLLDIR=/...trucmachin.../qroll-0.7-linux-release/share/qroll
+
+
+8) Ca y est...
+    -----------
+
+qroll peut être exécuté (en lançant la commande qroll)
+
+

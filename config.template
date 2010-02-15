@@ -1,0 +1,8 @@
+DEFINES   += @defines@
+VERSION   = @version@
+
+qt4:CXXFLAGS   += -O2
+
+INCLUDEPATH     = @includeBuild@
+LIBS            = @libDepsLine@
+BUILDMODEEXT    = @buildModeExtension@
