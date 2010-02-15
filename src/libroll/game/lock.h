@@ -2,7 +2,7 @@
                           lock.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -35,7 +35,7 @@ namespace roll
     ///
     virtual ~RLock();
 
-    /**@name	Propriétés de la classe */
+    /**@name	PropriÃ©tÃ©s de la classe */
     //@{
     ///
     virtual bool isLock() const { return( true ); }
@@ -44,9 +44,9 @@ namespace roll
     { return( RRSoundProcessor::LOCK ); }
     //@}
 
-    /**@name	Propriétés propres à RLock */
+    /**@name	PropriÃ©tÃ©s propres Ã  RLock */
     //@{
-    ///	Numéro de type de clef
+    ///	NumÃ©ro de type de clef
     virtual unsigned lockNum() const;
     ///	Dit si on peut l'ouvrir par un type de clef particulier
     virtual bool canBeOpened( unsigned key ) const;

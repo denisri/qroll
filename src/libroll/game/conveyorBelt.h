@@ -2,7 +2,7 @@
                           conveyorBelt.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -34,14 +34,14 @@ namespace roll
       : GElem( num ), _num( nb ) {}
     virtual ~RConveyorBelt() {}
 
-    ///	Animation spéciale (dépend de la direction)
+    ///	Animation spÃ©ciale (dÃ©pend de la direction)
     virtual unsigned short animation() const;
     virtual bool canBeInBorder() const { return( true ); }
 
   protected:
     virtual void realProcess( unsigned x, unsigned y );
 
-    ///	N° de tapis
+    ///	NÂ° de tapis
     unsigned char	_num;
   };
 

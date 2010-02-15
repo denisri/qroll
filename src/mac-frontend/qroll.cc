@@ -2,7 +2,7 @@
                           qroll.cc
                              -------------------
     begin                : 2002
-    copyright            : (C) 2002-2006 by Denis Rivière
+    copyright            : (C) 2002-2006 by Denis RiviÃ¨re
     email                : nudz@free.fr
                            http://nudz.free.fr
  ***************************************************************************/

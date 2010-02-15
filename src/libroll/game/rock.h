@@ -2,7 +2,7 @@
                           rock.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -43,7 +43,7 @@ namespace roll
     virtual bool canFall() const { return( true ); }
     virtual bool canMove() const { return( true ); }
     virtual bool isTemporary() const { return( ( f & BOUGE ) != 0 ); }
-    ///	en général, c'est glissant, un truc qui tombe
+    ///	en gÃ©nÃ©ral, c'est glissant, un truc qui tombe
     virtual bool isSlippery() const { return( true ); }
     virtual bool canEat( const GElem* el ) const { return( el->isEmpty() ); }
     virtual RRSoundProcessor::SNDLIST soundWhenFalls() const
@@ -55,7 +55,7 @@ namespace roll
   };
 
 
-  /**	Rock (c'est le problème du jeu (parce que "Rock and Roll")) */
+  /**	Rock (c'est le problÃ¨me du jeu (parce que "Rock and Roll")) */
   class Rock : public RFallingElem
   {
   public:
@@ -69,7 +69,7 @@ namespace roll
   };
 
 
-  /**	Rocher qui tourne en roulant (tête de mort...)
+  /**	Rocher qui tourne en roulant (tÃªte de mort...)
    */
   class RollingRock : public Rock
   {
@@ -81,7 +81,7 @@ namespace roll
   };
 
 
-  /**	Rocher nitro normal (pète quand il tombe) */
+  /**	Rocher nitro normal (pÃ¨te quand il tombe) */
   class RNitroRock : public Rock
   {
   public:
@@ -95,7 +95,7 @@ namespace roll
   };
 
 
-  /**	Rocher nitro+ qui pète pour un oui ou pour un non */
+  /**	Rocher nitro+ qui pÃ¨te pour un oui ou pour un non */
   class RNitroPlusRock : public RNitroRock
   {
   public:

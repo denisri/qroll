@@ -2,7 +2,7 @@
                           dsp.h  
                              -------------------
     begin                : 1999
-    copyright            : (C) 1999-2004 by Denis Rivière
+    copyright            : (C) 1999-2004 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -19,7 +19,7 @@
 #ifndef ROLL_SOUND_DSP_H
 #define ROLL_SOUND_DSP_H
 
-#ifdef RR_DSP	// on comile seulement si RR_DSP est définie
+#ifdef RR_DSP	// on comile seulement si RR_DSP est dÃ©finie
 
 #include <roll/sound/soundProcessor.h>
 #include <list>
@@ -32,15 +32,15 @@
 class RRDspSound : public RRSoundProcessor
 {
 public:
-  ///	Structure de requête son
+  ///	Structure de requÃªte son
   struct SndReq
   {
-    ///	N° du son
+    ///	NÂ° du son
     SNDLIST	type;
-    ///	Position où il en est dans sa lecture (négatif = pas commencé)
+    ///	Position oÃ¹ il en est dans sa lecture (nÃ©gatif = pas commencÃ©)
     int		pos;
   };
-  ///	Nb max de sons du même type en même temps
+  ///	Nb max de sons du mÃªme type en mÃªme temps
   static const unsigned MaxSameSample;
   RRDspSound();
   virtual ~RRDspSound();
@@ -67,7 +67,7 @@ protected:
   int	bufferSize;
   ///	Buffer en question
   unsigned char	*buffer;
-  ///	Mémoires pour les sons eux-mêmes
+  ///	MÃ©moires pour les sons eux-mÃªmes
   unsigned char	*sounds[NO_SOUND];
   ///	Leurs tailles
   unsigned sndLen[NO_SOUND];
@@ -78,15 +78,15 @@ protected:
   ///	ID du thread de mixage des sons
   pthread_t	updateThrd;
   bool		threadRunning;
-  ///	Fréquence de lecture des sons
+  ///	FrÃ©quence de lecture des sons
   unsigned	freqDsp;
   virtual void init();
   virtual void loadSounds();
   ///	Fonction "callback" thread de mixage (statique)
   static void * updateThread( void * );
-  ///	Fonction de mixage non-statique, appelée par le thread
+  ///	Fonction de mixage non-statique, appelÃ©e par le thread
   void update();
-  ///	Arrête le plus ancien son du type donné (Warning : SANS MUTEX !!)
+  ///	ArrÃªte le plus ancien son du type donnÃ© (Warning : SANS MUTEX !!)
   virtual void stopOld( SNDLIST type );
 };
 

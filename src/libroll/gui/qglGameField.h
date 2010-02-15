@@ -2,7 +2,7 @@
                           qglGameField.h  -  description
                              -------------------
     begin                : 2001
-    copyright            : (C) 2001 by Denis Rivière
+    copyright            : (C) 2001 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -52,7 +52,7 @@ public:
   virtual void displayFull();
 
 public slots:
-  ///	Dessine le tableau, cases entières
+  ///	Dessine le tableau, cases entiÃ¨res
   void displayFullSlot();
   ///	Dessine le demi-scroll
   void displayHalfSlot();
@@ -75,9 +75,9 @@ protected:
   virtual void resizeGL( int w, int h );
   virtual void paintGL();
 
-  ///	Prépare l'écran ou le Pixmap dans lequel le tableau doit être dessiné
+  ///	PrÃ©pare l'Ã©cran ou le Pixmap dans lequel le tableau doit Ãªtre dessinÃ©
   virtual void setupScreen( unsigned w, unsigned h );
-  ///	Dessine le sprite spr à la position (i, j) dans la zone de dessin
+  ///	Dessine le sprite spr Ã  la position (i, j) dans la zone de dessin
   virtual void copySprite( unsigned spr, int posx, int posy );
   ///	Affiche effectivement la zone de dessin
   virtual void updateScreen( bool eraseBorder, int w = 0, int h = 0 );

@@ -2,7 +2,7 @@
                           holeWall.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -39,11 +39,11 @@ namespace roll
     //@}
 
   protected:
-    /**@name	Fonctions protégées */
+    /**@name	Fonctions protÃ©gÃ©es */
     //@{
-    /**	Bouffe pûrement et simplement ce qu'il y a dans le mur, 
-	sans autre forme de procès
-	@param	x	coordonnées du mur
+    /**	Bouffe pÃ»rement et simplement ce qu'il y a dans le mur, 
+	sans autre forme de procÃ¨s
+	@param	x	coordonnÃ©es du mur
 	@param	y	(*PAS* de la case de dessous)
     */
     virtual bool testGoOut( unsigned x, unsigned y );

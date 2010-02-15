@@ -2,7 +2,7 @@
                           simpleLevel.cc  -  description
                              -------------------
     begin                : 2001
-    copyright            : (C) 2000-2005 by Denis Rivi�re
+    copyright            : (C) 2000-2005 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 

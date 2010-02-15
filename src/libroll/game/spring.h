@@ -2,7 +2,7 @@
                           spring.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -26,7 +26,7 @@
 namespace roll
 {
 
-  ///	Ressort qui se détend
+  ///	Ressort qui se dÃ©tend
   class RSpring : public GElem
   {
   public:

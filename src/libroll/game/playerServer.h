@@ -2,7 +2,7 @@
                           playerServer.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2001 by Denis Rivière
+    copyright            : (C) 2000-2001 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -100,17 +100,17 @@ namespace roll
     ///	Liste des touches de tous les joueurs
     std::map<unsigned, Key>				_keys;
 
-    ///	Clavier: image des touches enfoncées
+    ///	Clavier: image des touches enfoncÃ©es
     std::map<unsigned, std::map<unsigned, bool> >	_kbd;
     ///	Buffer clavier (2 touches)
     std::map<unsigned, std::vector<unsigned> >		_buffer;
-    ///	Buffer des modifieurs (ctrl enfoncée)
+    ///	Buffer des modifieurs (ctrl enfoncÃ©e)
     std::map<unsigned, std::vector<bool> >		_sBuffer;
     ///	Index dans buffer
     std::map<unsigned, unsigned>			_bufN;
-    ///	Touche en cours de répétition
+    ///	Touche en cours de rÃ©pÃ©tition
     std::map<unsigned, unsigned>			_repeatKey;
-    ///	Répétition de touche entamée ?
+    ///	RÃ©pÃ©tition de touche entamÃ©e ?
     std::map<unsigned, bool>				_repeat;
 
     std::string		_address;

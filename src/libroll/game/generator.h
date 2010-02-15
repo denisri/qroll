@@ -2,7 +2,7 @@
                           generator.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -26,7 +26,7 @@
 namespace roll
 {
 
-  /**	Générateur de monstres */
+  /**	GÃ©nÃ©rateur de monstres */
   class RGenerator : public RForegroundElem
   {
   public:
@@ -45,7 +45,7 @@ namespace roll
 
 
 
-  /**	Générateur de monstres 2	*/
+  /**	GÃ©nÃ©rateur de monstres 2	*/
   class RGenerator2 : public RGenerator
   {
   public:
@@ -63,7 +63,7 @@ namespace roll
   };
 
 
-  /**	Générateur de monstres 3	*/
+  /**	GÃ©nÃ©rateur de monstres 3	*/
   class RGenerator3 : public RGenerator
   {
   public:
@@ -81,7 +81,7 @@ namespace roll
   };
 
 
-  /**	Générateur de monstres 4	*/
+  /**	GÃ©nÃ©rateur de monstres 4	*/
   class RGenerator4 : public RGenerator
   {
   public:

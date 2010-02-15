@@ -2,7 +2,7 @@
                           scoreBox.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -76,7 +76,7 @@ public slots:
   //@{
   ///
   void oneLessSecond();
-  ///	Demande de réaffichage des scores
+  ///	Demande de rÃ©affichage des scores
   void changeScore();
   //@}
 

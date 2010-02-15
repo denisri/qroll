@@ -2,7 +2,7 @@
                           ball.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivi�re
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -80,11 +80,11 @@ unsigned short RBall::movingSprite() const
   if( !_moving )
     return( 255 );
 
-  unsigned	d = f & BOUGE;		// mvt r�el
+  unsigned	d = f & BOUGE;		// mvt rÃ©el
   if( !d )
     return( 255 );
 
-  unsigned	p = f & BOUGE_N;	// direction regard�e
+  unsigned	p = f & BOUGE_N;	// direction regardÃ©e
 
   switch( d )
     {
@@ -129,7 +129,7 @@ void RBall::realProcess( unsigned x, unsigned y )
   else
     x2 = 1;
 
-  GElem		*&el = game.tbct.d[x+x2][y];	// case horizontale vis�e
+  GElem		*&el = game.tbct.d[x+x2][y];	// case horizontale visÃ©e
   unsigned	refres = 0;
 
   if( !el->isEmpty() )
@@ -155,7 +155,7 @@ void RBall::realProcess( unsigned x, unsigned y )
       RRSoundProcessor::processor().process( RRSoundProcessor::BALL );
     }
 
-  GElem		*&el2 = game.tbct.d[x+x2][y+y2];	// case verticale vis�e
+  GElem		*&el2 = game.tbct.d[x+x2][y+y2];	// case verticale visÃ©e
 
   if( _moving )
     {
@@ -265,7 +265,7 @@ unsigned RBall::reflectCause( unsigned x, unsigned y )
       el->f |= PETE;
       return( 2 );
     }
-  return( 0 );	// inconnu, r�flexion normale
+  return( 0 );	// inconnu, rÃ©flexion normale
 }
 
 

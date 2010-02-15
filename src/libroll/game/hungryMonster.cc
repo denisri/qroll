@@ -2,7 +2,7 @@
                           hungryMonster.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivi�re
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -42,13 +42,13 @@ void RHungryMonster::moveDir( unsigned x, unsigned y, Direction dir )
 	{
 	  if( !moveEatUp( x, y ) && !moveEatLeft( x, y ) ) // peut manger ?
 	    {
-	      if( possEat( x, y+1 ) || possEat( x+1, y ) ) // voit � manger ?
-		{	// oui: attends de te tourner du bon c�t�
+	      if( possEat( x, y+1 ) || possEat( x+1, y ) ) // voit Ã  manger ?
+		{	// oui: attends de te tourner du bon cÃ´tÃ©
 		  f = ( f & ~GAU_N ) | BA_N;
 		  if( f & RETPET )
 		    f |= PETE;
 		}
-	      else	// rien � manger: mvt normal
+	      else	// rien Ã  manger: mvt normal
 		RRightMonster::moveDir( x, y, dir );
 	    }
 	}

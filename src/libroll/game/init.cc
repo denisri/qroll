@@ -2,7 +2,7 @@
                           init.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 1999-2006 by Denis Rivi�e
+    copyright            : (C) 1999-2006 by Denis RiviÃ¯Â¿Â½e
     email                : nudz@free.fr
                            http://nudz.free.fr
  ***************************************************************************/
@@ -233,7 +233,7 @@ void init( int, char** )
   out << "RR PATH = " << RR_path << endl;
 
   load_sprlink();		// Table de conversion des sprites
-  load_spflag();		// Caract�istiques des sprites
+  load_spflag();		// CaractÃ¯Â¿Â½istiques des sprites
   expli.load( (RR_path + "/data/explode.b").c_str() );	// Explosions
   load_beb();
   if( !rrand.loadTable( RR_path + "/data/random.b" ) )
@@ -258,7 +258,7 @@ void load_sprlink()
 		      ios::in | ios::binary );
   if( !fich )
     {
-      out << "spritedef.b pas trouv�n";
+      out << "spritedef.b pas trouvÃ¯Â¿Â½n";
       exit( 1 );
     }
   fich.unsetf( ios::skipws );
@@ -293,7 +293,7 @@ void load_beb()
   unsigned char			c1, c2;
   unsigned short		spr, ad=0;
 
-  //	out << "Chargement des b��es\n";
+  //	out << "Chargement des bÃ¯Â¿Â½Ã¯Â¿Â½es\n";
 
   ifstream	fich( (RR_path + "/data/bebetes.b").c_str(), 
 		      ios::in | ios::binary );

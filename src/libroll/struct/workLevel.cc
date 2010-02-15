@@ -2,7 +2,7 @@
                           workLevel.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2001 by Denis Rivi�re
+    copyright            : (C) 2000-2001 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -219,7 +219,7 @@ void WorkLevel::make( SimpleLevel & sl )
 	  el2->setNum( (*ip).first );
 	  if( !startPos.empty() )
 	    {
-	      j = nj % startPos.size();	// no d�part
+	      j = nj % startPos.size();	// no dÃ©part
 	      rls[ j ]->setBackRoll( el2 );
 	      rls[ j ] = el2;
 	      (*ip).second.pos = startPos[ j ];

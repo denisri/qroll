@@ -2,7 +2,7 @@
                           lift.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -44,7 +44,7 @@ namespace roll
 
     ///	Direction du mouvement (0: immobile, -1: haut, 1: bas)
     int	_dir;
-    ///	chargé ?
+    ///	chargÃ© ?
     bool	_loaded;
   };
 

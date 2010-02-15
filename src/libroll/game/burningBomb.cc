@@ -2,7 +2,7 @@
                           burningBomb.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivi�re
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -25,7 +25,7 @@ using namespace roll;
 void RBurningBomb::realProcess( unsigned x, unsigned y )
 {
   --_timing;
-  if( _timing == 0 )	// m�che �coul�e
+  if( _timing == 0 )	// mÃ¨che Ã©coulÃ©e
     explode( x, y );
 
   else RFallingElem::realProcess( x, y );
@@ -40,7 +40,7 @@ unsigned short RBurningBomb::animation() const
 
 GElem* RBurningBomb::transformed() const
 {
-  if( _timing & 1 )	// timing impair : �teinds la bombe
+  if( _timing & 1 )	// timing impair : Ã©teinds la bombe
     {
       div_t	sp = div( s & 0xff, 40 );
       return( elFactory.createElem( (s & 0x100) | sp.rem 

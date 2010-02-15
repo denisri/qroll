@@ -2,7 +2,7 @@
                           seriesAtari.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2001 by Denis Rivière
+    copyright            : (C) 2000-2001 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -50,13 +50,13 @@ namespace roll
     // (later...) protected:
   public:
 
-    ///	Nb de diams différents
+    ///	Nb de diams diffÃ©rents
     unsigned short	diam;
     ///	Nb de sprites qui explosent
     unsigned short	expl;
-    ///	Nb de bébettes
+    ///	Nb de bÃ©bettes
     unsigned short	beb;
-    ///	Valeur de la série (nb d'étoiles)
+    ///	Valeur de la sÃ©rie (nb d'Ã©toiles)
     unsigned short	val;
     ///	Adresse des codes de blocs tableaux
     unsigned long 	cod;

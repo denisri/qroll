@@ -2,7 +2,7 @@
                           conveyLever.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivi�re
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -56,7 +56,7 @@ unsigned short RConveyLever::sprite( RBack* ) const
 {
   int	st = state();
   if( st > 1 )
-    return( s + 40 );	// arr�t�
+    return( s + 40 );	// arrÃªtÃ©
   return( s + (1 - st) * 40 );
 }
 
@@ -65,7 +65,7 @@ unsigned short RConveyLever::backStillSprite( RBack* ) const
 {
   int	st = state();
   if( st > 1 )
-    return( s + 40 );	// arr�t�
+    return( s + 40 );	// arrÃªtÃ©
   return( s + (1 - st) * 40 );
 }
 

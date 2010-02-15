@@ -2,7 +2,7 @@
                           seriesIconView.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2001 by Denis Rivi�e
+    copyright            : (C) 2001 by Denis Riviï¿½e
     email                : nudz@free.fr
  ***************************************************************************/
 

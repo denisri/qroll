@@ -40,7 +40,7 @@ int main( int argc, char** argv )
   QPixmap::setDefaultOptimization( QPixmap::MemoryOptim );
 #endif
 
-  init( argc, argv );		// initialise le jeu, charge les donn�s
+  init( argc, argv );		// initialise le jeu, charge les données
 #ifdef RR_DSP
   new RRDspSound;
 #endif
@@ -97,7 +97,7 @@ int main( int argc, char** argv )
   if( argc > 1 && string( argv[1] ) == "mute" )
     allowSound = false;
 
-  // sur sun (stations de TRAVAIL), on reste discr�... ;-)
+  // sur sun (stations de TRAVAIL), on reste discrêt... ;-)
 #if defined( sun ) || defined( __sun )
   allowSound = false;
 #endif

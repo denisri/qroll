@@ -2,7 +2,7 @@
                           passingWall.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -37,29 +37,29 @@ namespace roll
     virtual bool canBeInBorder() const { return( true ); }
 
   protected:
-    /**@name	Fonctions protégées */
+    /**@name	Fonctions protÃ©gÃ©es */
     //@{
     ///
     virtual void realProcess( unsigned x, unsigned y );
-    /**	Teste si l'élément peut entrer dans le mur
-	@param	gel	élément à tester
+    /**	Teste si l'Ã©lÃ©ment peut entrer dans le mur
+	@param	gel	Ã©lÃ©ment Ã  tester
     */
     virtual bool testComeIn( GElem *gel );
-    /**	Teste si l'élément peut sortir du mur
-	@param	x	coordonnées du mur
+    /**	Teste si l'Ã©lÃ©ment peut sortir du mur
+	@param	x	coordonnÃ©es du mur
 	@param	y	(*PAS* de la case de dessous)
     */
     virtual bool testGoOut( unsigned x, unsigned y );
-    /**	Effectue la sortie (peut avoir des effets différents selon le mur)
-	@param	x	coordonnées du mur
+    /**	Effectue la sortie (peut avoir des effets diffÃ©rents selon le mur)
+	@param	x	coordonnÃ©es du mur
 	@param	y	(*PAS* de la case de dessous)
     */
     virtual void goOut( unsigned x, unsigned y );
     //@}
 
-    /**@name	Données */
+    /**@name	DonnÃ©es */
     //@{
-    ///	Sprite caché dedans le mur
+    ///	Sprite cachÃ© dedans le mur
     GElem	*_inside;
     //@}
 

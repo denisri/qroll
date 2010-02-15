@@ -2,7 +2,7 @@
                           telepWall.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivi�re
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -38,7 +38,7 @@ void RTelepWall::goOut( unsigned x, unsigned y )
 {
   unsigned xtel = game.tbct.x_tel;
   unsigned ytel = game.tbct.y_tel;
-  if( y < ytel || ( y == ytel && x < xtel ) )	// si apr�s dans la gestion
+  if( y < ytel || ( y == ytel && x < xtel ) )	// si aprÃ¨s dans la gestion
     _inside->f |= BUSY;
   RPassingWall::goOut( game.tbct.x_tel, game.tbct.y_tel );
 
@@ -48,7 +48,7 @@ void RTelepWall::goOut( unsigned x, unsigned y )
   GElem *&under = game.tbct.d[xtel][ytel+1];
   delete dest;
   _inside->f |= TOMB | BA;
-  if( y < ytel || ( y == ytel && x < xtel ) )	// si apr�s dans la gestion
+  if( y < ytel || ( y == ytel && x < xtel ) )	// si aprÃ¨s dans la gestion
     _inside->f |= BUSY;
   dest = _inside;
   if( sp_flg[ _inside->s ].l1 & EXPL_TB && !( under->isEmpty() ) )
@@ -76,7 +76,7 @@ void RTelepTransWall::goOut( unsigned x, unsigned y )
 {
   unsigned xtel = game.tbct.x_tel;
   unsigned ytel = game.tbct.y_tel;
-  if( y < ytel || ( y == ytel && x < xtel ) )	// si apr�s dans la gestion
+  if( y < ytel || ( y == ytel && x < xtel ) )	// si aprÃ¨s dans la gestion
     _inside->f |= BUSY;
   RTransformWall::goOut( game.tbct.x_tel, game.tbct.y_tel );
 
@@ -88,7 +88,7 @@ void RTelepTransWall::goOut( unsigned x, unsigned y )
   GElem *&under = game.tbct.d[xtel][ytel+1];
   delete dest;
   _inside->f |= TOMB | BA;
-  if( y < ytel || ( y == ytel && x < xtel ) )	// si apr�s dans la gestion
+  if( y < ytel || ( y == ytel && x < xtel ) )	// si aprÃ¨s dans la gestion
     _inside->f |= BUSY;
   dest = _inside;
   if( sp_flg[ _inside->s ].l1 & EXPL_TB && !( under->isEmpty() ) )

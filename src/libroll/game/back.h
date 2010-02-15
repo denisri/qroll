@@ -2,7 +2,7 @@
                           back.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -25,7 +25,7 @@ namespace roll
   class GElem;
 
 
-  /**	Eléments d'arrière-plan */
+  /**	ElÃ©ments d'arriÃ¨re-plan */
   class RBack
   {
   public:
@@ -41,9 +41,9 @@ namespace roll
     //@{
     ///
     virtual unsigned short sprite() const;
-    ///	Fond devant ou derrière l'élément ?
+    ///	Fond devant ou derriÃ¨re l'Ã©lÃ©ment ?
     virtual bool isFront() const { return( false ); }
-    ///	Mangé par le roll ? (illusions...)
+    ///	MangÃ© par le roll ? (illusions...)
     virtual bool isEatable() const { return( false ); }
     /**	Foreground element created when a roll leaves this location.
 	Default is an EmptyElement */
@@ -53,7 +53,7 @@ namespace roll
     virtual unsigned short idNumber() const { return( s ); }
     //@}
 
-    /**@name	Données */
+    /**@name	DonnÃ©es */
     //@{
     ///	Tronche: no de sprite
     unsigned short	s;
@@ -67,15 +67,15 @@ namespace roll
   };
 
 
-  ///	Elément de fond, cachant le sprite mouvant (illusion...)
+  ///	ElÃ©ment de fond, cachant le sprite mouvant (illusion...)
   class RFrontBack : public RBack
   {
   public:
     RFrontBack( unsigned short num = 20 ) : RBack( num ) {}
     virtual ~RFrontBack();
     virtual bool isFront() const { return( true ); }
-    /**	Par défaut, les éléments de 1er plans sont mangeables par le Roll, 
-	(sinon il disparaît) */
+    /**	Par dÃ©faut, les Ã©lÃ©ments de 1er plans sont mangeables par le Roll, 
+	(sinon il disparaÃ®t) */
     virtual bool isEatable() const { return( true ); }
     virtual unsigned short idNumber() const { return( s == 20 ? 226 : s ); }
   };

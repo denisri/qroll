@@ -2,7 +2,7 @@
                           paintcommand.h  -  description
                              -------------------
     begin                : 2002
-    copyright            : (C) 2002 by Denis Rivière
+    copyright            : (C) 2002 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 

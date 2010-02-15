@@ -2,7 +2,7 @@
                           game.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2001 by Denis Rivi�re
+    copyright            : (C) 2000-2001 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -41,7 +41,7 @@ Game::~Game()
 
 void Game::init( unsigned tab )
 {
-  //	arr�ter tous les sons en cours
+  //	arrÃªter tous les sons en cours
   RRSoundProcessor::processor().stop();
 
   if( tab>=ser->numLevels() )
@@ -86,7 +86,7 @@ void Game::step()
   PlayerServer::iterator	ip, fp=tbct.players->end();
 
 
-  //	Vie gagn�e au coup d'avant
+  //	Vie gagnÃ©e au coup d'avant
   if( lifeGained != 0 )
     lifeGained = 0;
 
@@ -97,7 +97,7 @@ void Game::step()
   for( ip=tbct.players->begin(); ip!=fp; ++ip )
     {
       mor[(*ip).first] = (*ip).second.dead;
-      //	par d�faut les gens sont morts, jusqu'� ce qu'on les trouve 
+      //	par dÃ©faut les gens sont morts, jusqu'Ã  ce qu'on les trouve 
       //	en balayant le tableau
       (*ip).second.dead = true;
     }
@@ -120,7 +120,7 @@ void Game::step()
     for( x=0; x<tbct.sizeX(); x++ )
       tbct.d[x][y]->process( x, y );
 
-  //	Gestion des b�bettes
+  //	Gestion des bÃ©bettes
 
   for( nob=0; nob<24; ++nob )
     if( bebet[nob].cpt != 0 )
@@ -138,7 +138,7 @@ void Game::step()
 	  bebet[nob].flg = 2;
       }
 
-  //	Tests gagn� / perdu
+  //	Tests gagnÃ© / perdu
 
   bool	win =false;
   bool	nowin = false;
@@ -150,7 +150,7 @@ void Game::step()
 	nowin = true;	// au moins 1 non-gagnant encore en jeu
     }
   if( win && ( !allRollsMustExit || !nowin ) )
-    {		//	gagn�
+    {		//	gagnÃ©
       ++twon;
       if( twon == 10 )
 	{

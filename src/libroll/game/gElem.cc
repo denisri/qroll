@@ -2,7 +2,7 @@
                           gElem.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -154,8 +154,8 @@ void GElem::process( unsigned x, unsigned y )
 	  return;
 	}
       if( f & EXP2 )
-	f &= ~EXP2;			// dernière attente avant explosion
-      if( f & PETE )			// explosion à créer
+	f &= ~EXP2;			// derniÃ¨re attente avant explosion
+      if( f & PETE )			// explosion Ã  crÃ©er
 	{
 	  explode( x, y );		// ben oui...
 	  return;
@@ -163,11 +163,11 @@ void GElem::process( unsigned x, unsigned y )
 
       if( f & REMAIN )			// retenait qqchose ?
 	f &= ~(REMAIN | WAIT | EXTFLG);	// alors oublie maintenant.
-      if( f & (WAIT | EXTFLG) )		// qqch à retenir ?
+      if( f & (WAIT | EXTFLG) )		// qqch Ã  retenir ?
 	f |= REMAIN;
 
       if( !(f & WAIT) )			// fallait pas attendre ?
-	realProcess( x, y );		// partie différenciée
+	realProcess( x, y );		// partie diffÃ©renciÃ©e
     }
 }
 
@@ -188,7 +188,7 @@ void GElem::explode( unsigned x, unsigned y )
     {
       if( x == 0 || y == 0 || x+1 == game.tbct.sizeX() 
 	  || y+1 == game.tbct.sizeY() )
-	return;	// au bord, on ne pète pas.
+	return;	// au bord, on ne pÃ¨te pas.
 
       for( j=0; j<3; ++j ) for( i=0; i<3; ++i )
 	{

@@ -2,7 +2,7 @@
                           soundProcessor.h
                              -------------------
     begin                : 1999
-    copyright            : (C) 1999-2004 by Denis Rivière
+    copyright            : (C) 1999-2004 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -24,21 +24,21 @@
 
 /**	Processeur de sons & bruitages.
 
-	Particularité :
+	ParticularitÃ© :
 
-	- intarface portable, indépendante du système et kit de son utilisé.
-	- dedans, ça peut dépendre (pour l'instant: Linux DSP / Sun audio / 
+	- intarface portable, indÃ©pendante du systÃ¨me et kit de son utilisÃ©.
+	- dedans, Ã§a peut dÃ©pendre (pour l'instant: Linux DSP / Sun audio / 
           QSound)
 
-	Comme les sources dépendant d'une librairie de sons, on utilise dans 
+	Comme les sources dÃ©pendant d'une librairie de sons, on utilise dans 
 	les Makefile des macros pour savoir si on compile la partie son 
-	spécifique ou non.
+	spÃ©cifique ou non.
 
-	Si la partie son n'est pas compilée, l'interface existe quand-même, 
-	ça ne fera pas de bruit, c'est tout.
+	Si la partie son n'est pas compilÃ©e, l'interface existe quand-mÃªme, 
+	Ã§a ne fera pas de bruit, c'est tout.
 
-	La classe est dérivable pour brancher les différentes implémentations, 
-	utilisant différents 'soundkits'.
+	La classe est dÃ©rivable pour brancher les diffÃ©rentes implÃ©mentations, 
+	utilisant diffÃ©rents 'soundkits'.
 
 	Pour l'instant, les macros reconnues sont:
 
@@ -84,7 +84,7 @@ public:
   };
   RRSoundProcessor();
   virtual ~RRSoundProcessor();
-  ///	Commence à jouer un bruitage
+  ///	Commence Ã  jouer un bruitage
   virtual void process( SNDLIST type );
   virtual unsigned inuse( SNDLIST type )
     { return( _inuse[type] ); }
@@ -94,9 +94,9 @@ public:
   virtual void stop( SNDLIST type );
   ///	Ferme la sortie son (->devient muet)
   virtual void close() {}
-  ///	Désactive le son
+  ///	DÃ©sactive le son
   virtual void disable() { close(); }
-  ///	Réactive le son
+  ///	RÃ©active le son
   virtual void enable() { disable(); init(); }
   ///	Dit si le processeur marche
   virtual bool isOK() const { return( false ); }

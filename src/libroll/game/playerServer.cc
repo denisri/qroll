@@ -2,7 +2,7 @@
                           playerServer.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2001 by Denis Rivi�re
+    copyright            : (C) 2000-2001 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -136,7 +136,7 @@ void PlayerServer::keyPressed( unsigned player, unsigned key )
   unsigned		& reptK = _repeatKey[ player ];
 
   kbd[ key ] = true;
-  //cout << "joueur " << player << " a enfonc� la touche " << key << endl;
+  //cout << "joueur " << player << " a enfoncÃ© la touche " << key << endl;
 
   if( key != Game::K_FIRE && ( bufN == 0 || key != buf[0] ) )
     {
@@ -212,7 +212,7 @@ void PlayerServer::takeKeys()
 	      sbf[1] = false;
 	      bufN = 0;
 	    }
-	  else if( reptK )	//	Touche en r�p�tition
+	  else if( reptK )	//	Touche en rÃ©pÃ©tition
 	    {
 	      //cout << "repeat\n";
 	      play.kbd = reptK;
@@ -221,7 +221,7 @@ void PlayerServer::takeKeys()
 	      //sbf[0] = kbd[ Game::K_FIRE ];
 	      rept = true;
 	    }
-	  else		//	Pas de touche bufferis�e
+	  else		//	Pas de touche bufferisÃ©e
 	    {
 	      //cout << "nobuf\n";
 	      play.fire = kbd[ Game::K_FIRE ];

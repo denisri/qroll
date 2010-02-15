@@ -2,7 +2,7 @@
                           rightMonster.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -26,7 +26,7 @@
 namespace roll
 {
 
-  /**	Monstre qui tourne à droite */
+  /**	Monstre qui tourne Ã  droite */
   class RRightMonster : public RLeftMonster
   {
   public:
@@ -35,7 +35,7 @@ namespace roll
     ///
     virtual ~RRightMonster();
 
-    /**@name	Propriétés de la classe */
+    /**@name	PropriÃ©tÃ©s de la classe */
     //@{
     ///
     virtual AnimType animType() const { return( AnimReturn ); }

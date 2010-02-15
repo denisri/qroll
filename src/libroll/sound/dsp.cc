@@ -2,7 +2,7 @@
                           dsp.cc
                              -------------------
     begin                : 1999
-    copyright            : (C) 1999-2006 by Denis Rivi�re
+    copyright            : (C) 1999-2006 by Denis RiviÃ¯Â¿Â½re
     email                : nudz@free.fr
                            http://nudz.free.fr
  ***************************************************************************/
@@ -104,7 +104,7 @@ void RRDspSound::init()
     return;
   }
 
-#ifdef linux	// sp�cifique...
+#ifdef linux	// spÃ¯Â¿Â½cifique...
   // mono, 8 bits, 22 kHz
   int	arg = AFMT_U8;
   if( ioctl( fd, SNDCTL_DSP_SETFMT /*SOUND_PCM_WRITE_BITS*/, &arg ) == -1 )
@@ -154,7 +154,7 @@ void RRDspSound::init()
   unsigned	fragments = (unsigned) ceil( log( (double) bufferSize ) 
 					     / log( (double) 2 ) + 0.5 );
   bufferSize = 1U << (fragments - 1);	// modif au plus proche
-  cout << "buffer size vis� : " << bufferSize << endl;
+  cout << "buffer size visÃ¯Â¿Â½ : " << bufferSize << endl;
 
   // 0xMMMMSSSS, MMMM = nb de fragments (2), SSSS = taille en exposant de 2
   fragments |= 0x20000;
@@ -175,7 +175,7 @@ void RRDspSound::init()
   cout << QR_SOUNDDEV << " operations are experimental: sound params may not " 
   <<"be set correctly, and sound are likely to be awful lound noise.\n";*/
 
-  // on essaie quand-m�me...
+  // on essaie quand-mÃ¯Â¿Â½me...
 
   //	Pourquoi faut-il demander 11 kHz pour obtenir 22 ????????
   freqDsp = 11025;				// 22.05 kHz
@@ -185,9 +185,9 @@ void RRDspSound::init()
 
   /* debug
   AUDIO_INITINFO( &auinf );
-  if( ioctl( fd, AUDIO_SETINFO, &auinf ) == -1 ) // �crit les nouvelles valeurs
+  if( ioctl( fd, AUDIO_SETINFO, &auinf ) == -1 ) // Ã¯Â¿Â½crit les nouvelles valeurs
     {
-      cerr << "getinfo foir�\n";
+      cerr << "getinfo foirÃ¯Â¿Â½\n";
     }
   cout << "avant modif : freq : " << auinf.play.sample_rate 
        << ", precision : " 
@@ -204,12 +204,12 @@ void RRDspSound::init()
   auinf.play.encoding = AUDIO_ENCODING_LINEAR;	// 8 bits unsigned
   auinf.play.gain = AUDIO_MAX_GAIN / 2;		// volume max
   //auinf.play.port = AUDIO_SPEAKER;		// sortie haut-parleur interne
-  // est-ce n�cessaire de remplir �a ?
+  // est-ce nÃ¯Â¿Â½cessaire de remplir Ã¯Â¿Â½a ?
   //auinf.play.avail_ports = AUDIO_SPEAKER | AUDIO_HEADPHONE | AUDIO_LINEOUT;
   auinf.play.buffer_size = bufferSize;
   auinf.play.balance = AUDIO_MID_BALANCE;
 
-  if( ioctl( fd, AUDIO_SETINFO, &auinf ) == -1 ) // �crit les nouvelles valeurs
+  if( ioctl( fd, AUDIO_SETINFO, &auinf ) == -1 ) // Ã¯Â¿Â½crit les nouvelles valeurs
     {
       if( errno == EINVAL )
 	cerr << "EINVAL\n";
@@ -228,7 +228,7 @@ void RRDspSound::init()
   cout << QR_SOUNDDEV << " operations not recognized: sound params will not " 
        <<"be set, and sound are likely to be awful lound noise.\n";
 
-  freqDsp = 8000;	// par d�faut �a doit �tre 8 kHz... (?)
+  freqDsp = 8000;	// par dÃ¯Â¿Â½faut Ã¯Â¿Â½a doit Ã¯Â¿Â½tre 8 kHz... (?)
   bufferSize = 512;
 #endif
 #endif
@@ -299,10 +299,10 @@ void RRDspSound::process( SNDLIST type )
   //cout << "jeu lock\n";
   unsigned	n = _inuse[ type ];
   if( n >= MaxSameSample )
-    stopOld( type );	// trop de sons en m�me temps: arr�te-en un
-  if( n > 0 )	// d�j� ce son : mettre un petit d�callage
+    stopOld( type );	// trop de sons en mÃ¯Â¿Â½me temps: arrÃ¯Â¿Â½te-en un
+  if( n > 0 )	// dÃ¯Â¿Â½jÃ¯Â¿Â½ ce son : mettre un petit dÃ¯Â¿Â½callage
     {
-      int	r = rand() & 0x7ff;	// jusqu'� 0.1 s environ
+      int	r = rand() & 0x7ff;	// jusqu'Ã¯Â¿Â½ 0.1 s environ
       jobs.push_back( (SndReq) { type, -r } );
     }
   else
@@ -338,10 +338,10 @@ void RRDspSound::update()
 
   /* sz = (unsigned) ( freqDsp * 0.05 );	// pas de 1/20 seconde environ
   if( (int) sz > bufferSize )
-    sz = bufferSize;			// limit� aussi par la taille du buffer
+    sz = bufferSize;			// limitÃ¯Â¿Â½ aussi par la taille du buffer
   */
 
-  sz = bufferSize;	// �crire des s�ries de la taille du buffer (synchro)
+  sz = bufferSize;	// Ã¯Â¿Â½crire des sÃ¯Â¿Â½ries de la taille du buffer (synchro)
 
   //unsigned dbgn;
 
@@ -363,7 +363,7 @@ void RRDspSound::update()
 	      smp = (*ij).type;
 	      if( pos < (int) sndLen[smp] )
 		{
-		  if( pos >= 0 )	// si commenc�
+		  if( pos >= 0 )	// si commencÃ¯Â¿Â½
 		    {
 		      snd += sounds[smp][pos];
 		      ++ns;
@@ -381,19 +381,19 @@ void RRDspSound::update()
 		    << ".\n";*/
 		}
 	    }
-	  snd -= (ns-1) * 128;	// remettre le bon z�ro
+	  snd -= (ns-1) * 128;	// remettre le bon zÃ¯Â¿Â½ro
 	  if( snd < 0 )
 	    snd = 0;
 	  else if( snd > 255 )
-	    snd = 255;		// couper ce qui d�passe
+	    snd = 255;		// couper ce qui dÃ¯Â¿Â½passe
 #if defined( sun ) || defined( __sun )
-	  snd -= 128;		// sign� sur Sun
+	  snd -= 128;		// signÃ¯Â¿Â½ sur Sun
 #endif
 
 	  buffer[i] = (unsigned char) snd;
 	}
 
-      // remettre � jour les positions des samples
+      // remettre Ã¯Â¿Â½ jour les positions des samples
 
       for( ij=jobs.begin(), fj=jobs.end(); ij!=fj; ++ij )
 	{
@@ -402,14 +402,14 @@ void RRDspSound::update()
 	}
       //cout << jobs.size() << " samples, sz= " << sz << "\n";
 
-      // c'est hyper pas du tout optimis� cette routine...
+      // c'est hyper pas du tout optimisÃ¯Â¿Â½ cette routine...
 
       //cout << "thread unlock (joue)\n" << flush;
       pthread_mutex_unlock( &listLock );
       //cout << "OK\n" << flush;
 
-      // force � jouer, attends que ce soit fini (sans prendre du CPU)
-      //ioctl( fd, SNDCTL_DSP_SYNC );	// �a marche PLUS �a !!!!
+      // force Ã¯Â¿Â½ jouer, attends que ce soit fini (sans prendre du CPU)
+      //ioctl( fd, SNDCTL_DSP_SYNC );	// Ã¯Â¿Â½a marche PLUS Ã¯Â¿Â½a !!!!
       // la synchro est faite automatiquement par la taille des buffers...
       write( fd, buffer, sz );	// joue
 
@@ -426,14 +426,14 @@ void RRDspSound::update()
   //cout << "thread unlock\n" << flush;
 
 #ifdef linux
-  ioctl( fd, SNDCTL_DSP_POST );	// on va s'arr�ter de jouer pendant un moment
+  ioctl( fd, SNDCTL_DSP_POST );	// on va s'arrÃ¯Â¿Â½ter de jouer pendant un moment
 #else
 #if defined( sun ) || defined( __sun )
   ioctl( fd, AUDIO_DRAIN );
 #endif
 #endif
 
-  //cout << "thread d�truit.\n";
+  //cout << "thread dÃ¯Â¿Â½truit.\n";
   threadRunning = false;
 }
 

@@ -2,7 +2,7 @@
                           blob.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivi�re
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -36,7 +36,7 @@ RBlob::~RBlob()
 
 void RBlob::realProcess( unsigned x, unsigned y )
 {
-  unsigned	nob = explo.a[s];	// no de b�bette
+  unsigned	nob = explo.a[s];	// no de bÃ©bette
 
   if( bebet[nob].flg == 1 )	// transformation 1
     {
@@ -52,7 +52,7 @@ void RBlob::realProcess( unsigned x, unsigned y )
       return;
     }
 
-  ++bebet[nob].cpt;		// compteur de b�bettes
+  ++bebet[nob].cpt;		// compteur de bÃ©bettes
   RRSoundProcessor::processor().processIfNotUsed( RRSoundProcessor::BLOB );
 
   if( x == 0 ) bebet[nob].flg = 3;	// bord: pas transformable
@@ -82,9 +82,9 @@ bool RBlob::grow( unsigned x, unsigned y, unsigned nob, unsigned flags )
       return( false );
     }
 
-  if( sp_flg[ el->s ].l2 & BEBCOM )	// mangeable par b�b.?
+  if( sp_flg[ el->s ].l2 & BEBCOM )	// mangeable par bÃ©b.?
     {
-      bebet[nob].blk = false;	// pas bloqu�e
+      bebet[nob].blk = false;	// pas bloquÃ©e
 
       if( (rrand() & 0xff) < game.tbct.speed() )  // test de grossissement
 	{

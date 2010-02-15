@@ -2,7 +2,7 @@
                           gElem.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2002 by Denis RiviËre
+    copyright            : (C) 2000-2002 by Denis Rivi√®re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -31,7 +31,7 @@ namespace roll
 {
 
   /**	Game Element. \\
-	Classe de base pour les diffÈrents objets: monstres, mec, rocks, 
+	Classe de base pour les diff√©rents objets: monstres, mec, rocks, 
 	herbe, etc.
   */
   class GElem
@@ -55,7 +55,7 @@ namespace roll
 
     /**@name	Constructeur - destructeur */
     //@{
-    ///	Constructeur pas encore protÈgÈ pour l'instant
+    ///	Constructeur pas encore prot√©g√© pour l'instant
     GElem( unsigned num ) : s( num ), f( rand() & ANIMA ) {}
     ///
     virtual ~GElem();
@@ -63,30 +63,30 @@ namespace roll
 
     /**@name	Fonctions */
     //@{
-    ///	Sprite ‡ afficher (quand seul)
+    ///	Sprite √† afficher (quand seul)
     virtual unsigned short sprite( RBack* back = 0 ) const;
     ///	Sprite qui bouge (ou vide s'il n'y en a pas)
     virtual unsigned short movingSprite() const;
-    ///	Sprite de fond (immobile, derriËre celui qui bouge)
+    ///	Sprite de fond (immobile, derri√®re celui qui bouge)
     virtual unsigned short backStillSprite( RBack* back = 0 ) const;
     ///	Sprite immobile de 1er plan: devant celui qui bouge
     virtual unsigned short frontStillSprite( RBack* back = 0 ) const;
     ///	Gestion pendant le jeu (mouvements, tranformations etc)
     virtual void process( unsigned x, unsigned y );
     /**	Fait exploser le sprite (si explosif).
-	! Peut dÈtruire l'ÈlÈment appelant ! (fonction statique) */
+	! Peut d√©truire l'√©l√©ment appelant ! (fonction statique) */
     static void explode( unsigned x, unsigned y );
     virtual bool isAnimated() const;
     ///	Calcule le sprite d'animation
     virtual unsigned short animation() const;
-    ///	Calcule le sprite animÈ du background
+    ///	Calcule le sprite anim√© du background
     virtual unsigned short backAnim( RBack* back ) const;
     /** ID identifying this particular element - used for packing / saving
 	/ transmitting levels by network from elements numbers */
     virtual unsigned short idNumber() const { return( s ); }
     //@}
 
-    /**@name	PropriÈtÈs de la classe */
+    /**@name	Propri√©t√©s de la classe */
     //@{
     virtual bool isEmpty() const { return( false ); }
     virtual bool isKey() const { return( false ); }
@@ -111,21 +111,21 @@ namespace roll
     virtual bool canMove() const { return( false ); }
     ///	se mange (par Roll)
     virtual bool isEatable() const { return( false ); }
-    ///	est Ècrasable par el ?
+    ///	est √©crasable par el ?
     virtual bool squashedBy( const GElem* el ) const;
-    ///	crÈe un nouvel ÈlÈment transformÈ (si transformable)
+    ///	cr√©e un nouvel √©l√©ment transform√© (si transformable)
     virtual GElem* transformed() const;
-    ///	Explosif d'une maniËre ou d'une autre ?
+    ///	Explosif d'une mani√®re ou d'une autre ?
     virtual bool isExplosive() const { return( false ); }
     ///	Explosif quand tombe ?
     virtual bool explodesWhenFalls() const { return( false ); }
     ///	Explosif quand dans le rayon d'une explosion ?
     virtual bool explodesWhenBlown() const { return( false ); }
-    ///	Explosif quand crÈÈ par une explosion ?
+    ///	Explosif quand cr√©√© par une explosion ?
     virtual bool chainExplodes() const { return( false ); }
-    ///	Explosif au contact de la bÈbette
+    ///	Explosif au contact de la b√©bette
     virtual bool explodesOnBlob() const { return( false ); }
-    ///	L'ÈlÈment est-il l‡ temporairement ?
+    ///	L'√©l√©ment est-il l√† temporairement ?
     virtual bool isTemporary() const { return( false ); }
     virtual bool isSlippery() const;
     /**	Not all elements can be placed in the limits of the level, esp. not 
@@ -169,7 +169,7 @@ namespace roll
   };
 
 
-  ///	ElÈment vide
+  ///	El√©ment vide
   class EmptyElem : public GElem
   {
   public:

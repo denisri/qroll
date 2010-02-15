@@ -2,7 +2,7 @@
                           levelPar.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -23,7 +23,7 @@
 namespace roll
 {
 
-  /**	Paramètres d'en-tete de tableau
+  /**	ParamÃ¨tres d'en-tete de tableau
    */
   struct LevelPar
   {
@@ -31,17 +31,17 @@ namespace roll
     unsigned char		tx;
     ///	Taille y
     unsigned char		ty;
-    ///	Nb de diams nécessaires
+    ///	Nb de diams nÃ©cessaires
     unsigned short	diam;
     ///	Temps
     unsigned short	tps;
-    ///	Perméabilité des murs
+    ///	PermÃ©abilitÃ© des murs
     unsigned char		perm;
-    ///	Vitesse de la bébette
+    ///	Vitesse de la bÃ©bette
     unsigned char		vit;
-    ///	Force roll & bébette
+    ///	Force roll & bÃ©bette
     unsigned char		forc;
-    /// Vitesse des générateurs
+    /// Vitesse des gÃ©nÃ©rateurs
     unsigned char		vgen;
     /// Couleur des murs/rocks
     unsigned short	cm;
@@ -55,11 +55,11 @@ namespace roll
     unsigned short	ch;
     ///	Flags nb de joueurs
     unsigned short	flags;
-    ///	Taille max de la bébette
+    ///	Taille max de la bÃ©bette
     unsigned short	tbeb;
-    ///	Durée mèches des bombes
+    ///	DurÃ©e mÃ¨ches des bombes
     unsigned short	dbom;
-    ///	Adresse début données tableau
+    ///	Adresse dÃ©but donnÃ©es tableau
     unsigned short	debu;
   };
 

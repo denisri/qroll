@@ -2,7 +2,7 @@
                           clientDialog.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -26,7 +26,7 @@
 class QLineEdit;
 
 
-/**	Fiche de dialogue pour choisir la destination de la connexion réseau
+/**	Fiche de dialogue pour choisir la destination de la connexion rÃ©seau
  */
 class RRClientDialog : public QDialog
 {

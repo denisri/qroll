@@ -2,7 +2,7 @@
                           levelAtari.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2001 by Denis Rivière
+    copyright            : (C) 2000-2001 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -70,11 +70,11 @@ namespace roll
 
     ///	Taille du tableau
     unsigned long	size;
-    ///	Taille des paramètres
+    ///	Taille des paramÃ¨tres
     unsigned short	sparam;
-    ///	Paramètres
+    ///	ParamÃ¨tres
     unsigned char	*param;
-    ///	Données tableau
+    ///	DonnÃ©es tableau
     unsigned char	*data;
 
   protected:

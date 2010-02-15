@@ -2,7 +2,7 @@
                           mainWin.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivi�e
+    copyright            : (C) 2000 by Denis Riviï¿½e
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -115,10 +115,10 @@ public slots:
   void remoteClientDisconnected( int );
   void remoteServerDisconnected();
   void netError( int err );
-  ///	R�up�ation des touches des fen�res PLayField
+  ///	Rï¿½upï¿½ation des touches des fenï¿½res PLayField
   void receiveKeyPressed( const QRPlayField::KeyCode & key, 
 			  const QRPlayField* win );
-  ///	R�up�ation des touches des fen�res PlayField
+  ///	Rï¿½upï¿½ation des touches des fenï¿½res PlayField
   void receiveKeyReleased( const QRPlayField::KeyCode & key, 
 			   const QRPlayField* win );
   ///	Fin du temps de jeu
@@ -133,13 +133,13 @@ public slots:
   void addPlayer();
   void removePlayer();
   void closePlayField( QRPlayField * win );
-  ///	R�git �un ordre de d�enregistrement d'un joueur
+  ///	Rï¿½git ï¿½un ordre de dï¿½enregistrement d'un joueur
   void playerRemoved( unsigned num );
   ///	Callback du timer temps de jeu
   void clockTick();
-  ///	Callback r�eau
+  ///	Callback rï¿½eau
   void playerAdded( unsigned );
-  ///	Callback r�eau
+  ///	Callback rï¿½eau
   void playersRenumed( const roll::RenumList & play );
   void about();
   void soundOnOff();
@@ -163,9 +163,9 @@ public slots:
   void paintStop( int x, int y, bool inlevel, QRPlayField* );
 
 signals:
-  ///	Arr� du jeu
+  ///	Arrï¿½ du jeu
   void gameStopped();
-  ///	Ordre de remettre �jour le tableau
+  ///	Ordre de remettre ï¿½jour le tableau
   void stageChanged( unsigned );
   ///	Affichage du tableau
   void displayFull();
@@ -193,14 +193,14 @@ protected:
 
   ///	Initialise les sprites (graphique)
   void initPixmaps();
-  ///	Convertit image -> donn�s sprite niv. gris + type de couleur
+  ///	Convertit image -> donnï¿½s sprite niv. gris + type de couleur
   void convertSprite( const QImage & img, unsigned x, unsigned y, unsigned w, 
 		      unsigned h, unsigned char* gbuf, unsigned char* cbuf );
   ///	Convertit les couleurs d'un sprite
   void fillImage( QImage & img, unsigned num );
   ///	Conversion des couleurs des sprites
   void genPixmaps();
-  ///	Choses �faire au demi-scroll
+  ///	Choses ï¿½faire au demi-scroll
   void stepHalf();
 
   bool		_paused;
@@ -237,7 +237,7 @@ private:
 
   ///	Timer cadence du jeu
   QTimer			*_timer;
-  ///	Fr�uence d'ex�ution du jeu (ms/balayage)
+  ///	Frï¿½uence d'exï¿½ution du jeu (ms/balayage)
   unsigned			_tempo;
   ///	Flag 1/2 timer pour le 1/2 scroll
   bool				_tick;

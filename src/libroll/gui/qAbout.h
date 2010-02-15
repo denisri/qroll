@@ -2,7 +2,7 @@
                           qAbout.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 1999-2004 by Denis Rivi�e
+    copyright            : (C) 1999-2004 by Denis Riviï¿½e
     email                : nudz@free.fr
  ***************************************************************************/
 

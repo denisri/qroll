@@ -2,7 +2,7 @@
                           ball.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -41,7 +41,7 @@ namespace roll
     virtual bool canMove() const { return( true ); }
     virtual bool isSlippery() const { return( true ); }
 
-    ///	Donne la cause de la réflexion en (x, y)
+    ///	Donne la cause de la rÃ©flexion en (x, y)
     unsigned reflectCause( unsigned x, unsigned y );
     ///
     void setState( bool moving ) { _moving = moving; }

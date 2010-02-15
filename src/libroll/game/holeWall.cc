@@ -2,7 +2,7 @@
                           holeWall.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivi�re
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -24,7 +24,7 @@ using namespace roll;
 
 bool RHoleWall::testGoOut( unsigned, unsigned )
 {
-  delete _inside;	// le gor�t...
+  delete _inside;	// le gorÃªt...
   _inside = 0;		// burp!...
 
   return( false );	// "moi? j'ai rien fait, moi..."

@@ -2,7 +2,7 @@
                           gameField.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -21,12 +21,12 @@
 
 
 /**	Classe de base pour l'affichage. La classe de base ne fait en fait 
-	pas de visu, elle gère l'affichage du tableau (sprite par sprite, 
+	pas de visu, elle gÃ¨re l'affichage du tableau (sprite par sprite, 
 	affichage entier et demi-affichage), le champ de vue dans le tableau, 
-	le déplacement du champ de vue etc.
-	L'affichage lui-même doit être pris en charge par une classe dérivée 
-	spécialisée dans un système graphique (Qt, Motif, Windows, Mac, etc.), 
-	qui doit définir les méthodes de dessin en redéfinissant les fonctions 
+	le dÃ©placement du champ de vue etc.
+	L'affichage lui-mÃªme doit Ãªtre pris en charge par une classe dÃ©rivÃ©e 
+	spÃ©cialisÃ©e dans un systÃ¨me graphique (Qt, Motif, Windows, Mac, etc.), 
+	qui doit dÃ©finir les mÃ©thodes de dessin en redÃ©finissant les fonctions 
 	virtuelles pures.
  */
 class RGameField
@@ -37,19 +37,19 @@ public:
 
   void setPlayer( unsigned p ) { _player = p; }
   unsigned player() const { return( _player ); }
-  ///	Déplace le champ de vision vers le haut
+  ///	DÃ©place le champ de vision vers le haut
   void up();
-  ///	Déplace le champ de vision vers le bas
+  ///	DÃ©place le champ de vision vers le bas
   void down();
-  ///	Déplace le champ de vision vers la gauche
+  ///	DÃ©place le champ de vision vers la gauche
   void left();
-  ///	Déplace le champ de vision vers la droite
+  ///	DÃ©place le champ de vision vers la droite
   void right();
-  ///	Nombre de sprites affichés en largeur
+  ///	Nombre de sprites affichÃ©s en largeur
   unsigned sWidth() const { return( _w ); }
   ///	Num. of \e useful sprites displayed in width (entirely on screen)
   unsigned uWidth() const;
-  ///	Nombre de sprites affichés en hauteur
+  ///	Nombre de sprites affichÃ©s en hauteur
   unsigned sHeight() const { return( _h ); }
   unsigned uHeight() const;
   void enableScaling( bool f ) { if( _scale != f ) { _scale = f; reset(); } }
@@ -57,7 +57,7 @@ public:
   float scaleFactor() const { return( _scfac ); }
   unsigned beginX() const { return( _xx ); }
   unsigned beginY() const { return( _yy ); }
-  ///	Dessine le tableau, cases entières
+  ///	Dessine le tableau, cases entiÃ¨res
   virtual void displayFull();
   ///	Dessine le demi-scroll
   void displayHalf();
@@ -72,31 +72,31 @@ public:
   virtual int height() const = 0;
 
 protected:
-  ///	Prépare l'écran ou le Pixmap dans lequel le tableau doit être dessiné
+  ///	PrÃ©pare l'Ã©cran ou le Pixmap dans lequel le tableau doit Ãªtre dessinÃ©
   virtual void setupScreen( unsigned w, unsigned h ) = 0;
-  ///	Dessine le sprite spr à la position (i, j) dans la zone de dessin
+  ///	Dessine le sprite spr Ã  la position (i, j) dans la zone de dessin
   virtual void copySprite( unsigned spr, int posx, int posy ) = 0;
   /**	Affiche effectivement la zone de dessin (swapbuffer ou copie du 
-	pixmap de dessin sur l'écran réel)
-	@param	eraseBorder	précise si les bords de la zone de dessin 
-				(la partie non affichée) doit être effacée 
+	pixmap de dessin sur l'Ã©cran rÃ©el)
+	@param	eraseBorder	prÃ©cise si les bords de la zone de dessin 
+				(la partie non affichÃ©e) doit Ãªtre effacÃ©e 
 				ou non
-	@param	w,h	taille utile de la fenêtre (couverte de sprites)
+	@param	w,h	taille utile de la fenÃªtre (couverte de sprites)
   */
   virtual void updateScreen( bool eraseBorder, int w = 0, int h = 0 ) = 0;
 
 private:
-  ///	Coordonnées de la fenêtre de visu dans le tableau: x
+  ///	CoordonnÃ©es de la fenÃªtre de visu dans le tableau: x
   unsigned		_xx;
-  ///	Coordonnées de la fenêtre de visu dans le tableau: y
+  ///	CoordonnÃ©es de la fenÃªtre de visu dans le tableau: y
   unsigned		_yy;
   ///	Joueur qui a le focus
   unsigned		_player;
   bool			_scale;
   float			_scfac;
-  ///	Nombre de sprites affichés en largeur
+  ///	Nombre de sprites affichÃ©s en largeur
   unsigned		_w;
-  ///	Nombre de sprites affichés en hauteur
+  ///	Nombre de sprites affichÃ©s en hauteur
   unsigned		_h;
 
 };

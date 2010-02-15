@@ -2,7 +2,7 @@
                           keyGen.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -26,7 +26,7 @@
 namespace roll
 {
 
-  /**	Générateur de clefs */
+  /**	GÃ©nÃ©rateur de clefs */
   class RKeyGen : public RRockGen
   {
   public:

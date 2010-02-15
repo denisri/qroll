@@ -2,7 +2,7 @@
                           qAbout.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 1999-2005 by Denis Rivi�e
+    copyright            : (C) 1999-2005 by Denis RiviÃ¯Â¿Â½e
     email                : nudz@free.fr
  ***************************************************************************/
 

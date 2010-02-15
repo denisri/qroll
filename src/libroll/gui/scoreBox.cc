@@ -2,7 +2,7 @@
                           scoreBox.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivi�e
+    copyright            : (C) 2000 by Denis RiviÃ¯Â¿Â½e
     email                : nudz@free.fr
  ***************************************************************************/
 

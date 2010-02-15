@@ -2,7 +2,7 @@
                           elemFactory.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivi�re
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -178,11 +178,11 @@ GElem* RElemFactory::createElem( unsigned num )
     case 130:
     case 131:
       return( new RDiamMonster( 129 ) );
-    case 209:	// g�n�rateur de rocks
+    case 209:	// gÃ©nÃ©rateur de rocks
     case 210:
     case 211:
       return( new RRockGen( 209 ) );
-    case 12:	// b�bettes
+    case 12:	// bÃ©bettes
     case 13:
     case 14:
     case 15:
@@ -218,7 +218,7 @@ GElem* RElemFactory::createElem( unsigned num )
     case 215:
     case 216:
     case 217:
-    case 0x10c:	// b�bettes page 1
+    case 0x10c:	// bÃ©bettes page 1
     case 0x10d:
     case 0x10e:
     case 0x134:
@@ -323,13 +323,13 @@ GElem* RElemFactory::createElem( unsigned num )
     case 185:
     case 225:
       return( new RPermeabWall( num ) );
-    case 26:	// mur t�l�porteur
+    case 26:	// mur tÃ©lÃ©porteur
     case 0x16a:
       return( new RTelepWall( num ) );
-    case 66:	// mur t�l�porto-transformeur
+    case 66:	// mur tÃ©lÃ©porto-transformeur
     case 0x192:
       return( new RTelepTransWall( num ) );
-    case 106:	// mur t�l�porteur � attente
+    case 106:	// mur tÃ©lÃ©porteur Ã  attente
       return( new RTelepPermeabWall( num ) );
     case 27:	// serrure
     case 67:
@@ -347,17 +347,17 @@ GElem* RElemFactory::createElem( unsigned num )
     case 0x16e:
     case 0x196:
       return( new RJungle( num ) );
-    case 32:	// g�n�rateur de monstres 1
+    case 32:	// gÃ©nÃ©rateur de monstres 1
       return( new RGenerator( num ) );
-    case 72:	// g�n�rateur de monstres 2
+    case 72:	// gÃ©nÃ©rateur de monstres 2
       return( new RGenerator2( num ) );
-    case 112:	// g�n�rateur de monstres 3
+    case 112:	// gÃ©nÃ©rateur de monstres 3
       return( new RGenerator3( num ) );
-    case 152:	// g�n�rateur de monstres 4
+    case 152:	// gÃ©nÃ©rateur de monstres 4
       return( new RGenerator4( num ) );
-    case 192:	// arriv�e de t�l�porteur
+    case 192:	// arrivÃ©e de tÃ©lÃ©porteur
       return( new Wall( num ) );
-    case 232:	// g�n�rateur de clefs
+    case 232:	// gÃ©nÃ©rateur de clefs
       return( new RKeyGen( num ) );
     case 34:	// roll
     case 35:
@@ -372,7 +372,7 @@ GElem* RElemFactory::createElem( unsigned num )
     case 234:
     case 235:
       return( new Roll );
-    case 28:	// porte ferm�e
+    case 28:	// porte fermÃ©e
     case 68:
     case 108:
     case 148:
@@ -386,15 +386,15 @@ GElem* RElemFactory::createElem( unsigned num )
     case 189:
     case 229:
       return( new OpenDoor( num ) );
-    case 33:	// bombe �teinte
+    case 33:	// bombe Ã©teinte
     case 0x121:	// bombe rouge
     case 0x199:	// bombe rose
       return( new RBomb( num ) );
-    case 73:	// bombe allum�e
+    case 73:	// bombe allumÃ©e
     case 113:
-    case 0x149:	// bombe rouge allum�e
+    case 0x149:	// bombe rouge allumÃ©e
     case 0x171:
-    case 0x1c1:	// bombe rose allum�e
+    case 0x1c1:	// bombe rose allumÃ©e
     case 0x1e9:
     case 0x14c:	// grenade tombante
     case 0x174:
@@ -411,7 +411,7 @@ GElem* RElemFactory::createElem( unsigned num )
     case 196:
     case 236:
     case 190:	// passe-partout
-    case 0x1ec:	// clef sp�ciale page 1
+    case 0x1ec:	// clef spÃ©ciale page 1
       return( new RKey( num ) );
     case 37:	// diam
     case 77:
@@ -441,7 +441,7 @@ GElem* RElemFactory::createElem( unsigned num )
     case 0x1c6:
     case 0x1ee:
       return( new Rock( num ) );
-    case 39:	// rock t�te de mort
+    case 39:	// rock tÃªte de mort
     case 79:
     case 119:
     case 159:
@@ -458,7 +458,7 @@ GElem* RElemFactory::createElem( unsigned num )
       return( new RGrassRock( num ) );
     case 233:	// pastille de force
       return( new RStrengthPill( num ) );
-    case 0x110:	// g�lule
+    case 0x110:	// gÃ©lule
     case 0x138:
     case 0x160:
     case 0x188:
@@ -474,19 +474,19 @@ GElem* RElemFactory::createElem( unsigned num )
     case 226:	// illusion
       return( new EmptyElem );
 
-    case 0x1a0:	// tapis roulant 1 (arr�t� au d�part)
+    case 0x1a0:	// tapis roulant 1 (arrÃªtÃ© au dÃ©part)
     case 0x1a1:
     case 0x1a2:
       if( game.tbct.conveyDir.size() == 0 )
 	game.tbct.conveyDir.push_back( 0 );
       return( new RConveyorBelt( 0x1a0, 0 ) );
-    case 0x156:	// tapis roulant 2 (va � gauche au d�part)
+    case 0x156:	// tapis roulant 2 (va Ã  gauche au dÃ©part)
       if( game.tbct.conveyDir.size() == 0 )
 	game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 1 )
 	game.tbct.conveyDir.push_back( -1 );
       return( new RConveyorBelt( 0x1a0, 1 ) );
-    case 0x157:	// tapis roulant 2 (va � droite au d�part)
+    case 0x157:	// tapis roulant 2 (va Ã  droite au dÃ©part)
       if( game.tbct.conveyDir.size() == 0 )
 	game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 1 )
@@ -494,7 +494,7 @@ GElem* RElemFactory::createElem( unsigned num )
       if( game.tbct.conveyDir.size() == 2 )
 	game.tbct.conveyDir.push_back( 1 );
       return( new RConveyorBelt( 0x1a0, 2 ) );
-    case 0x17f:	// tapis roulant 3 (va � droite au d�part, contr�lable)
+    case 0x17f:	// tapis roulant 3 (va Ã  droite au dÃ©part, contrÃ´lable)
       if( game.tbct.conveyDir.size() == 0 )
 	game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 1 )
@@ -504,7 +504,7 @@ GElem* RElemFactory::createElem( unsigned num )
       if( game.tbct.conveyDir.size() == 3 )
 	game.tbct.conveyDir.push_back( 1 );
       return( new RConveyorBelt( 0x1a0, 3 ) );
-    case 0x1a7:	// tapis roulant 4 (arr�t� au d�part, contr�lable)
+    case 0x1a7:	// tapis roulant 4 (arrÃªtÃ© au dÃ©part, contrÃ´lable)
       if( game.tbct.conveyDir.size() == 0 )
 	game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 1 )
@@ -516,7 +516,7 @@ GElem* RElemFactory::createElem( unsigned num )
       if( game.tbct.conveyDir.size() == 4 )
 	game.tbct.conveyDir.push_back( 0 );
       return( new RConveyorBelt( 0x1a0, 4 ) );
-    case 0x1cf:	// tapis roulant 5 (va � gauche, contr�lable)
+    case 0x1cf:	// tapis roulant 5 (va Ã  gauche, contrÃ´lable)
       if( game.tbct.conveyDir.size() == 0 )
 	game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 1 )
@@ -574,7 +574,7 @@ GElem* RElemFactory::createElem( unsigned num )
       return( new RBall( num-80, HAU_N ) );
     case 0x180:
       return( new RBall( num-120, BA_N ) );
-    case 0x11b:	// d�tonateur
+    case 0x11b:	// dÃ©tonateur
     case 0x143:
       return( new RDetonator( 0x11b ) );
     case 0x16b:	// dynamite
@@ -593,7 +593,7 @@ GElem* RElemFactory::createElem( unsigned num )
       return( new EmptyElem );
     case 0x1bd:	// herse ouvrante
       return( new RPortcullis( num + 40, RPortcullis::OPENING ) );
-    case 0x1e5:	// herse ferm�e
+    case 0x1e5:	// herse fermÃ©e
       return( new RPortcullis( num, RPortcullis::CLOSED ) );
     default:
       return( new GElem( num ) );

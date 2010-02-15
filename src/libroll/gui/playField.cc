@@ -2,7 +2,7 @@
                           playField.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2002 by Denis Rivi�e
+    copyright            : (C) 2000-2002 by Denis RiviÃ¯Â¿Â½e
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -153,7 +153,7 @@ QRPlayField::~QRPlayField()
 void QRPlayField::initKeyCodes()
 {
   if( KeyMapMono.size() > 0 )
-    return;	// d��fait...
+    return;	// dÃ¯Â¿Â½Ã¯Â¿Â½fait...
 
   //	joueur 0 mono-joueur
   KeyMapMono[Key_Up] = KeyCode( 0, game.K_UP );

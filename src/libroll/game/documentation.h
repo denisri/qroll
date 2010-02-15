@@ -2,7 +2,7 @@
                               documentation.h 
                              -------------------
     begin                : 2003
-    copyright            : (C) 2003 by Denis Rivière
+    copyright            : (C) 2003 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 

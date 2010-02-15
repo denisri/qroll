@@ -2,7 +2,7 @@
                           backFactory.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -25,7 +25,7 @@ namespace roll
   class RBack;
 
 
-  /**	Usine à éléments d'arrière-plan */
+  /**	Usine Ã  Ã©lÃ©ments d'arriÃ¨re-plan */
   class RBackFactory
   {
   public:

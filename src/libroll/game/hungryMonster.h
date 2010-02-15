@@ -2,7 +2,7 @@
                           hungryMonster.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -38,11 +38,11 @@ namespace roll
     virtual ~RHungryMonster();
     //@}
 
-    /**	Teste la possibilité de bouffer qqch de consistant dans la case 
-	donnée. \\
+    /**	Teste la possibilitÃ© de bouffer qqch de consistant dans la case 
+	donnÃ©e. \\
 	Si c'est possible, effectue son nettoyage ("bouffe").
-	@param	x	coordonnée x de la case où on veut aller
-	@param	y	coordonnée y de la case où on veut aller
+	@param	x	coordonnÃ©e x de la case oÃ¹ on veut aller
+	@param	y	coordonnÃ©e y de la case oÃ¹ on veut aller
     */
     virtual bool possEat( unsigned x, unsigned y );
     ///

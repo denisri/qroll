@@ -2,7 +2,7 @@
                           blobdescr.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2001 by Denis Rivière
+    copyright            : (C) 2000-2001 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -22,7 +22,7 @@
 namespace roll
 {
 
-  /**	Descripteurs de bébettes
+  /**	Descripteurs de bÃ©bettes
    */
   class BlobDescr
   {
@@ -37,17 +37,17 @@ namespace roll
     /**	Flag de transformation: \\
 	0 : rien
 	1 : transfo 1: trop grosse
-	2 : transfo 2: bloquée
-	3 : pas de transfo du tout (bébette dans un bord)
+	2 : transfo 2: bloquÃ©e
+	3 : pas de transfo du tout (bÃ©bette dans un bord)
     */
     unsigned short	flg;
-    ///	Flag bébette bloquée
+    ///	Flag bÃ©bette bloquÃ©e
     unsigned short	blk;
-    ///	Flag bébette existe ( ???? ) ( existait depuis le début ?? )
+    ///	Flag bÃ©bette existe ( ???? ) ( existait depuis le dÃ©but ?? )
     unsigned short	exi;
-    ///	Données transformation 1
+    ///	DonnÃ©es transformation 1
     unsigned short	d1[3][3];
-    ///	Données transformation 2
+    ///	DonnÃ©es transformation 2
     unsigned short	d2[3][3];
   };
 

@@ -2,7 +2,7 @@
                           burningBomb.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -26,7 +26,7 @@
 namespace roll
 {
 
-  /**	Bombe allumée */
+  /**	Bombe allumÃ©e */
   class RBurningBomb : public RFallingElem
   {
   public:
@@ -39,11 +39,11 @@ namespace roll
     virtual ~RBurningBomb() {}
     //@}
 
-    /**@name	Propriétés de la classe */
+    /**@name	PropriÃ©tÃ©s de la classe */
     //@{
     ///	Calcule le sprite d'animation
     virtual unsigned short animation() const;
-    ///	crée un nouvel élément transformé (si transformable)
+    ///	crÃ©e un nouvel Ã©lÃ©ment transformÃ© (si transformable)
     virtual GElem* transformed() const;
     ///
     virtual RRSoundProcessor::SNDLIST soundWhenFalls() const
@@ -52,7 +52,7 @@ namespace roll
     virtual bool isExplosive() const { return( true ); }
     //@}
 
-    /**@name	Propriétés propres à RBurningBomb */
+    /**@name	PropriÃ©tÃ©s propres Ã  RBurningBomb */
     //@{
     ///
     unsigned char	timing() const { return( _timing ); }

@@ -2,7 +2,7 @@
                           passingWall.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivi�re
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -26,7 +26,7 @@ using namespace roll;
 
 void RPassingWall::realProcess( unsigned x, unsigned y )
 {
-  if( _inside )	// qqchose d�j� dedans
+  if( _inside )	// qqchose dÃ©jÃ  dedans
     {
       if( testGoOut( x, y ) )
 	goOut( x, y );
@@ -84,11 +84,11 @@ void RPassingWall::goOut( unsigned x, unsigned y )
   _inside->f |= BUSY | BA; //| TOMB | BA;
   game.tbct.d[x][y+1] = _inside;
   /*if( _inside->explodesWhenFalls() && !( game.tbct.d[x][y+2]->isEmpty() ) )
-    _inside->f |= RETPET;*/	// d�sactiv� pour compatibilit� avec Atari
+    _inside->f |= RETPET;*/	// dÃ©sactivÃ© pour compatibilitÃ© avec Atari
 
-  /*	pour compatibilit�, il faut faire un truc compliqu�:
+  /*	pour compatibilitÃ©, il faut faire un truc compliquÃ©:
 	il ne tombe, en fait, que s'il n'y a rien dessous
-	comme �a le rock nitro ne p�te pas en sortant du mur, sauf s'il 
+	comme Ã§a le rock nitro ne pÃ¨te pas en sortant du mur, sauf s'il 
 	y a un monstre dessous */
 
   /*if( game.tbct.d[x][y+2]->isEmpty() )

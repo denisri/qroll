@@ -2,7 +2,7 @@
                           lift.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivi�re
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -30,10 +30,10 @@ void RLift::realProcess( unsigned x, unsigned y )
 
   f &= ~( HAU | BA );
 
-  if( up->canMove() )	// ascenseur charg�
+  if( up->canMove() )	// ascenseur chargÃ©
     {
-      if( !_loaded )	// vient d'�tre charg�
-	_dir = 0;	// on repart � z�ro
+      if( !_loaded )	// vient d'Ãªtre chargÃ©
+	_dir = 0;	// on repart Ã  zÃ©ro
 
       _loaded = true;
 
@@ -70,7 +70,7 @@ void RLift::realProcess( unsigned x, unsigned y )
       if( oldload )
 	_dir = 0;
 
-      stop( x, y );	// plus charg�
+      stop( x, y );	// plus chargÃ©
     }
 
   if( _dir != olddir )
@@ -133,7 +133,7 @@ void RAutoLift::stop( unsigned x, unsigned y )
       else if( !down->isTemporary() )
 	if( up->isEmpty() && game.tbct.d[x][y-2]->isEmpty() )	// peut monter
 	  moveUp( x, y );
-	else	// non: on s'arr�te vraiment
+	else	// non: on s'arrÃªte vraiment
 	  _dir = 0;
       break;
     case -1:

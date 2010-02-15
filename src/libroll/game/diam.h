@@ -2,7 +2,7 @@
                           diam.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -35,7 +35,7 @@ namespace roll
     ///
     virtual ~RDiam();
 
-    /**@name	Propriétés de la classe */
+    /**@name	PropriÃ©tÃ©s de la classe */
     //@{
     ///
     virtual bool isDiam() const { return( true ); }
@@ -46,9 +46,9 @@ namespace roll
     { return( RRSoundProcessor::DIAM ); }
     //@}
 
-    /**@name	Propriétés propres à RDiam */
+    /**@name	PropriÃ©tÃ©s propres Ã  RDiam */
     //@{
-    ///	Numéro de type de diam
+    ///	NumÃ©ro de type de diam
     virtual unsigned diamNum() const;
     //@}
   };

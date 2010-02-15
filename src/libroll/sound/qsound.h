@@ -2,7 +2,7 @@
                           qsound.h
                              -------------------
     begin                : 2004
-    copyright            : (C) 2004 by Denis Rivière
+    copyright            : (C) 2004 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 

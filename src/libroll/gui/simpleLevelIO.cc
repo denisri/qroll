@@ -2,7 +2,7 @@
                           simpleLevelIO.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2004 by Denis Rivi�re
+    copyright            : (C) 2000-2004 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 

@@ -2,7 +2,7 @@
                           qsound.cc
                              -------------------
     begin                : 2004
-    copyright            : (C) 2004-2006 by Denis Rivi�re
+    copyright            : (C) 2004-2006 by Denis RiviÃ¯Â¿Â½re
     email                : nudz@free.fr
                            http://nudz.free.fr
  ***************************************************************************/

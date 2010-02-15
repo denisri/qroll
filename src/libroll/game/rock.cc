@@ -2,7 +2,7 @@
                           rock.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivi�re
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -52,7 +52,7 @@ void RFallingElem::realProcess( unsigned x, unsigned y )
 
       f &= ~(ROUL | TOMB);
 
-      //	Ecrase qqch qui p�te?
+      //	Ecrase qqch qui pÃ¨te?
       if( under->squashedBy( this ) )
 	game.tbct.d[x][y+1]->f |= PETE;
 

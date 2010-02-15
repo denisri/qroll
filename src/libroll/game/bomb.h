@@ -2,7 +2,7 @@
                           bomb.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -26,7 +26,7 @@
 namespace roll
 {
 
-  /**	Bombe éteinte */
+  /**	Bombe Ã©teinte */
   class RBomb : public RFallingEatable
   {
   public:
@@ -36,11 +36,11 @@ namespace roll
     ///
     virtual ~RBomb() {}
 
-    /**@name	Propriétés de la classe */
+    /**@name	PropriÃ©tÃ©s de la classe */
     //@{
     ///
     virtual bool isBomb() const { return( true ); }
-    ///	crée un nouvel élément transformé (si transformable)
+    ///	crÃ©e un nouvel Ã©lÃ©ment transformÃ© (si transformable)
     virtual GElem* transformed() const;
     ///
     virtual RRSoundProcessor::SNDLIST soundWhenEaten() const
@@ -50,11 +50,11 @@ namespace roll
     { return( RRSoundProcessor::BOMB ); }
     //@}
 
-    /**@name	Propriétés propres à Rbomb */
+    /**@name	PropriÃ©tÃ©s propres Ã  Rbomb */
     //@{
-    ///	Numéro de type de bombe
+    ///	NumÃ©ro de type de bombe
     virtual unsigned bombNum() const;
-    ///	Donne le no de la bombe allumée correspondant au type voulu
+    ///	Donne le no de la bombe allumÃ©e correspondant au type voulu
     static unsigned short burningBomb( unsigned num );
     //@}
 

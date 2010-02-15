@@ -2,7 +2,7 @@
                           transformWall.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -39,14 +39,14 @@ namespace roll
     //@}
 
   protected:
-    /**@name	Fonctions protégées */
+    /**@name	Fonctions protÃ©gÃ©es */
     //@{
-    /**	Effectue la sortie (peut avoir des effets différents selon le mur)
-	@parm	x	coordonnées du mur
+    /**	Effectue la sortie (peut avoir des effets diffÃ©rents selon le mur)
+	@parm	x	coordonnÃ©es du mur
 	@param	y	(*PAS* de la case de dessous)
     */
     virtual void goOut( unsigned x, unsigned y );
-    ///	Transforme l'élément avant sa sortie
+    ///	Transforme l'Ã©lÃ©ment avant sa sortie
     virtual void transform();
     //@}
 

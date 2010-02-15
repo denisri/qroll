@@ -2,7 +2,7 @@
                           telepWall.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -26,7 +26,7 @@
 namespace roll
 {
 
-  /**	Mur téléporteur */
+  /**	Mur tÃ©lÃ©porteur */
   class RTelepWall : public RPassingWall
   {
   public:
@@ -39,7 +39,7 @@ namespace roll
   };
 
 
-  /**	Mur tépélorto-transformeur */
+  /**	Mur tÃ©pÃ©lorto-transformeur */
   class RTelepTransWall : public RTransformWall
   {
   public:
@@ -52,7 +52,7 @@ namespace roll
   };
 
 
-  /**	Mur tépélorto-filtreur (à attente) */
+  /**	Mur tÃ©pÃ©lorto-filtreur (Ã  attente) */
   class RTelepPermeabWall : public RTelepWall
   {
   public:

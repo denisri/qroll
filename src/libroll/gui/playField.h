@@ -2,7 +2,7 @@
                           playField.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2002 by Denis Rivière
+    copyright            : (C) 2000-2002 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -35,7 +35,7 @@ namespace roll
 }
 
 
-/**	Widget central des fenêtres QRoll
+/**	Widget central des fenÃªtres QRoll
  */
 class QRPlayField : public QWidget
 {
@@ -94,11 +94,11 @@ public:
   const RGameField* viewport() const;
 
 public slots:
-  ///	Reçoit une demande de changement de tableaux
+  ///	ReÃ§oit une demande de changement de tableaux
   void stageChanged( unsigned );
   ///	Enlever un joueur
   void removePlayer( unsigned num );
-  ///	Renuméroter des joueurs
+  ///	RenumÃ©roter des joueurs
   void renumPlayers( const roll::RenumList & nums );
 
 protected slots:
@@ -118,7 +118,7 @@ signals:
 protected:
   virtual void resizeEvent( QResizeEvent* re );
 
-  ///	Liste des joueurs gérés par cette fenêtre
+  ///	Liste des joueurs gÃ©rÃ©s par cette fenÃªtre
   std::set<unsigned>		_players;
 
 private:

@@ -2,7 +2,7 @@
                           key.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -35,11 +35,11 @@ namespace roll
     ///
     virtual ~RKey();
 
-    /**@name	Propriétés de la classe */
+    /**@name	PropriÃ©tÃ©s de la classe */
     //@{
     ///
     virtual bool isKey() const { return( true ); }
-    ///	crée un nouvel élément transformé (si transformable)
+    ///	crÃ©e un nouvel Ã©lÃ©ment transformÃ© (si transformable)
     virtual GElem* transformed() const;
     ///
     virtual RRSoundProcessor::SNDLIST soundWhenEaten() const
@@ -49,9 +49,9 @@ namespace roll
     { return( RRSoundProcessor::KEY_FALL ); }
     //@}
 
-    /**@name	Propriétés propres à RKey */
+    /**@name	PropriÃ©tÃ©s propres Ã  RKey */
     //@{
-    ///	Numéro de type de clef
+    ///	NumÃ©ro de type de clef
     virtual unsigned keyNum() const;
     //@}
   };

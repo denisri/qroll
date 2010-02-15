@@ -2,7 +2,7 @@
                           diamMonster.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2002 by Denis Rivière
+    copyright            : (C) 2000-2002 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -37,7 +37,7 @@ namespace roll
 
     ///
     virtual bool possEat( unsigned x, unsigned y );
-    ///	pas écrasé par diams
+    ///	pas Ã©crasÃ© par diams
     virtual bool squashedBy( const GElem* el ) const 
     { return( el->canFall() && !el->isDiam() ); }
     ///

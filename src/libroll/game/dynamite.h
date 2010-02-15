@@ -2,7 +2,7 @@
                           dynamite.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -25,7 +25,7 @@
 
 namespace roll
 {
-  /**	Dynamite (explose par détonateur)
+  /**	Dynamite (explose par dÃ©tonateur)
    */
   class RDynamite : public GElem
   {

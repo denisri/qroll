@@ -2,7 +2,7 @@
                           mainWin.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2002 by Denis Rivi�e
+    copyright            : (C) 2000-2002 by Denis RiviÃ¯Â¿Â½e
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -332,7 +332,7 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
 
   QPixmap	rpix( (RR_path + "/icons/rockroll.xpm").c_str() );
   if( rpix.isNull() )
-    cerr << "Pas d'ic�e\n";
+    cerr << "Pas d'icÃ¯Â¿Â½e\n";
   else setIcon( rpix );
   setCaption( tr( "QRoll, heir of Rock'N'Roll" ) );
 
@@ -614,7 +614,7 @@ void QRMainWin::pauseOFF()
 
   if( _game->isItemChecked( 2 ) )
     _game->setItemChecked( 2, false );
-  else out << "Menu Pause mal check�n";
+  else out << "Menu Pause mal checkÃ¯Â¿Â½n";
 }
 
 
@@ -627,7 +627,7 @@ void QRMainWin::pauseON()
   _paused = true;
 
   if( _game->isItemChecked( 2 ) )
-    out << "Menu Pause mal check�n";
+    out << "Menu Pause mal checkÃ¯Â¿Â½n";
   else _game->setItemChecked( 2, true );
 }
 
@@ -889,7 +889,7 @@ void QRMainWin::initPixmaps()
   unsigned		i, j;
   unsigned const	W=32, H=32, SZ=W*H;	// taille des sprites
 
-  //	Allocation des donn�s des sprites
+  //	Allocation des donnÃ¯Â¿Â½s des sprites
   for( i=0; i<240; ++i )
     {
       _greySprite[i] = gbuf1 + i*SZ;
@@ -931,7 +931,7 @@ void QRMainWin::initPixmaps()
 
   for( i=240; i<255; ++i )
     {
-      _sprite[ i     ] = 0;	// pr�aution anti-bug
+      _sprite[ i     ] = 0;	// prÃ¯Â¿Â½aution anti-bug
       _sprite[ i+256 ] = 0;
       _osprite[ i     ] = 0;
       _osprite[ i+256 ] = 0;
@@ -1217,7 +1217,7 @@ void QRMainWin::clockTick()
 
   if( t == 0 )
     {
-      out << "Bon, l�normalement, le temps est fini.\n";
+      out << "Bon, lÃ¯Â¿Â½normalement, le temps est fini.\n";
       _clockTimer->stop();
       //emit timeout();
       return;
@@ -1268,411 +1268,5 @@ void QRMainWin::soundOnOff()
 	_soundM->setItemChecked( 0, true );
       else
 	_soundM->setItemEnabled( 0, false );
+    }_soundM->setItemEnabled( 0, false );
     }
-}
-
-
-void QRMainWin::allowScale()
-{
-  bool	f;
-
-  if( _playField->scalingEnabled() )
-    {
-#if QT_VERSION >= 0x040000
-      _viewM->changeItem( 0, tr( "Allow zoom" ) );
-#else
-      _viewM->changeItem( tr( "Allow zoom" ), 0 );
-#endif
-      statusBar()->message( tr( "was it too slow ... ?    ;-)" ), 2000 );
-      f = false;
-    }
-  else
-    {
-#if QT_VERSION >= 0x040000
-      _viewM->changeItem( 0, tr( "Disable zoom" ) );
-#else
-      _viewM->changeItem( tr( "Disable zoom" ), 0 );
-#endif
-      f = true;
-    }
-
-  _playField->enableScaling( f );
-  set<QRPlayField *>::const_iterator	iw, fw=_otherWins.end();
-  for( iw=_otherWins.begin(); iw!=fw; ++iw )
-    (*iw)->enableScaling( f );
-}
-
-
-void QRMainWin::standardSize()
-{
-  //_playField->setGameSize( 512, 384 );
-  resize( 640, menuBar()->frameGeometry().height() 
-	  + _tools->frameGeometry().height() 
-	  + statusBar()->frameGeometry().height() + 385 );
-
-  set<QRPlayField *>::const_iterator	iw, fw=_otherWins.end();
-  for( iw=_otherWins.begin(); iw!=fw; ++iw )
-    (*iw)->setGameSize( 512, 384 );
-}
-
-
-void QRMainWin::turnEnds()
-{
-  /*static unsigned count = 0;
-    cout << "turnEnds " << count++ << "\n";*/
-      int		intv = 75;
-#ifndef _WIN32
-  struct timeval	tv;
-  struct timezone	tz;
-  gettimeofday( &tv, &tz );
-  int			timing = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-  if( d->timing == 0 )
-    intv = 75;
-  else
-    intv = ( timing - d->timing ) / 2;
-  d->timing = timing;
-#else	// _WIN32
-  LARGE_INTEGER		lpfreq;
-  if( QueryPerformanceFrequency( &lpfreq ) )
-    {
-      LARGE_INTEGER	timer;
-      int		timing;
-      QueryPerformanceCounter( &timer );
-      timing = int( double( timer.LowPart ) * 1000 / lpfreq.LowPart );
-      if( d->timing == 0 )
-	intv = 75;
-      else
-	intv = ( timing - d->timing ) / 2;
-      d->timing = timing;
-    }
-  else	// low-res timer (55ms interval on Win9x: NOT enough precision !)
-    {
-      unsigned		timing = GetTickCount();
-      if( d->timing == 0 )
-	intv = 75;
-      else
-	intv = ( timing - d->timing ) / 2;
-      d->timing = timing;
-    }
-#endif
-  //cout << "previous turn timing : " << timing - d->timing << " ms " << endl;
-  QTimer::singleShot( intv, this, SLOT( stepFull() ) );
-  stepHalf();
-}
-
-
-void QRMainWin::configure()
-{
-  if( !d->config )
-    {
-      d->config = new QRConfigWin;
-      connect( d->config, SIGNAL( closed() ), this, SLOT( configClosed() ) );
-      d->config->show();
-    }
-}
-
-
-void QRMainWin::configClosed()
-{
-  d->config = 0;
-}
-
-
-bool QRMainWin::usesOpenGL() const
-{
-  return( d->opengl );
-}
-
-
-void QRMainWin::setUseOpenGL( bool x )
-{
-  if( d->opengl != x )
-    {
-      d->opengl = x;
-      _playField->setUseOpenGL( x );
-
-      set<QRPlayField *>::iterator	iw, ew = _otherWins.end();
-      for( iw=_otherWins.begin(); iw!=ew; ++iw )
-	(*iw)->setUseOpenGL( x );
-    }
-}
-
-
-void QRMainWin::setTempo( unsigned x )
-{
-  _tempo = x;
-  _timer->start( _tempo );
-}
-
-
-bool QRMainWin::editMode() const
-{
-  return( d->editmode );
-}
-
-
-void QRMainWin::editLevel()
-{
-  bool	x = !d->editmode;
-  d->editmode = x;
-  d->editM->setItemChecked( 0, x );
-  if( x )
-    {
-      d->editstat->setText( tr( " EDIT mode " ) );
-      d->editpal = new QREditPalette;
-      d->editpal->show();
-      editModeChanged( d->editpal->drawingMode() );
-      connect( d->editpal, SIGNAL( destroyed() ), this, 
-	       SLOT( editPaletteClosed() ) );
-      connect( d->editpal, SIGNAL( modeChanged( unsigned ) ), this, 
-	       SLOT( editModeChanged( unsigned ) ) );
-    }
-  else
-    {
-      d->editstat->setText( "  " );
-      delete d->editpal;
-      setCursor( ArrowCursor ); // to override a bug in Qt: unsetCursor doesn't
-      unsetCursor();            // work (apparently) ...
-    }
-}
-
-
-void QRMainWin::editModeChanged( unsigned mode )
-{
-  QCursor curs;
-  switch( mode )
-    {
-    case 0: // paint
-      curs.setShape( CrossCursor );
-      break;
-    case 1: // fill
-      curs.setShape( PointingHandCursor );
-      break;
-    case 2: // rect
-      curs.setShape( SizeAllCursor );
-      break;
-    default:
-      curs.setShape( ArrowCursor );
-    }
-  setCursor( curs );
-}
-
-
-void QRMainWin::setEditMode( bool x )
-{
-  if( d->editmode != x )
-    editLevel();
-}
-
-
-void QRMainWin::editPaletteClosed()
-{
-  d->editpal = 0;
-  setEditMode( false );
-}
-
-
-QREditPalette* QRMainWin::editPalette()
-{
-  return( d->editpal );
-}
-
-
-void QRMainWin::levelParams()
-{
-  if( !d->levelparams )
-    {
-      d->levelparams = new QLevelParams;
-      connect( d->levelparams, SIGNAL( destroyed() ), this, 
-	       SLOT( levelParamsClosed() ) );
-      connect( this, SIGNAL( stageChanged( unsigned ) ), d->levelparams, 
-	       SLOT( update( unsigned ) ) );
-      connect( d->levelparams, SIGNAL( levelChanged( unsigned ) ), this, 
-	       SIGNAL( stageChanged( unsigned ) ) );
-    }
-  d->levelparams->show();
-}
-
-
-void QRMainWin::levelParamsClosed()
-{
-  d->levelparams = 0;
-}
-
-
-void QRMainWin::insertLevel()
-{
-  int	res = QMessageBox::information
-    ( this, tr( "Insert new level" ), 
-      tr( "Insert new level before or after current one ?" ), tr( "Before" ), 
-      tr( "After" ), tr( "Cancel" ) );
-  int	pos = -1;
-  switch( res )
-    {
-    case 0:	// before current
-      pos = game.tb;
-      break;
-    case 1:	// after current
-      pos = game.tb + 1;
-      break;
-    default:
-      return;
-    }
-  SimpleLevel	sl( 32, 24, false, false );
-  sl.makeEmpty();
-  storeLevel();
-  pos = ser->insertLevel( pos, sl );
-  if( pos >= 0 )
-    emit stageChanged( pos );
-}
-
-
-void QRMainWin::deleteLevel()
-{
-  int	res 
-    = QMessageBox::warning( this, tr( "Delete level" ), 
-			    tr( "Delete current level - are you sure ?" ), 
-			    tr( "Yes" ), tr( "No" ) );
-  if( res == 0 )
-    {
-      int	pos = game.tb;
-      if( game.tb == (int) ser->numLevels() - 1 )
-	{
-	  if( ser->numLevels() == 1 )
-	    {
-	      QMessageBox::warning( this, tr( "Failure" ), 
-				    tr( "Must keep at least one level..." ), 
-				    tr( "Cancel" ) );
-	      return;
-	    }
-	  --pos;
-	}
-      game.tbct.setModified( false );
-      ser->deleteLevel( game.tb );
-      emit stageChanged( pos );
-    }
-}
-
-
-void QRMainWin::arrangeSeries()
-{
-  if( SeriesArranger::instance() )
-    delete SeriesArranger::instance();
-  else
-    {
-      SeriesArranger	*sa = new SeriesArranger;
-      sa->show();
-      connect( sa, SIGNAL( destroyed() ), this, 
-	       SLOT( seriesArrangerClosed() ) );
-      connect( sa, SIGNAL( seriesChanged() ), this, SLOT( updateSeries() ) );
-      connect( this, SIGNAL( seriesChanged() ), sa, SLOT( updateView() ) );
-      connect( sa, SIGNAL( levelChanged( unsigned ) ), this, 
-	       SIGNAL( stageChanged( unsigned ) ) );
-      d->editM->setItemChecked( 6, true );
-    }
-}
-
-
-void QRMainWin::seriesArrangerClosed()
-{
-  d->editM->setItemChecked( 6, false );
-}
-
-
-void QRMainWin::updateSeries()
-{
-  changeLevelMyself( game.tb );
-  emit seriesChanged();
-}
-
-
-void QRMainWin::changeLevel( unsigned l )
-{
-  emit stageChanged( l );
-}
-
-
-QPixmap QRMainWin::originalSprite( unsigned short num ) const
-{
-#if defined( _WIN32 ) && defined( WIN32_AVOID_PIXMAPS )
-  QPixmap	pix;
-  pix.convertFromImage( *_osprite[ num ] );
-  return( pix );
-#else
-  return( *_osprite[ num ] );
-#endif
-}
-
-
-void QRMainWin::paintStart( int x, int y, bool inlevel, QRPlayField* source )
-{
-  QREditPalette	*pal = theQRWin->editPalette();
-  if( !pal )
-    return;
-
-  unsigned  paintmode = pal->drawingMode();
-  if( paintmode > d->painters.size() )
-    return;
-
-  d->painters[ paintmode ]->start( x, y, inlevel, source );
-}
-
-
-void QRMainWin::paintMove( int x, int y, bool inlevel, QRPlayField* source )
-{
-  QREditPalette	*pal = theQRWin->editPalette();
-  if( !pal )
-    return;
-
-  unsigned  paintmode = pal->drawingMode();
-  if( paintmode > d->painters.size() )
-    return;
-
-  d->painters[ paintmode ]->move( x, y, inlevel, source );
-}
-
-
-void QRMainWin::paintStop( int x, int y, bool inlevel, QRPlayField* source )
-{
-  QREditPalette	*pal = theQRWin->editPalette();
-  if( !pal )
-    return;
-
-  unsigned  paintmode = pal->drawingMode();
-  if( paintmode > d->painters.size() )
-    return;
-
-  d->painters[ paintmode ]->stop( x, y, inlevel, source );
-}
-
-
-const vector<Painter*> & QRMainWin::painters() const
-{
-  return( d->painters );
-}
-
-
-namespace
-{
-
-  string & _lang()
-  {
-    static string l;
-    return l;
-  }
-
-}
-
-
-void QRMainWin::setLanguage( const std::string & l )
-{
-  _lang() = l;
-}
-
-
-std::string QRMainWin::language()
-{
-  return _lang();
-}
-
-

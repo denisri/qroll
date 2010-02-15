@@ -2,7 +2,7 @@
                           editPalatte.h  -  description
                              -------------------
     begin                : 2001
-    copyright            : (C) 2001-2004 by Denis Rivi�e
+    copyright            : (C) 2001-2004 by Denis Riviï¿½e
     email                : nudz@free.fr
  ***************************************************************************/
 

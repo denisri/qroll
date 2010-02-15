@@ -2,7 +2,7 @@
                           singleSocket.h  -  description
                              -------------------
     begin                : 2001
-    copyright            : (C) 2000-2001 by Denis Rivi�e
+    copyright            : (C) 2000-2001 by Denis Riviï¿½e
     email                : nudz@free.fr
  ***************************************************************************/
 

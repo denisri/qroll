@@ -2,7 +2,7 @@
                           spritFlag.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -21,7 +21,7 @@
 
 
 
-/**	Flags des éléments de jeu du tableau courant
+/**	Flags des Ã©lÃ©ments de jeu du tableau courant
  */
 class SpritFlag
 {

@@ -2,7 +2,7 @@
                           constantes.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis RiviËre
+    copyright            : (C) 2000 by Denis Rivi√®re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -23,7 +23,7 @@
 /**@name	Constantes masques de bits */
 //@{
 
-/**@name	Flags caractÈristiques des classes d'objets, paquet l1 */
+/**@name	Flags caract√©ristiques des classes d'objets, paquet l1 */
 //@{
 ///
 const unsigned	ANIM=1;
@@ -91,7 +91,7 @@ const unsigned	CASSE=0x40000000;
 const unsigned	EXPL_TB=0x80000000;
 //@}
 
-/**@name	Flags caractÈristiques des classes d'objets, paquet l2 */
+/**@name	Flags caract√©ristiques des classes d'objets, paquet l2 */
 //@{
 ///
 const unsigned	CASS_E=1;
@@ -107,21 +107,21 @@ const unsigned	BEBCOM=16;
 const unsigned	EXP_BB=32;
 //@}
 
-/**@name	Flags caractÈristiques des instances d'objets */
+/**@name	Flags caract√©ristiques des instances d'objets */
 //@{
 
 ///
 const unsigned	BUSY=1;
-///	Demande d'attente par un ÈlÈment extÈrieur
+///	Demande d'attente par un √©l√©ment ext√©rieur
 const unsigned	WAIT=2;
-///	Flag demandÈ par un ÈlÈment extÈrieur
+///	Flag demand√© par un √©l√©ment ext√©rieur
 const unsigned	EXTFLG=4;
-/**	Comptage de temps aprËs les demandes externes: \\
-	une fois WAIT ou EXTFLG mis ‡ 1, REMAIN est mis ‡ 1 ‡ la gestion 
-	suivante du sprite en question (ce qui laisse 1 temps pour gÈrer 
-	l'ÈvÈnement demandÈ). \\
+/**	Comptage de temps apr√®s les demandes externes: \\
+	une fois WAIT ou EXTFLG mis √† 1, REMAIN est mis √† 1 √† la gestion 
+	suivante du sprite en question (ce qui laisse 1 temps pour g√©rer 
+	l'√©v√©nement demand√©). \\
 	A la gestion suivante encore tous les flags WAIT, EXTFLG et REMAIN 
-	sont remis ‡ zÈro.
+	sont remis √† z√©ro.
  */
 const unsigned	REMAIN=8;
 ///
@@ -179,7 +179,7 @@ const unsigned	BOUGE_N = HAU_N | BA_N | GAU_N | DROI_N;
 
 /**@name	Classes d'objets */
 //@{
-///	AnimÈ
+///	Anim√©
 const unsigned	BC_ANIM = 0x1;
 ///	Type d'animation
 const unsigned	BC_ANIM_T1 = 0x2;
@@ -193,7 +193,7 @@ const unsigned	BC_CREU_RL = 0x10;
 const unsigned	BC_CREU_MS = 0x20;
 ///	Creux pour rocher
 const unsigned	BC_CREU_RC = 0x40;
-///	Creux pour bÈbette
+///	Creux pour b√©bette
 const unsigned	BC_CREU_BB = 0x80;
 ///	Comestible
 const unsigned	BC_COMES = 0x100;
@@ -221,13 +221,13 @@ const unsigned	BC_INDES = 0x20000;
 //@{
 ///
 const unsigned	BI_BEBCOM = 0x1;
-///	Ne pas gÈrer ce tour
+///	Ne pas g√©rer ce tour
 const unsigned	BI_BUSY = 0x2;
 ///	Illusion (~creux et opaque)
 const unsigned	BI_ILLU = 0x4;
-///	Offset d'animation (pour la dÈsynchro)
+///	Offset d'animation (pour la d√©synchro)
 const unsigned	BI_ANIMA = 0x8;
-///	DÈj‡ gÈrÈ
+///	D√©j√† g√©r√©
 const unsigned	BI_GERE = 0x10;
 ///	?
 const unsigned	BI_ONOFF = 0x20;

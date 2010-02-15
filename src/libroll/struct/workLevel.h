@@ -2,7 +2,7 @@
                           workLevel.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis RiviËre
+    copyright            : (C) 2000 by Denis Rivi√®re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -42,7 +42,7 @@ namespace roll
   {
   public:
     /**	Codage des couleurs. 
-	Les RGB sont signÈs pour pouvoir coder des diffÈrences */
+	Les RGB sont sign√©s pour pouvoir coder des diff√©rences */
     struct RGB
     {
       RGB() {}
@@ -118,44 +118,44 @@ namespace roll
     */
     bool decode( SimpleLevel & sl, int maxLayers = -1, 
 		 bool wantFlags = false ) const;
-    ///	Couleurs des ÈlÈments
+    ///	Couleurs des √©l√©ments
     RGB color( PartColor index ) { return( _colors[ index ] ); }
     void setColor( PartColor index, const RGB col );
     ///	Convertion code couleur du tableau disque -> RGB
     static RGB convertedColor( unsigned short code );
-    ///	Remet les scores des joueurs ‡ 0, les vies ‡ fond etc
+    ///	Remet les scores des joueurs √† 0, les vies √† fond etc
     void resetScores();
     bool modified() const { return( _modified ); }
     void setModified( bool x ) { _modified = x; }
 
-    ///	Pointeur sur tableau stockÈ
+    ///	Pointeur sur tableau stock√©
     Level			*tab;
     ///	Level data: 2D array [][] of element pointers
     GElem			***d;
     ///	Level background data elements
     RBack			***b;
-    ///	CoordonnÈes de l'arrivÈe de tÈlÈporteur
+    ///	Coordonn√©es de l'arriv√©e de t√©l√©porteur
     unsigned			x_tel;
     unsigned			y_tel;
     ///	Directions des tapis roulants
     std::vector<int>		conveyDir;
-    ///	DÈparts de Rolls
+    ///	D√©parts de Rolls
     std::vector<Coord>		startPos;
-    ///	Joueurs figÈs (temps fini)
+    ///	Joueurs fig√©s (temps fini)
     bool			frozen;
     ///	Portes ouvertes ?
     bool			doorOpen;
     ///	Infos joueurs
     PlayerServer		*players;
-    ///	Dynamites explosent ce tour-l‡ ? 0: non, 2: prÈparation, 1: explose
+    ///	Dynamites explosent ce tour-l√† ? 0: non, 2: pr√©paration, 1: explose
     unsigned     		explodeDyna;
     /// variable parameters like in SimpleLevel
     std::vector<ParamBlock>	params;
 
   private:
-    ///	Allocation des donnÈes
+    ///	Allocation des donn√©es
     void allocData( unsigned dimX, unsigned dimY );
-    ///	DÈsallocation des donnÈes
+    ///	D√©sallocation des donn√©es
     void deleteData();
 
     ///	Couleurs

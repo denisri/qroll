@@ -2,7 +2,7 @@
                           permeabWall.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -26,7 +26,7 @@
 namespace roll
 {
 
-  /**	Mur perméable	*/
+  /**	Mur permÃ©able	*/
   class RPermeabWall : public RPassingWall
   {
   public:
@@ -39,10 +39,10 @@ namespace roll
     //@}
 
   protected:
-    /**@name	Fonctions protégées */
+    /**@name	Fonctions protÃ©gÃ©es */
     //@{
-    /**	Teste si l'élément peut entrer dans le mur
-	@param	gel	élément à tester
+    /**	Teste si l'Ã©lÃ©ment peut entrer dans le mur
+	@param	gel	Ã©lÃ©ment Ã  tester
     */
     virtual bool testComeIn( GElem *gel );
     //@}

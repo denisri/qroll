@@ -2,7 +2,7 @@
                           foregroundElem.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -26,14 +26,14 @@
 namespace roll
 {
 
-  /**	Elément de 1er plan (devant en cas de superposition) */
+  /**	ElÃ©ment de 1er plan (devant en cas de superposition) */
   class RForegroundElem : public GElem
   {
   public:
     RForegroundElem( unsigned num ) : GElem( num ) {}
     virtual ~RForegroundElem() {}
 
-    ///	Sprite de fond (immobile, derrière celui qui bouge)
+    ///	Sprite de fond (immobile, derriÃ¨re celui qui bouge)
     virtual unsigned short backStillSprite( RBack* back = 0 ) const;
     ///	Sprite immobile de 1er plan: devant celui qui bouge
     virtual unsigned short frontStillSprite( RBack* back = 0 ) const;

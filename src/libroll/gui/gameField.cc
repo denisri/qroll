@@ -2,7 +2,7 @@
                           gameField.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivi�re
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -227,7 +227,7 @@ void RGameField::displayHalf()
 	copySprite( spr, i*32+dx, j*32+dy );
       }
 
-  //	plus la peine de d�passer du tableau
+  //	plus la peine de dÃ©passer du tableau
 
   if( w+_xx > game.tbct.sizeX() )
     w = game.tbct.sizeX() - _xx;

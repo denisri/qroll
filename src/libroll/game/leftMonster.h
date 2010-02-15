@@ -2,7 +2,7 @@
                           leftMonster.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2002 by Denis Rivière
+    copyright            : (C) 2000-2002 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -26,7 +26,7 @@
 namespace roll
 {
 
-  /**	Monstre (général; celui de base tourne à gauche) */
+  /**	Monstre (gÃ©nÃ©ral; celui de base tourne Ã  gauche) */
   class RLeftMonster : public GElem
   {
   public:
@@ -42,16 +42,16 @@ namespace roll
 	OTHER
       };
 
-    /**	Teste la possibilité d'aller dans la case donnée. 
+    /**	Teste la possibilitÃ© d'aller dans la case donnÃ©e. 
 	Si c'est possible, effectue son nettoyage ("bouffe").
-	@param	x	coordonnée x de la case où on veut aller
-	@param	y	coordonnée y de la case où on veut aller
-	@param	pouss	précise si on a le droit de pousser l'objet et dans 
+	@param	x	coordonnÃ©e x de la case oÃ¹ on veut aller
+	@param	y	coordonnÃ©e y de la case oÃ¹ on veut aller
+	@param	pouss	prÃ©cise si on a le droit de pousser l'objet et dans 
 	quel sens (-1: gauche, 0: pousse pas, 1: droite)
     */
     virtual bool poss( unsigned x, unsigned y, int pouss = 0 );
 
-    /**@name	Propriétés de la classe */
+    /**@name	PropriÃ©tÃ©s de la classe */
     //@{
     virtual bool isAnimated() const { return( true ); }
     virtual AnimType animType() const { return( AnimStraight ); }

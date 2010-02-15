@@ -2,7 +2,7 @@
                           roll.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -35,27 +35,27 @@ namespace roll
     ///
     virtual ~Roll();
 
-    /**	Teste la possibilité d'aller dans la case donnée. 
+    /**	Teste la possibilitÃ© d'aller dans la case donnÃ©e. 
 	Si c'est possible, effectue son nettoyage ("bouffe").
-	@param	x	coordonnée x de la case où on veut aller
-	@param	y	coordonnée y de la case où on veut aller
-	@param	pouss	précise si on a le droit de pousser l'objet et dans 
+	@param	x	coordonnÃ©e x de la case oÃ¹ on veut aller
+	@param	y	coordonnÃ©e y de la case oÃ¹ on veut aller
+	@param	pouss	prÃ©cise si on a le droit de pousser l'objet et dans 
 	quel sens (-1: gauche, 0: pousse pas, 1: droite)
-	@param	no	numéro du Roll
+	@param	no	numÃ©ro du Roll
     */
     virtual bool poss( unsigned x, unsigned y, int pouss, int no );
     ///	Fixe le no du Roll
     void setNum( unsigned num ) { _num = num; }
     ///
     unsigned num() const { return( _num ); }
-    ///	Met un autre Roll sous celui-ci (superposé)
+    ///	Met un autre Roll sous celui-ci (superposÃ©)
     void setBackRoll( Roll* r ) { _backRoll = r; }
     ///
     Roll *backRoll() const { return( _backRoll ); }
     ///	Roll qui masque this
     Roll *frontRoll( unsigned x, unsigned y ) const;
 
-    /**@name	Propriétés de la classe */
+    /**@name	PropriÃ©tÃ©s de la classe */
     //@{
     ///
     virtual AnimType animType() const { return( AnimVertical ); }
@@ -73,14 +73,14 @@ namespace roll
   protected:
     ///
     virtual void realProcess( unsigned x, unsigned y );
-    /**	Elément à laisser derrière quand on se barre. \\
+    /**	ElÃ©ment Ã  laisser derriÃ¨re quand on se barre. \\
 	Normalement c'est du vide, ou une bombe qu'on vient de poser
 	@param	mec	no de Roll
     */
     virtual GElem* elemBehind( unsigned mec, unsigned x, unsigned y );
     /**	Mouvement du Roll.
-	Remplace la case courante par le bon élément (vide, Roll de dessus ou 
-	de dessous), puis exécute les Rolls suivant ( backRoll() )
+	Remplace la case courante par le bon Ã©lÃ©ment (vide, Roll de dessus ou 
+	de dessous), puis exÃ©cute les Rolls suivant ( backRoll() )
     */
     void replaceAndProcessBack( unsigned x, unsigned y );
     ///	No du Roll

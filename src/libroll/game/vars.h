@@ -2,7 +2,7 @@
                           vars.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2001 by Denis Rivi�re
+    copyright            : (C) 2000-2001 by Denis Riviï¿½re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -33,19 +33,19 @@ namespace roll
 {
   class Series;
 
-  ///	Dircetory des donn�es du jeu
+  ///	Dircetory des donnï¿½es du jeu
   extern std::string		RR_path;
-  ///	S�rie de tableaux en m�moire
+  ///	Sï¿½rie de tableaux en mï¿½moire
   extern Series			*ser;
   ///	Table de conversion des sprites
   extern unsigned char		spr_link[];
-  ///	Table des explosions initiales (par d�faut)
+  ///	Table des explosions initiales (par dï¿½faut)
   extern RExplosions		expli, explo;
-  ///	Table des descripteurs de b�bettes, originale
+  ///	Table des descripteurs de bï¿½bettes, originale
   extern BlobDescr		bebi[];
-  ///	Table des descripteurs de b�bettes, copie qui peut changer
+  ///	Table des descripteurs de bï¿½bettes, copie qui peut changer
   extern BlobDescr		bebet[];
-  ///	Capacit�s des objets
+  ///	Capacitï¿½s des objets
   extern SpritFlag		sp_flg[];
   ///	Moteur du jeu
   extern Game			game;
@@ -53,9 +53,9 @@ namespace roll
   Game & theGame();
   ///	Compteur d'animations
   extern unsigned short		anim;
-  ///	Cr�ateur d'�l�ments
+  ///	Crï¿½ateur d'ï¿½lï¿½ments
   extern RElemFactory		elFactory;
-  ///	Cr�ateur de fond
+  ///	Crï¿½ateur de fond
   extern RBackFactory		backFactory;
 
 }

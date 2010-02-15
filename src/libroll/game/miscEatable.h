@@ -2,7 +2,7 @@
                           miscEatable.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -35,7 +35,7 @@ namespace roll
     ///
     virtual ~RBonusLife() {};
 
-    /**@name	Propriétés de la classe */
+    /**@name	PropriÃ©tÃ©s de la classe */
     //@{
     ///
     virtual bool isBonusLife() const { return( true ); }
@@ -58,7 +58,7 @@ namespace roll
     ///
     virtual ~RStrengthPill() {};
 
-    /**@name	Propriétés de la classe */
+    /**@name	PropriÃ©tÃ©s de la classe */
     //@{
     ///
     virtual bool isStrengthPill() const { return( true ); }
@@ -72,7 +72,7 @@ namespace roll
   };
 
 
-  /**	Sablier (qui donne du temps pour finir le tableau quand on est à 
+  /**	Sablier (qui donne du temps pour finir le tableau quand on est Ã  
 	la bourre) */
   class RHourglass : public RFallingEatable
   {
@@ -82,7 +82,7 @@ namespace roll
     ///
     virtual ~RHourglass() {};
 
-    /**@name	Propriétés de la classe */
+    /**@name	PropriÃ©tÃ©s de la classe */
     //@{
     ///
     virtual bool isHourglass() const { return( true ); }

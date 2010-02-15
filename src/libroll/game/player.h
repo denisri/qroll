@@ -2,7 +2,7 @@
                           player.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -54,7 +54,7 @@ namespace roll
     unsigned				latency;
     ///	Clef (-1: pas de clef)
     int					key;
-    /**	Bombes transportées, par type.
+    /**	Bombes transportÃ©es, par type.
 	map: type -> nombre de bombes de ce type
     */
     std::map<unsigned, unsigned>	bombs;
@@ -62,9 +62,9 @@ namespace roll
     unsigned				kbd;
     ///	Bouton de tir
     bool				fire;
-    ///	No de bombe à déclencher à la prochaine pause de bombe
+    ///	No de bombe Ã  dÃ©clencher Ã  la prochaine pause de bombe
     unsigned				bombToLaunch;
-    ///	Bombe déclenchée en attente d'être lancée (quand le Roll bougera).
+    ///	Bombe dÃ©clenchÃ©e en attente d'Ãªtre lancÃ©e (quand le Roll bougera).
     int					launchedBomb;
     ///	Position dans le tableau
     Coord				pos;

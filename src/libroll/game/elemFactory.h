@@ -2,7 +2,7 @@
                           elemFactory.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -24,7 +24,7 @@ namespace roll
 {
   class GElem;
 
-  /**	Usine à éléments de jeu ("sprites") */
+  /**	Usine Ã  Ã©lÃ©ments de jeu ("sprites") */
   class RElemFactory
   {
   public:

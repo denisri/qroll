@@ -2,7 +2,7 @@
                           blob.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -26,7 +26,7 @@
 namespace roll
 {
 
-  /**	Bébette qui grossit */
+  /**	BÃ©bette qui grossit */
   class RBlob : public GElem
   {
   public:
@@ -39,11 +39,11 @@ namespace roll
 
   protected:
     virtual void realProcess( unsigned x, unsigned y );
-    /**	Teste et effectue le grossissement sur la case donnée
-	@param	x	coord. case à envahir
+    /**	Teste et effectue le grossissement sur la case donnÃ©e
+	@param	x	coord. case Ã  envahir
 	@param	y	pareil
-	@param	nob	no de bébette
-	@param	flags	flags à mettre à la nouvelle case de bébette
+	@param	nob	no de bÃ©bette
+	@param	flags	flags Ã  mettre Ã  la nouvelle case de bÃ©bette
     */
     virtual bool grow( unsigned x, unsigned y, unsigned nob, 
 		       unsigned flags = 0 );

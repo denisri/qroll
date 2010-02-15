@@ -2,7 +2,7 @@
                           random.h  -  description
                              -------------------
     begin                : 2001
-    copyright            : (C) 2001 by Denis Rivière
+    copyright            : (C) 2001 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 

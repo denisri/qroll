@@ -2,7 +2,7 @@
                           detonator.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 2000 by Denis RiviÃ¨re
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -25,7 +25,7 @@
 
 namespace roll
 {
-  /**	Détonateur pour dynamite
+  /**	DÃ©tonateur pour dynamite
    */
   class RDetonator : public RButton
   {
