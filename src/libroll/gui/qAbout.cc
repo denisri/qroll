@@ -529,7 +529,7 @@ void QAbout::music()
   if( !stat( audiodev, &buf ) && !stat( name.c_str(), &buf ) )
     {
       if( d->sndFD < 0 )
-	d->sndFD = open( audiodev, O_WRONLY );
+	d->sndFD = ::open( audiodev, O_WRONLY );
       if( d->sndFD < 0 )
 	return;
 
