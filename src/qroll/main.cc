@@ -9,6 +9,7 @@
 #include <roll/game/vars.h>
 #include <roll/socket/qPlayerServer.h>
 #include <roll/sound/dsp.h>
+#include <roll/sound/alsaProcessor.h>
 #include <roll/sound/qsound.h>
 #include <qtranslator.h>
 #ifdef __APPLE__
@@ -41,8 +42,12 @@ int main( int argc, char** argv )
 #endif
 
   init( argc, argv );		// initialise le jeu, charge les données
+#ifdef RR_ALSA
+  new RRAlsaSound;
+#else
 #ifdef RR_DSP
   new RRDspSound;
+#endif
 #endif
   new RRQSound;
 

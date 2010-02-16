@@ -2,7 +2,7 @@
                           dsp.cc
                              -------------------
     begin                : 1999
-    copyright            : (C) 1999-2006 by Denis RiviÃ¯Â¿Â½re
+    copyright            : (C) 1999-2006 by Denis Rivière
     email                : nudz@free.fr
                            http://nudz.free.fr
  ***************************************************************************/

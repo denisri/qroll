@@ -91,6 +91,7 @@ HEADERS = \
         gui/seriesArranger.h \
         gui/seriesIconView.h \
 	gui/qdatastreamWrapper.h \
+	sound/alsaProcessor.h \
 	sound/dsp.h \
 	sound/qsound.h \
 	sound/soundProcessor.h \
@@ -176,6 +177,7 @@ SOURCES = \
         gui/seriesArranger.cc \
         gui/seriesIconView.cc \
 	gui/simpleLevelIO.cc \
+	sound/alsaProcessor.cc \
 	sound/dsp.cc \
 	sound/qsound.cc \
 	sound/soundProcessor.cc \
