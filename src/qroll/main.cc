@@ -59,7 +59,7 @@ int main( int argc, char** argv )
   if( lgenv )
     {
       string	lenv( lgenv );
-      unsigned	pos = lenv.find( '_' );
+      string::size_type	pos = lenv.find( '_' );
       if( pos != string::npos )
 	lenv.erase( pos, lenv.length() - pos );
       QDir	dir( (path + lenv).c_str() );
