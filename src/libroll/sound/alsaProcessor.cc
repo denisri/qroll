@@ -320,14 +320,22 @@ void RRAlsaSound::update()
       // la synchro est faite automatiquement par la taille des buffers...
       //cout << "waiting...\n";
       //snd_pcm_wait( d->handle, -1 );
-      frames = snd_pcm_writei( d->handle, buffer, sz );  // play
-//       cout << "frames: " << frames << endl;
-      if( frames < 0 )
-        frames = snd_pcm_recover( d->handle, frames, 0 );
-      if( frames < 0 )
+      int done = 0;
+      while( done < sz )
       {
-        cerr << "snd_pcm_writei failed: " << snd_strerror(frames) << endl;
-        break;
+        frames = snd_pcm_writei( d->handle, buffer + done, sz - done );  // play
+//       cout << "frames: " << frames << endl;
+        if( frames < 0 )
+          frames = snd_pcm_recover( d->handle, frames, 1 );
+        else
+        {
+          done += frames;
+        }
+/*        if( frames < 0 )
+        {
+          cerr << "snd_pcm_writei failed: " << snd_strerror(frames) << endl;
+          break;
+        }*/
       }
 //       if( frames > 0 && (unsigned) frames < sz )
 //         cerr << "Short write (expected " << sz << ", wrote " << frames

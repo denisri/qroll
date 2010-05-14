@@ -2,7 +2,7 @@
                           vars.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2001 by Denis Riviï¿½re
+    copyright            : (C) 2000-2001 by Denis Rivière
     email                : nudz@free.fr
  ***************************************************************************/
 

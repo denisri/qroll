@@ -78,6 +78,7 @@ HEADERS = \
 	gui/qGameField.h \
         gui/qglGameField.h \
 	gui/qAbout.h \
+	gui/qRollAbout.h \
 	gui/clientDialog.h \
 	gui/playField.h \
 	gui/scoreBox.h \
@@ -164,6 +165,8 @@ SOURCES = \
 	gui/gameField.cc \
         gui/qglGameField.cc \
 	gui/qAbout.cc \
+	gui/qAboutMessages.cc \
+	gui/qRollAbout.cc \
 	gui/clientDialog.cc \
 	gui/scoreBox.cc \
 	gui/playField.cc \

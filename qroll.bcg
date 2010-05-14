@@ -14,11 +14,10 @@ class QRollComponent( GenericMakerComponent ):
       if os.path.exists( '/usr/include/sys/soundcard.h' ) \
         or os.path.exists( '/usr/include/sys/audioio.h' ):
         defines.append( 'RR_DSP' )
+        defines.append( 'SOMA_SOUND_OSS' )
       if weakDependency( 'alsa', self ):
         defines.append( 'RR_ALSA' )
-        print 'ALSA OK'
-      else:
-        print 'ALSA NOT OK !!!!'
+        defines.append( 'SOMA_SOUND_ALSA' )
       self._data[ 'defines' ] = defines
 
   def dependencies( self ):
@@ -33,10 +32,3 @@ class QRollComponent( GenericMakerComponent ):
       res.append( AlsaComponent )
     return res
 
-class AlsaComponent( SystemComponent ):
-  _name = 'alsa'
-  _includeFile = 'alsa/asoundlib.h'
-  _libFile = 'libasound'
-
-  def _libraries( self ):
-    return [ 'asound' ]
