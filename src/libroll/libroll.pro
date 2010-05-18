@@ -92,13 +92,12 @@ HEADERS = \
         gui/seriesArranger.h \
         gui/seriesIconView.h \
 	gui/qdatastreamWrapper.h \
-	somasound/somasound.h \
 	somasound/somaqsound.h \
-	sound/alsaProcessor.h \
-	sound/dsp.h \
-	sound/qsound.h \
+	somasound/somasoundalsa.h \
+	somasound/somasoundoss.h \
+	somasound/somasoundprocessor.h \
+	somasound/soundbank.h \
 	sound/rollsoundbank.h \
-	sound/soundbank.h \
 	sound/soundProcessor.h \
 	socket/qPlayerServer.h \
 	socket/playerServerSocket.h \
@@ -184,14 +183,14 @@ SOURCES = \
         gui/seriesArranger.cc \
         gui/seriesIconView.cc \
 	gui/simpleLevelIO.cc \
-	sound/alsaProcessor.cc \
+	somasound/diffcode.cc \
+	somasound/somaqsound.cc \
+	somasound/somasoundalsa.cc \
+	somasound/somasoundoss.cc \
+	somasound/somasoundprocessor.cc \
+	somasound/soundbank.cc \
+	somasound/wavheader.cc \
 	sound/rollsoundbank.cc \
-	sound/soundbank.cc \
-#	somasound/somasound.cc \
-#	somasound/somaqsound.cc \
-	sound/dsp.cc \
-	sound/qsound.cc \
-	sound/soundProcessor.cc \
 	socket/qPlayerServer.cc \
 	socket/playerServerSocket.cc \
 	socket/netMessages.cc

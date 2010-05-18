@@ -1,5 +1,5 @@
 /***************************************************************************
-    copyright            : (C) 2004-2005 by Denis RiviÃ¯Â¿Â½e
+    copyright            : (C) 2004-2005 by Denis Rivière
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -18,6 +18,7 @@
 #include <iomanip>
 #include <stdexcept>
 #include <math.h>
+#include <algorithm>
 
 using namespace audiq;
 using namespace std;

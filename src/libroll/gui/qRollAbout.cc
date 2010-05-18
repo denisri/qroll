@@ -16,7 +16,10 @@
  ***************************************************************************/
 
 #include <roll/gui/qRollAbout.h>
-#include <roll/sound/dsp.h>
+#include "../somasound/somasoundprocessor.h"
+
+using namespace soma;
+
 
 QRollAbout::QRollAbout( QWidget *parent, const char* name )
   : QAbout( parent, name )
@@ -26,25 +29,15 @@ QRollAbout::QRollAbout( QWidget *parent, const char* name )
 
 QRollAbout::~QRollAbout()
 {
-#ifdef RR_DSP
-  RRDspSound        *dsp
-    = dynamic_cast<RRDspSound *>( &RRSoundProcessor::processor() );
-
-  if( dsp )
-    dsp->enable();
-#endif // RR_DSP
+  SomaSoundProcessor & ssound = SomaSoundProcessor::processor();
+  ssound.enable();
 }
 
 
 void QRollAbout::music()
 {
-#if !defined( ABOUT_NO_SOUND ) && !defined( _WIN32 ) && defined( RR_DSP )
-  RRDspSound    *dsp
-    = dynamic_cast<RRDspSound *>( &RRSoundProcessor::processor() );
-
-  if( dsp )
-    dsp->disable();
-#endif
+  SomaSoundProcessor & ssound = SomaSoundProcessor::processor();
+  ssound.disable();
 
   QAbout::music();
 }

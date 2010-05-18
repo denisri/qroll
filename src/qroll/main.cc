@@ -5,13 +5,13 @@
 #include <qdir.h>
 #include <string>
 #include <roll/game/init.h>
-#include <roll/sound/soundProcessor.h>
+#include <roll/somasound/somasoundprocessor.h>
 #include "../libroll/sound/rollsoundbank.h"
 #include <roll/game/vars.h>
 #include <roll/socket/qPlayerServer.h>
-#include <roll/sound/dsp.h>
-#include <roll/sound/alsaProcessor.h>
-#include <roll/sound/qsound.h>
+#include "../libroll/somasound/somasoundoss.h"
+#include "../libroll/somasound/somasoundalsa.h"
+#include "../libroll/somasound/somaqsound.h"
 #include <qtranslator.h>
 #ifdef __APPLE__
 #include <unistd.h>
@@ -19,6 +19,7 @@
 #endif
 
 using namespace roll;
+using namespace soma;
 using namespace std;
 
 
@@ -43,18 +44,18 @@ int main( int argc, char** argv )
 #endif
 
   init( argc, argv );		// initialise le jeu, charge les données
-#ifdef RR_ALSA
-  new RRAlsaSound;
+#ifdef SOMA_SOUND_ALSA
+  new SomaSoundAlsa;
 #else
-#ifdef RR_DSP
-  new RRDspSound;
+#ifdef SOMA_SOUND_OSS
+  new SomaSoundOSS;
 #endif
 #endif
-  new RRQSound;
+  new SomaQSound;
 
-  RRSoundProcessor::processor().setSoundBank( new RollSoundBank );
-  RRSoundProcessor::processor().soundBank().init();
-  RRSoundProcessor::processor().soundBank().loadSounds();
+  SomaSoundProcessor::processor().setSoundBank( new RollSoundBank );
+  SomaSoundProcessor::processor().soundBank().init();
+  SomaSoundProcessor::processor().soundBank().loadSounds();
 
   //	translator
   string	path = RR_path + "/po/";

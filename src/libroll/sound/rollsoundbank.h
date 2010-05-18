@@ -19,7 +19,7 @@
 #ifndef SOMA_SOMASOUND_ROLLSOUNDBANK_H
 #define SOMA_SOMASOUND_ROLLSOUNDBANK_H
 
-#include "soundbank.h"
+#include "../somasound/soundbank.h"
 
 namespace roll
 {

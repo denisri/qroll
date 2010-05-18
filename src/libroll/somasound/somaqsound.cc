@@ -16,17 +16,17 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "qsound.h"
+#include "somaqsound.h"
 #include "soundslot.h"
 #include <qsound.h>
 #include <memory>
 #include <vector>
 
-using namespace roll;
+using namespace soma;
 using namespace std;
 
 
-struct RRQSound::Private
+struct SomaQSound::Private
 {
   Private() : initialized( false ) {}
 
@@ -35,13 +35,13 @@ struct RRQSound::Private
 };
 
 
-RRQSound::RRQSound()
-  : RRSoundProcessor(), d( new Private )
+SomaQSound::SomaQSound()
+  : SomaSoundProcessor(), d( new Private )
 {
 }
 
 
-RRQSound::~RRQSound()
+SomaQSound::~SomaQSound()
 {
   unsigned	i, n = d->sounds.size();
   for( i=0; i<n; ++i )
@@ -49,7 +49,7 @@ RRQSound::~RRQSound()
   delete d;
 }
 
-void RRQSound::process( int type )
+void SomaQSound::process( int type )
 {
   unsigned nsnd = soundBank().sounds().size();
   if( (unsigned) type >= nsnd || !isOK() )
@@ -80,7 +80,7 @@ void RRQSound::process( int type )
 }
 
 
-void RRQSound::stop()
+void SomaQSound::stop()
 {
   if( !isOK() )
     return;
@@ -91,7 +91,7 @@ void RRQSound::stop()
 }
 
 
-void RRQSound::stop( int type )
+void SomaQSound::stop( int type )
 {
   if( !isOK() )
     return;
@@ -101,26 +101,26 @@ void RRQSound::stop( int type )
 }
 
 
-void RRQSound::close()
+void SomaQSound::close()
 {
   stop();
 }
 
 
-bool RRQSound::isOK() const
+bool SomaQSound::isOK() const
 {
-  const_cast<RRQSound *>( this )->init();
+  const_cast<SomaQSound *>( this )->init();
   return QSound::isAvailable();
 }
 
 
-void RRQSound::init()
+void SomaQSound::init()
 {
   if( d->initialized || !QSound::isAvailable() )
     return;
   d->initialized = true;
 
-  RRSoundProcessor::init();
+  SomaSoundProcessor::init();
   unsigned	i, n = d->sounds.size();
   for( i=0; i<n; ++i )
     delete d->sounds[i];
@@ -129,7 +129,7 @@ void RRQSound::init()
 }
 
 
-void RRQSound::loadSounds()
+void SomaQSound::loadSounds()
 {
   unsigned	i, n = soundBank().sounds().size();
   string	filename;
@@ -146,13 +146,13 @@ void RRQSound::loadSounds()
 }
 
 
-string RRQSound::name() const
+string SomaQSound::name() const
 {
   return "Qt sound";
 }
 
 
-float RRQSound::priorityRating() const
+float SomaQSound::priorityRating() const
 {
   return 10;
 }

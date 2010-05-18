@@ -15,6 +15,11 @@
  *                                                                         *
  ***************************************************************************/
 
+#include <roll/somasound/somasoundprocessor.h>
+
+typedef soma::SomaSoundProcessor RRSoundProcessor;
+
+#if 0
 
 #ifndef ROLL_SOUND_SOUNDPROCESSOR_H
 #define ROLL_SOUND_SOUNDPROCESSOR_H
@@ -100,4 +105,5 @@ protected:
 inline void RRSoundProcessor::stop( int ) {}
 
 
+#endif
 #endif

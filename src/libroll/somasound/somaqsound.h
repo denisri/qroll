@@ -16,20 +16,20 @@
  ***************************************************************************/
 
 
-#ifndef ROLL_SOUND_QSOUND_H
-#define ROLL_SOUND_QSOUND_H
+#ifndef SOMA_SOUND_SOMAQSOUND_H
+#define SOMA_SOUND_SOMAQSOUND_H
 
-#include <roll/sound/soundProcessor.h>
+#include "somasoundprocessor.h"
 
-namespace roll
+namespace soma
 {
 
-  /// RR sound processor implementation using QSound
-  class RRQSound : public RRSoundProcessor
+  /// sound processor implementation using QSound
+  class SomaQSound : public SomaSoundProcessor
   {
   public:
-    RRQSound();
-    virtual ~RRQSound();
+    SomaQSound();
+    virtual ~SomaQSound();
     virtual void process( int type );
     virtual void stop();
     virtual void stop( int type );
@@ -37,7 +37,7 @@ namespace roll
     virtual bool isOK() const;
     virtual std::string name() const;
     /** The QSound has priority 10, which is rather poor (compared to 100 for 
-        the DSP sound) because it doesn't allow sound mixing, and it's 
+        the OSS sound) because it doesn't allow sound mixing, and it's
         not really real-time (sounds are queued so can be delayed)
      */
     virtual float priorityRating() const;

@@ -17,9 +17,9 @@
  ***************************************************************************/
 
 
-#ifdef RR_DSP
+#ifdef SOMA_SOUND_OSS
 
-#include "dsp.h"
+#include "somasoundoss.h"
 #include "soundslot.h"
 #include <sys/ioctl.h>
 #ifdef linux
@@ -41,48 +41,49 @@ using namespace soma;
 using namespace std;
 
 
-const unsigned		RRDspSound::MaxSameSample = 3;
+const unsigned		SomaSoundOSS::MaxSameSample = 3;
 
 
-RRDspSound::RRDspSound() : fd( 0 ), ok( true ), bufferSize( 0 ), buffer( 0 ), 
-  updateThrd( 0 ), threadRunning( false )
+SomaSoundOSS::SomaSoundOSS()
+  : SomaSoundProcessor(), fd( 0 ), ok( true ), bufferSize( 0 ), buffer( 0 ),
+    updateThrd( 0 ), threadRunning( false )
 {
   init();
 }
 
 
-RRDspSound::~RRDspSound()
+SomaSoundOSS::~SomaSoundOSS()
 {
   close();
   delete[] buffer;
 }
 
 
-void RRDspSound::init()
+void SomaSoundOSS::init()
 {
   ok = true;
-  RRSoundProcessor::init();
+  SomaSoundProcessor::init();
 
 #if defined( sun ) || defined( __sun )
-#define	QR_SOUNDDEV	"/dev/audio"
+#define SOMA_SOUND_OSS_SOUNDDEV "/dev/audio"
 #else
 #ifdef linux
-#define QR_SOUNDDEV	"/dev/dsp"
+#define SOMA_SOUND_OSS_SOUNDDEV "/dev/dsp"
 #endif
 #endif
 
-#ifdef QR_SOUNDDEV
-  cout << "Sound device : " << QR_SOUNDDEV << endl;
+#ifdef SOMA_SOUND_OSS_SOUNDDEV
+  cout << "Sound device : " << SOMA_SOUND_OSS_SOUNDDEV << endl;
 
   // Open the soundcard device.
-  if ( (fd = open( QR_SOUNDDEV, O_WRONLY)) < 0 )
+  if ( (fd = open( SOMA_SOUND_OSS_SOUNDDEV, O_WRONLY)) < 0 )
   {
-    cerr << "Failed to open " << QR_SOUNDDEV << "\n";
+    cerr << "Failed to open " << SOMA_SOUND_OSS_SOUNDDEV << "\n";
     ok = false;
     return;
   }
 
-#ifdef linux	// spÃ¯Â¿Â½cifique...
+#ifdef linux	// specific...
   // mono, 8 bits, 22 kHz
   int	arg = AFMT_U8;
   if( ioctl( fd, SNDCTL_DSP_SETFMT /*SOUND_PCM_WRITE_BITS*/, &arg ) == -1 )
@@ -150,10 +151,9 @@ void RRDspSound::init()
 #else	// pas linux
 #if defined( sun ) || defined( __sun )
   /*cout << "*** WARNING ***\n";
-  cout << QR_SOUNDDEV << " operations are experimental: sound params may not " 
+  cout << SOMA_SOUND_OSS_SOUNDDEV
+  << " operations are experimental: sound params may not "
   <<"be set correctly, and sound are likely to be awful lound noise.\n";*/
-
-  // on essaie quand-mÃ¯Â¿Â½me...
 
   //	Pourquoi faut-il demander 11 kHz pour obtenir 22 ????????
   freqDsp = 11025;				// 22.05 kHz
@@ -182,17 +182,17 @@ void RRDspSound::init()
   auinf.play.encoding = AUDIO_ENCODING_LINEAR;	// 8 bits unsigned
   auinf.play.gain = AUDIO_MAX_GAIN / 2;		// volume max
   //auinf.play.port = AUDIO_SPEAKER;		// sortie haut-parleur interne
-  // est-ce nÃ¯Â¿Â½cessaire de remplir Ã¯Â¿Â½a ?
+  // is it necessary to fill this ?
   //auinf.play.avail_ports = AUDIO_SPEAKER | AUDIO_HEADPHONE | AUDIO_LINEOUT;
   auinf.play.buffer_size = bufferSize;
   auinf.play.balance = AUDIO_MID_BALANCE;
 
-  if( ioctl( fd, AUDIO_SETINFO, &auinf ) == -1 ) // Ã¯Â¿Â½crit les nouvelles valeurs
+  if( ioctl( fd, AUDIO_SETINFO, &auinf ) == -1 ) // write new values
     {
       if( errno == EINVAL )
-	cerr << "EINVAL\n";
+        cerr << "EINVAL\n";
       else if( errno == EBUSY )
-	cerr << "EBUSY\n";
+        cerr << "EBUSY\n";
       ok = false;
       cerr << "Failed to set audio params.\n";
       ::close( fd );
@@ -201,12 +201,13 @@ void RRDspSound::init()
        << auinf.play.precision << ", encoding : " << auinf.play.encoding 
        << ", buffsize : " << auinf.play.buffer_size << endl;*/
 
-#else	// pas sun non plus: device non reconnu
+#else	// not sun either plus: unknown device
   cout << "*** WARNING ***\n";
-  cout << QR_SOUNDDEV << " operations not recognized: sound params will not " 
-       <<"be set, and sound are likely to be awful lound noise.\n";
+  cout << SOMA_SOUND_OSS_SOUNDDEV
+    << " operations not recognized: sound params will not "
+    <<"be set, and sound are likely to be awful lound noise.\n";
 
-  freqDsp = 8000;	// par dÃ¯Â¿Â½faut Ã¯Â¿Â½a doit Ã¯Â¿Â½tre 8 kHz... (?)
+  freqDsp = 8000;	// by default, assume 8 kHz... (?)
   bufferSize = 512;
 #endif
 #endif
@@ -217,15 +218,15 @@ void RRDspSound::init()
 
   loadSounds();
 
-#else	// ifdef QR_SOUNDDEV
-  cout << "No sound device defined for this system, QRoll will be mute. "
+#else	// ifdef SOMA_SOUND_OSS_SOUNDDEV
+  cout << "No sound device defined for this system, OSS sound will be mute. "
        << "Sorry...\n";
   ok = false;
 #endif
 }
 
 
-void RRDspSound::loadSounds()
+void SomaSoundOSS::loadSounds()
 {
   if( !ok )
     return;
@@ -236,7 +237,7 @@ void RRDspSound::loadSounds()
 }
 
 
-void RRDspSound::process( int type )
+void SomaSoundOSS::process( int type )
 {
   pthread_mutex_lock( &listLock );
 
@@ -276,15 +277,15 @@ void RRDspSound::process( int type )
 }
 
 
-void * RRDspSound::updateThread( void * sp )
+void * SomaSoundOSS::updateThread( void * sp )
 {
-  ((RRDspSound *) sp)->update();
+  ((SomaSoundOSS *) sp)->update();
 
   return( 0 );
 }
 
 
-void RRDspSound::update()
+void SomaSoundOSS::update()
 {
   list<SndReq>::iterator	ij, fj, itmp;
   unsigned			sz, i, smp, ns;
@@ -306,106 +307,104 @@ void RRDspSound::update()
     _inuse[i] = 0;
 
   while( jobs.size() != 0 )
-    {
-      for( i=0; i<sz; ++i )	// pour chaque pas de temps
-	{
-	  snd = 0;
-	  ns = 0;
-	  //dbgn = jobs.size();
-	  ij = jobs.begin();
-	  fj = jobs.end();
-	  while( ij!=fj )
-	    {
-	      pos = (*ij).pos + i;
-	      smp = (*ij).type;
-              SoundBank::SoundSlot & sl = _sounds->sound( smp );
-              if( sl.valid && sl.loaded && pos < (int) sl.buffer.size() )
-		{
-		  if( pos >= 0 )	// if started
-		    {
-                      snd += sl.buffer[pos];
-		      ++ns;
-		    }
-		  ++ij;
-		}
-	      else	// sample fini
-		{
-		  itmp = ij;
-		  ++ij;
-		  --_inuse[ (*itmp).type ];
-		  jobs.erase( itmp );
-		  //fj = jobs.end();
-		  /*cout << "sample fini : " << dbgn << " -> " << jobs.size() 
-		    << ".\n";*/
-		}
-	    }
-	  snd -= (ns-1) * 128;	// remettre le bon zÃ¯Â¿Â½ro
-	  if( snd < 0 )
-	    snd = 0;
-	  else if( snd > 255 )
-	    snd = 255;		// couper ce qui dÃ¯Â¿Â½passe
+  {
+    for( i=0; i<sz; ++i )	// pour chaque pas de temps
+      {
+        snd = 0;
+        ns = 0;
+        //dbgn = jobs.size();
+        ij = jobs.begin();
+        fj = jobs.end();
+        while( ij!=fj )
+          {
+            pos = (*ij).pos + i;
+            smp = (*ij).type;
+            SoundBank::SoundSlot & sl = _sounds->sound( smp );
+            if( sl.valid && sl.loaded && pos < (int) sl.buffer.size() )
+              {
+                if( pos >= 0 )	// if started
+                  {
+                    snd += sl.buffer[pos];
+                    ++ns;
+                  }
+                ++ij;
+              }
+            else	// sample fini
+              {
+                itmp = ij;
+                ++ij;
+                --_inuse[ (*itmp).type ];
+                jobs.erase( itmp );
+                //fj = jobs.end();
+                /*cout << "sample fini : " << dbgn << " -> " << jobs.size()
+                  << ".\n";*/
+              }
+          }
+        snd -= (ns-1) * 128;	// remettre le bon zÃ¯Â¿Â½ro
+        if( snd < 0 )
+          snd = 0;
+        else if( snd > 255 )
+          snd = 255;		// couper ce qui dÃ¯Â¿Â½passe
 #if defined( sun ) || defined( __sun )
-	  snd -= 128;		// signÃ¯Â¿Â½ sur Sun
+        snd -= 128;		// signÃ¯Â¿Â½ sur Sun
 #endif
 
-	  buffer[i] = (unsigned char) snd;
-	}
+        buffer[i] = (unsigned char) snd;
+      }
 
-      // remettre Ã¯Â¿Â½ jour les positions des samples
+    // remettre Ã¯Â¿Â½ jour les positions des samples
 
-      for( ij=jobs.begin(), fj=jobs.end(); ij!=fj; ++ij )
-	{
-	  (*ij).pos += sz;
-	  //cout << (*ij).pos << " ";
-	}
-      //cout << jobs.size() << " samples, sz= " << sz << "\n";
+    for( ij=jobs.begin(), fj=jobs.end(); ij!=fj; ++ij )
+      {
+        (*ij).pos += sz;
+        //cout << (*ij).pos << " ";
+      }
+    //cout << jobs.size() << " samples, sz= " << sz << "\n";
 
-      // c'est hyper pas du tout optimisÃ¯Â¿Â½ cette routine...
+    // c'est hyper pas du tout optimisÃ¯Â¿Â½ cette routine...
 
-      //cout << "thread unlock (joue)\n" << flush;
-      pthread_mutex_unlock( &listLock );
-      //cout << "OK\n" << flush;
+    //cout << "thread unlock (joue)\n" << flush;
+    pthread_mutex_unlock( &listLock );
+    //cout << "OK\n" << flush;
 
-      // force Ã¯Â¿Â½ jouer, attends que ce soit fini (sans prendre du CPU)
-      //ioctl( fd, SNDCTL_DSP_SYNC );	// Ã¯Â¿Â½a marche PLUS Ã¯Â¿Â½a !!!!
-      // la synchro est faite automatiquement par la taille des buffers...
-      write( fd, buffer, sz );	// joue
+    // force playing, waiting for it to finish without taking CPU
+    //ioctl( fd, SNDCTL_DSP_SYNC );	// doesn't work anymore...
+    // synchro is performed automatically via the buffer sizes...
+    write( fd, buffer, sz );	// play it
 
 #if defined( sun ) || defined( __sun )
-      ioctl( fd, AUDIO_DRAIN );
+    ioctl( fd, AUDIO_DRAIN );
 #endif
 
-      //cout << "thread lock\n" << flush;
-      pthread_mutex_lock( &listLock );
-      //cout << "OK\n" << flush;
-    }
+    //cout << "thread lock\n" << flush;
+    pthread_mutex_lock( &listLock );
+    //cout << "OK\n" << flush;
+  }
 
   pthread_mutex_unlock( &listLock );
   //cout << "thread unlock\n" << flush;
 
 #ifdef linux
-  ioctl( fd, SNDCTL_DSP_POST );	// on va s'arrÃ¯Â¿Â½ter de jouer pendant un moment
+  ioctl( fd, SNDCTL_DSP_POST );	// will stop playing for a while
 #else
 #if defined( sun ) || defined( __sun )
   ioctl( fd, AUDIO_DRAIN );
 #endif
 #endif
 
-  //cout << "thread dÃ¯Â¿Â½truit.\n";
+  //cout << "thread destroyed.\n";
   threadRunning = false;
 }
 
 
-void RRDspSound::stop()
+void SomaSoundOSS::stop()
 {
   unsigned	i;
 
   pthread_mutex_lock( &listLock );
-  //cout << "jeu lock (stop)\n" << flush;
   jobs.erase( jobs.begin(), jobs.end() );
   for( i = 0; i<_inuse.size(); ++i )
     _inuse[ i ] = 0;
-  //cout << "jeu unlock (stop)\n" << flush;
   pthread_mutex_unlock( &listLock );
   if( ok )
     {
@@ -420,7 +419,7 @@ void RRDspSound::stop()
 }
 
 
-void RRDspSound::stop( int type )
+void SomaSoundOSS::stop( int type )
 {
   if( !ok )
     return;
@@ -428,88 +427,79 @@ void RRDspSound::stop( int type )
   list<SndReq>::iterator	ij, fj=jobs.end(), tj;
 
   pthread_mutex_lock( &listLock );
-  //cout << "jeu lock (stop 1)\n" << flush;
   if( _inuse.size() > (unsigned) type && _inuse[ type ] )
   {
-      for( ij=jobs.begin(); ij!=fj; ++ij )
-	if( (*ij).type == type )
-	  {
-	    tj = ij;
-	    --ij;
-	    jobs.erase( tj );
-	  }
-      _inuse[ type ] = 0;
-    }
-  // cout << "jeu unlock (stop 1, " << (int) type << ")\n" << flush;
+    for( ij=jobs.begin(); ij!=fj; ++ij )
+      if( (*ij).type == type )
+        {
+          tj = ij;
+          --ij;
+          jobs.erase( tj );
+        }
+    _inuse[ type ] = 0;
+  }
   pthread_mutex_unlock( &listLock );
 }
 
 
-void RRDspSound::stopOld( int type )
+void SomaSoundOSS::stopOld( int type )
 {
   list<SndReq>::iterator	ij, fj=jobs.end(), tj;
   bool				fst = true;
   int				maxpos = -10000;
 
   //pthread_mutex_lock( &listLock );
-  //cout << "jeu lock (stopOld)\n" << flush;
   if( _inuse.size() > (unsigned) type && _inuse[ type ] )
   {
-      for( ij=jobs.begin(); ij!=fj; ++ij )
-	if( (*ij).type == type )
-	  {
-	    if( fst || (*ij).pos > maxpos )
-	      {
-		fst = false;
-		tj = ij;
-		maxpos = (*ij).pos;
-	      }
-	  }
-      if( !fst )
-	{
-	  jobs.erase( tj );
-	  --_inuse[ type ];
-	}
+    for( ij=jobs.begin(); ij!=fj; ++ij )
+      if( (*ij).type == type )
+        {
+          if( fst || (*ij).pos > maxpos )
+            {
+              fst = false;
+              tj = ij;
+              maxpos = (*ij).pos;
+            }
+        }
+    if( !fst )
+      {
+        jobs.erase( tj );
+        --_inuse[ type ];
+      }
     }
-  //cout << "jeu unlock (stopOld)\n" << flush;
   //pthread_mutex_unlock( &listLock );
 }
 
 
-void RRDspSound::close()
+void SomaSoundOSS::close()
 {
   stop();
-  if( ok )
-    {
-      if( ::close( fd ) )
-	cerr << "Error while closing /dev/dsp (?\?)\n";
-    }
+  if( ok && ::close( fd ) )
+    cerr << "Error while closing " << SOMA_SOUND_OSS_SOUNDDEV << " (?\?)\n";
 }
 
 
-unsigned RRDspSound::inuse( int type )
+unsigned SomaSoundOSS::inuse( int type )
 {
   pthread_mutex_lock( &listLock );
-  //cout << "jeu lock (inuse)\n" << flush;
   unsigned num;
   if( _inuse.size() <= (unsigned) type )
     num = 0;
   else
     num = _inuse[ type ];
-  //cout << "jeu unlock (inuse)\n" << flush;
   pthread_mutex_unlock( &listLock );
 
   return( num );
 }
 
 
-string RRDspSound::name() const
+string SomaSoundOSS::name() const
 {
-  return "DSP (linux or solaris systems)";
+  return "OSS (linux or solaris systems)";
 }
 
 
-float RRDspSound::priorityRating() const
+float SomaSoundOSS::priorityRating() const
 {
   return 100;
 }

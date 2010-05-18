@@ -17,9 +17,9 @@
  ***************************************************************************/
 
 
-#ifdef RR_ALSA
+#ifdef SOMA_SOUND_ALSA
 
-#include "alsaProcessor.h"
+#include "somasoundalsa.h"
 #include "soundslot.h"
 #include <sys/ioctl.h>
 #include <alsa/asoundlib.h>
@@ -34,31 +34,34 @@ using namespace soma;
 using namespace std;
 
 
-const unsigned          RRAlsaSound::MaxSameSample = 3;
+const unsigned          SomaSoundAlsa::MaxSameSample = 3;
 
 
-struct RRAlsaSound::Private
+struct SomaSoundAlsa::Private
 {
   Private();
 
   snd_pcm_t *handle;
+  unsigned sampleSize;
+  unsigned nchannels;
+  bool signedSamples;
 };
 
 
-RRAlsaSound::Private::Private()
-  : handle( 0 )
+SomaSoundAlsa::Private::Private()
+  : handle( 0 ), sampleSize( 1 ), nchannels( 1 ), signedSamples( false )
 {
 }
 
 
-RRAlsaSound::RRAlsaSound() : ok( true ), bufferSize( 0 ), buffer( 0 ),
+SomaSoundAlsa::SomaSoundAlsa() : ok( true ), bufferSize( 0 ), buffer( 0 ),
   updateThrd( 0 ), threadRunning( false ), freqDsp( 22050 ), d( new Private )
 {
   init();
 }
 
 
-RRAlsaSound::~RRAlsaSound()
+SomaSoundAlsa::~SomaSoundAlsa()
 {
   close();
   delete[] buffer;
@@ -66,7 +69,7 @@ RRAlsaSound::~RRAlsaSound()
 }
 
 
-void RRAlsaSound::init()
+void SomaSoundAlsa::init()
 {
   ok = true;
   RRSoundProcessor::init();
@@ -86,60 +89,120 @@ void RRAlsaSound::init()
     ok = false;
     return;
   }
-  d->handle = handle;
 
-  // mono, 8 bits, 22 kHz
-  if( ( err = snd_pcm_set_params( handle, SND_PCM_FORMAT_U8,
-    SND_PCM_ACCESS_RW_INTERLEAVED, 1, freqDsp, 1, 50000 ) ) < 0 )
+  snd_pcm_hw_params_t *hw_params;
+  if( ( err = snd_pcm_hw_params_malloc( &hw_params ) ) < 0 )
   {
-    cerr << "ALSA error: " << snd_strerror(err) << endl;
-    ok = false;
-    snd_pcm_close( handle );
-    return;
-  }
-
-  snd_pcm_hw_params_t *hwparams = 0;
-  snd_pcm_hw_params_alloca( &hwparams ); // will be automatically freed
-  err = snd_pcm_hw_params_any( handle, hwparams );
-  if( err < 0 )
-  {
-    cerr << "Broken configuration for playback: no configurations available: "
-      << snd_strerror(err) << endl;
-    ok = false;
-    snd_pcm_close( handle );
-    return;
-  }
-  unsigned bufferTime = 25000;    // 1/40 de seconde en 8 bits mono
-  int dir = 1;
-
-  err = snd_pcm_hw_params_set_buffer_time_near( handle, hwparams, &bufferTime,
-                                                &dir);
-  if (err < 0)
-  {
-    cerr << "Unable to set buffer time " << bufferTime << " for playback: "
-      << snd_strerror(err) << endl;
+    cerr << snd_strerror(err) << endl;
     snd_pcm_close(handle);
     ok = false;
     return;
   }
-  cout << "buffer time: " << bufferTime << endl;
+
+  // mono, 8 bits, 22 kHz
+  snd_pcm_format_t format = SND_PCM_FORMAT_U8;
+  if( d->sampleSize == 2 )
+  {
+    if( d->signedSamples )
+      format = SND_PCM_FORMAT_S16;
+    else
+      format = SND_PCM_FORMAT_U16;
+  }
+  else if( d->signedSamples )
+    format = SND_PCM_FORMAT_S8;
+  if( ( err = snd_pcm_hw_params_any( handle, hw_params ) ) < 0 )
+  {
+    cerr << snd_strerror(err) << endl;
+    snd_pcm_hw_params_free( hw_params );
+    snd_pcm_close(handle);
+    ok = false;
+    return;
+  }
+  if( ( err = snd_pcm_hw_params_set_access( handle, hw_params,
+    SND_PCM_ACCESS_RW_INTERLEAVED ) ) < 0 )
+  {
+    cerr << "ALSA error: " << snd_strerror(err) << endl;
+    snd_pcm_hw_params_free( hw_params );
+    snd_pcm_close(handle);
+    ok = false;
+    return;
+  }
+  if( ( err = snd_pcm_hw_params_set_format( handle, hw_params,
+    format ) ) < 0 )
+  {
+    cerr << "ALSA error: " << snd_strerror(err) << endl;
+    snd_pcm_hw_params_free( hw_params );
+    snd_pcm_close(handle);
+    ok = false;
+    return;
+  }
+  if( ( err = snd_pcm_hw_params_set_rate_near( handle, hw_params, &freqDsp,
+    0 ) ) < 0 )
+  {
+    cerr << "ALSA error: " << snd_strerror(err) << endl;
+    snd_pcm_hw_params_free( hw_params );
+    snd_pcm_close(handle);
+    ok = false;
+    return;
+  }
+  if( ( err = snd_pcm_hw_params_set_channels( handle, hw_params,
+    d->nchannels ) ) < 0 )
+  {
+    cerr << "ALSA error: " << snd_strerror(err) << endl;
+    snd_pcm_hw_params_free( hw_params );
+    snd_pcm_close(handle);
+    ok = false;
+    return;
+  }
+  if( ( err = snd_pcm_hw_params( handle, hw_params ) ) < 0 )
+  {
+    cerr << "ALSA error: " << snd_strerror(err) << endl;
+    snd_pcm_hw_params_free( hw_params );
+    snd_pcm_close(handle);
+    ok = false;
+    return;
+  }
+
+  unsigned bufferTime = 25000;    // 1/40 second
+  int dir = 1;
+
+  err = snd_pcm_hw_params_set_buffer_time_near( handle, hw_params,
+      &bufferTime, &dir);
+  if (err < 0)
+  {
+    /*
+    cerr << "Unable to set buffer time " << bufferTime << " for playback: "
+      << snd_strerror(err) << endl;
+    */
+    snd_pcm_hw_params_free( hw_params );
+    snd_pcm_close(handle);
+    ok = false;
+    return;
+  }
+  // cout << "buffer time: " << bufferTime << endl;
 
   snd_pcm_uframes_t bufsz = 0;
-  err = snd_pcm_hw_params_get_buffer_size( hwparams, &bufsz );
+  err = snd_pcm_hw_params_get_buffer_size( hw_params, &bufsz );
   if (err < 0)
   {
     cerr << "Unable to get buffer size for playback: "
       << snd_strerror(err) << endl;
     // why doesn't this work ???
-    bufsz = bufferTime * freqDsp / 1000000;
-/*    snd_pcm_close(handle);
-    ok = false;
-    return;*/
+    bufsz = ((long long) bufferTime) * freqDsp / 1000000;
   }
+  // cout << "obtained buffer size : " << bufsz << endl;
+  snd_pcm_hw_params_free( hw_params );
+
+  if( ( err = snd_pcm_prepare( handle ) ) < 0 )
+  {
+    cerr << "ALSA error: " << snd_strerror(err) << endl;
+    snd_pcm_close(handle);
+    ok = false;
+    return;
+  }
+
   bufferSize = bufsz;
-/*  if( bufferSize == 551 ) // why why why why ??
-    bufferSize = 550;*/
-  cout << "obtained buffer size : " << bufferSize << endl;
+  d->handle = handle;
 
   delete[] buffer;
   buffer = new unsigned char[ bufferSize ];
@@ -149,7 +212,7 @@ void RRAlsaSound::init()
 }
 
 
-void RRAlsaSound::loadSounds()
+void SomaSoundAlsa::loadSounds()
 {
   if( !ok )
     return;
@@ -160,7 +223,7 @@ void RRAlsaSound::loadSounds()
 }
 
 
-void RRAlsaSound::process( int type )
+void SomaSoundAlsa::process( int type )
 {
   pthread_mutex_lock( &listLock );
 
@@ -200,15 +263,15 @@ void RRAlsaSound::process( int type )
 }
 
 
-void * RRAlsaSound::updateThread( void * sp )
+void * SomaSoundAlsa::updateThread( void * sp )
 {
-  ((RRAlsaSound *) sp)->update();
+  ((SomaSoundAlsa *) sp)->update();
 
   return( 0 );
 }
 
 
-void RRAlsaSound::update()
+void SomaSoundAlsa::update()
 {
   list<SndReq>::iterator        ij, fj, itmp;
   unsigned                      sz, i, smp, ns;
@@ -332,7 +395,7 @@ void RRAlsaSound::update()
 }
 
 
-void RRAlsaSound::stop()
+void SomaSoundAlsa::stop()
 {
   unsigned      i;
 
@@ -350,7 +413,7 @@ void RRAlsaSound::stop()
 }
 
 
-void RRAlsaSound::stop( int type )
+void SomaSoundAlsa::stop( int type )
 {
   if( !ok )
     return;
@@ -375,7 +438,7 @@ void RRAlsaSound::stop( int type )
 }
 
 
-void RRAlsaSound::stopOld( int type )
+void SomaSoundAlsa::stopOld( int type )
 {
   list<SndReq>::iterator        ij, fj=jobs.end(), tj;
   bool                          fst = true;
@@ -406,7 +469,7 @@ void RRAlsaSound::stopOld( int type )
 }
 
 
-void RRAlsaSound::close()
+void SomaSoundAlsa::close()
 {
   stop();
   if( ok )
@@ -418,7 +481,7 @@ void RRAlsaSound::close()
 }
 
 
-unsigned RRAlsaSound::inuse( int type )
+unsigned SomaSoundAlsa::inuse( int type )
 {
   pthread_mutex_lock( &listLock );
   //cout << "jeu lock (inuse)\n" << flush;
@@ -434,13 +497,13 @@ unsigned RRAlsaSound::inuse( int type )
 }
 
 
-string RRAlsaSound::name() const
+string SomaSoundAlsa::name() const
 {
   return "ALSA";
 }
 
 
-float RRAlsaSound::priorityRating() const
+float SomaSoundAlsa::priorityRating() const
 {
   return 150;
 }
