@@ -46,8 +46,8 @@ namespace roll
     */
     virtual bool possEat( unsigned x, unsigned y );
     ///
-    virtual RRSoundProcessor::SNDLIST soundWhenEats() const
-    { return( RRSoundProcessor::HUNGRY ); }
+    virtual RollSoundBank::SNDLIST soundWhenEats() const
+    { return( RollSoundBank::HUNGRY ); }
     ///
     virtual bool explodesOnBlob() const { return( false ); }
 

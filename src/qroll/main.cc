@@ -6,6 +6,7 @@
 #include <string>
 #include <roll/game/init.h>
 #include <roll/sound/soundProcessor.h>
+#include "../libroll/sound/rollsoundbank.h"
 #include <roll/game/vars.h>
 #include <roll/socket/qPlayerServer.h>
 #include <roll/sound/dsp.h>
@@ -50,6 +51,10 @@ int main( int argc, char** argv )
 #endif
 #endif
   new RRQSound;
+
+  RRSoundProcessor::processor().setSoundBank( new RollSoundBank );
+  RRSoundProcessor::processor().soundBank().init();
+  RRSoundProcessor::processor().soundBank().loadSounds();
 
   //	translator
   string	path = RR_path + "/po/";

@@ -36,7 +36,7 @@ public:
   struct SndReq
   {
     ///	N° du son
-    SNDLIST	type;
+    int	type;
     ///	Position où il en est dans sa lecture (négatif = pas commencé)
     int		pos;
   };
@@ -44,12 +44,12 @@ public:
   static const unsigned MaxSameSample;
   RRDspSound();
   virtual ~RRDspSound();
-  virtual void process( SNDLIST type );
+  virtual void process( int type );
   virtual void stop();
-  virtual void stop( SNDLIST type );
+  virtual void stop( int type );
   virtual void close();
   virtual void disable() { RRSoundProcessor::disable(); ok = false; }
-  virtual unsigned inuse( SNDLIST type );
+  virtual unsigned inuse( int type );
   int dspFD() const { return( fd ); }
   bool isOK() const { return( ok ); }
   virtual std::string name() const;
@@ -67,10 +67,6 @@ protected:
   int	bufferSize;
   ///	Buffer en question
   unsigned char	*buffer;
-  ///	Mémoires pour les sons eux-mêmes
-  unsigned char	*sounds[NO_SOUND];
-  ///	Leurs tailles
-  unsigned sndLen[NO_SOUND];
   ///	Liste des sons en cours
   std::list<SndReq> jobs;
   ///	Mutex correspondant
@@ -87,7 +83,7 @@ protected:
   ///	Fonction de mixage non-statique, appelée par le thread
   void update();
   ///	Arrête le plus ancien son du type donné (Warning : SANS MUTEX !!)
-  virtual void stopOld( SNDLIST type );
+  virtual void stopOld( int type );
 };
 
 

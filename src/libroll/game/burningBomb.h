@@ -46,8 +46,8 @@ namespace roll
     ///	crée un nouvel élément transformé (si transformable)
     virtual GElem* transformed() const;
     ///
-    virtual RRSoundProcessor::SNDLIST soundWhenFalls() const
-    { return( RRSoundProcessor::BOMB ); }
+    virtual RollSoundBank::SNDLIST soundWhenFalls() const
+    { return( RollSoundBank::BOMB ); }
     ///
     virtual bool isExplosive() const { return( true ); }
     //@}

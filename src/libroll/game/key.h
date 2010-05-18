@@ -42,11 +42,11 @@ namespace roll
     ///	crée un nouvel élément transformé (si transformable)
     virtual GElem* transformed() const;
     ///
-    virtual RRSoundProcessor::SNDLIST soundWhenEaten() const
-    { return( RRSoundProcessor::KEY ); }
+    virtual RollSoundBank::SNDLIST soundWhenEaten() const
+    { return( RollSoundBank::KEY ); }
     ///
-    virtual RRSoundProcessor::SNDLIST soundWhenFalls() const
-    { return( RRSoundProcessor::KEY_FALL ); }
+    virtual RollSoundBank::SNDLIST soundWhenFalls() const
+    { return( RollSoundBank::KEY_FALL ); }
     //@}
 
     /**@name	Propriétés propres à RKey */

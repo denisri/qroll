@@ -1,8 +1,8 @@
 /***************************************************************************
-                          lock.h  -  description
-                             -------------------
+                          soundslot.h
+                       -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 1999-2010 by Denis Rivière
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -16,41 +16,30 @@
  ***************************************************************************/
 
 
-#ifndef ROLL_GAME_LOCK_H
-#define ROLL_GAME_LOCK_H
+#ifndef SOMA_SOMASOUND_SOUNDSLOT_H
+#define SOMA_SOMASOUND_SOUNDSLOT_H
 
+#include "soundbank.h"
+#include "diffcode.h"
 
-#include <roll/game/eatable.h>
-
-
-namespace roll
+namespace soma
 {
 
-  /**	Serrure */
-  class RLock : public REatable
+  struct SoundBank::SoundSlot
   {
-  public:
-    ///
-    RLock( unsigned num ) : REatable( num ) {}
-    ///
-    virtual ~RLock();
+    SoundSlot( const std::string & filename, bool shouldbeloaded=true );
+    ~SoundSlot();
 
-    /**@name	Propriétés de la classe */
-    //@{
-    ///
-    virtual bool isLock() const { return( true ); }
-    ///
-    virtual RollSoundBank::SNDLIST soundWhenEaten() const
-    { return( RollSoundBank::LOCK ); }
-    //@}
-
-    /**@name	Propriétés propres à RLock */
-    //@{
-    ///	Numéro de type de clef
-    virtual unsigned lockNum() const;
-    ///	Dit si on peut l'ouvrir par un type de clef particulier
-    virtual bool canBeOpened( unsigned key ) const;
-    //@}
+    std::string filename;
+    bool shouldbeloaded;
+    bool valid;
+    bool loaded;
+    std::ifstream *stream;
+    std::vector<unsigned char> buffer;
+    bool diffcoded;
+    audiq::DiffCode::CompressInfo compressinfo;
+    audiq::DiffCode::CompressedPos compresspos;
+    std::string tempfilename;
   };
 
 }

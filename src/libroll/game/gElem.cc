@@ -219,7 +219,7 @@ void GElem::explode( unsigned x, unsigned y )
 		}
 	    }
 	}
-      RRSoundProcessor::processor().process( RRSoundProcessor::EXPLO );
+      RRSoundProcessor::processor().process( RollSoundBank::EXPLO );
     }
 }
 

@@ -42,8 +42,8 @@ namespace roll
     ///
     virtual GElem* transformed() const;
     ///
-    virtual RRSoundProcessor::SNDLIST soundWhenEaten() const
-    { return( RRSoundProcessor::DIAM ); }
+    virtual RollSoundBank::SNDLIST soundWhenEaten() const
+    { return( RollSoundBank::DIAM ); }
     //@}
 
     /**@name	Propriétés propres à RDiam */

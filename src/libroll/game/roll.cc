@@ -191,7 +191,7 @@ void Roll::realProcess( unsigned x, unsigned y )
       break;
 
     default:		// pas de mouvement
-      RRSoundProcessor::processor().stop( RRSoundProcessor::ROLL_PUSH );
+      RRSoundProcessor::processor().stop( RollSoundBank::ROLL_PUSH );
 
       if( f & RETPET ) f |= PETE;
       if( s != 115+spdc )	//pousseur
@@ -208,7 +208,7 @@ void Roll::realProcess( unsigned x, unsigned y )
 	      if( pl.latency == 55 )
 		{
 		  s = 75 + spdc;
-		  RRSoundProcessor::processor().process( RRSoundProcessor::ROLL_YAWN );
+                  RRSoundProcessor::processor().process( RollSoundBank::ROLL_YAWN );
 		}
 	      if( pl.latency == 60 ) s = 35 + spdc;
 	      if( pl.latency > 62 )
@@ -387,7 +387,7 @@ bool Roll::poss( unsigned i, unsigned j, int pouss, int mec )
 	    ((RButton *) enear)->activate( i, j );
 	}
 
-      RRSoundProcessor::processor().stop( RRSoundProcessor::ROLL_PUSH );
+      RRSoundProcessor::processor().stop( RollSoundBank::ROLL_PUSH );
       if( ok )
 	{
 	  RRSoundProcessor::processor().process( enear->soundWhenEaten() );
@@ -409,7 +409,7 @@ bool Roll::poss( unsigned i, unsigned j, int pouss, int mec )
   if( pouss != 0 && (flag & POUSS) && (efar->s==255)
       && !(game.tbct.d[i+pouss][j-1]->f & ROUL) )
     {
-      RRSoundProcessor::processor().processIfNotUsed( RRSoundProcessor::ROLL_PUSH );
+      RRSoundProcessor::processor().processIfNotUsed( RollSoundBank::ROLL_PUSH );
       if( (rrand() & 0xff) < game.tbct.strength() )
 	{
 	  /*if( nback->s == 20 )	// illusion
@@ -442,7 +442,7 @@ bool Roll::poss( unsigned i, unsigned j, int pouss, int mec )
 	  return( true );
 	}
     }
-  else RRSoundProcessor::processor().stop( RRSoundProcessor::ROLL_PUSH );
+  else RRSoundProcessor::processor().stop( RollSoundBank::ROLL_PUSH );
 
   return( false );
 }

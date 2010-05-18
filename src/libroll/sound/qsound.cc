@@ -2,7 +2,7 @@
                           qsound.cc
                              -------------------
     begin                : 2004
-    copyright            : (C) 2004-2006 by Denis RiviÃ¯Â¿Â½re
+    copyright            : (C) 2004-2006 by Denis Rivière
     email                : nudz@free.fr
                            http://nudz.free.fr
  ***************************************************************************/
@@ -16,27 +16,14 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <roll/sound/qsound.h>
-#include <roll/struct/general.h>
+#include "qsound.h"
+#include "soundslot.h"
 #include <qsound.h>
 #include <memory>
 #include <vector>
 
 using namespace roll;
 using namespace std;
-
-
-// namespace
-// {
-// 
-//   bool dummy()
-//   {
-//     new RRQSound;
-//     return true;
-//   }
-// 
-//   bool	x = dummy();
-// }
 
 
 struct RRQSound::Private
@@ -62,16 +49,34 @@ RRQSound::~RRQSound()
   delete d;
 }
 
-void RRQSound::process( SNDLIST type )
+void RRQSound::process( int type )
 {
-  if( type >= NO_SOUND || !isOK() )
+  unsigned nsnd = soundBank().sounds().size();
+  if( (unsigned) type >= nsnd || !isOK() )
     return;
 
-  if( d->sounds[ type ] )
+  if( d->sounds.size() < nsnd )
+  {
+    unsigned i;
+    string filename;
+    d->sounds.reserve( nsnd );
+    for( i=d->sounds.size(); i<nsnd; ++i )
     {
-      d->sounds[ type ]->play();
-      ++_inuse[ type ];
+      filename = soundBank().sound( i ).filename;
+      d->sounds.push_back( new QSound( filename.c_str() ) );
     }
+  }
+
+  if( d->sounds[ type ] )
+  {
+    if( _inuse.size() <= (unsigned) type )
+    {
+      _inuse.reserve( nsnd );
+      _inuse.insert( _inuse.end(), nsnd - _inuse.size(), 0 );
+    }
+    d->sounds[ type ]->play();
+    ++_inuse[ type ];
+  }
 }
 
 
@@ -86,7 +91,7 @@ void RRQSound::stop()
 }
 
 
-void RRQSound::stop( SNDLIST type )
+void RRQSound::stop( int type )
 {
   if( !isOK() )
     return;
@@ -119,25 +124,25 @@ void RRQSound::init()
   unsigned	i, n = d->sounds.size();
   for( i=0; i<n; ++i )
     delete d->sounds[i];
-  d->sounds = vector<QSound *>( NO_SOUND );
+  d->sounds.clear();
   loadSounds();
 }
 
 
 void RRQSound::loadSounds()
 {
-  int		i;
-  string	fnbase;
+  unsigned	i, n = soundBank().sounds().size();
   string	filename;
 
-  fnbase = qRollSharePath() + "/sounds/";
 
-  for( i=0; i<NO_SOUND; ++i )
-    if( !d->sounds[i] )
-      {
-	filename = fnbase + _sndFile[ i ] + ".wav";
-        d->sounds[i] = new QSound( filename.c_str() );
-      }
+  for( i=0; i<n; ++i )
+  {
+    filename = soundBank().sound( i ).filename;
+    if( d->sounds.size() < i )
+      d->sounds.push_back( new QSound( filename.c_str() ) );
+    else if( !d->sounds[i] )
+      d->sounds[i] = new QSound( filename.c_str() );
+  }
 }
 
 

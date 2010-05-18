@@ -16,14 +16,17 @@
  ***************************************************************************/
 
 
-#include <roll/sound/soundProcessor.h>
+#include "soundProcessor.h"
+#include "soundslot.h"
 #include <iostream>
 #include <list>
 
+using namespace soma;
 using namespace std;
 
 
 RRSoundProcessor::RRSoundProcessor()
+  : _sounds( 0 )
 {
   registerProcessor( this );
 }
@@ -32,49 +35,24 @@ RRSoundProcessor::RRSoundProcessor()
 RRSoundProcessor::~RRSoundProcessor()
 {
   unregisterProcessor( this );
+  delete _sounds;
 }
 
 
 void RRSoundProcessor::init()
 {
-  _sndFile[ BALL         ] = "ball";
-  _sndFile[ BLOB         ] = "blob";
-  _sndFile[ BOMB         ] = "bomb";
-  _sndFile[ BONUSLIFE    ] = "bonuslife";
-  _sndFile[ CONVEYLEVER  ] = "conveylever";
-  _sndFile[ CONVEYORBELT ] = "conveyorbelt";
-  _sndFile[ DIAM         ] = "diam";
-  _sndFile[ DOOR         ] = "door";
-  _sndFile[ EXPLO        ] = "explo";
-  _sndFile[ GRASS        ] = "grass";
-  _sndFile[ HUNGRY       ] = "hungry";
-  _sndFile[ KEY          ] = "key";
-  _sndFile[ KEY_FALL     ] = "key_fall";
-  _sndFile[ LIFT         ] = "lift";
-  _sndFile[ LOCK         ] = "lock";
-  _sndFile[ ROCK         ] = "rock";
-  _sndFile[ ROLL_PUSH    ] = "roll_push";
-  _sndFile[ ROLL_YAWN    ] = "roll_yawn";
-  _sndFile[ SPRING       ] = "spring";
-  _sndFile[ STRENGTH     ] = "strength";
-  _sndFile[ TIME         ] = "time";
-  _sndFile[ DONG1        ] = "dong1";
-  _sndFile[ DONG2        ] = "dong2";
-  _sndFile[ DONG3        ] = "dong3";
-  _sndFile[ DONG4        ] = "dong4";
-  _sndFile[ DONG5        ] = "dong5";
-  _sndFile[ DONG6        ] = "dong6";
-  _sndFile[ DONG7        ] = "dong7";
-  _sndFile[ DONG8        ] = "dong8";
-  _sndFile[ DONG9        ] = "dong9";
-
-  for( int i=0; i<NO_SOUND; ++i )
-    _inuse[i] = 0;
 }
 
 
-void RRSoundProcessor::process( SNDLIST )
+void RRSoundProcessor::process( int )
 {
+}
+
+
+void RRSoundProcessor::processIfNotUsed( int type )
+{
+  if( (unsigned) type < soundBank().sounds().size() && !inuse( type ) )
+    process( type );
 }
 
 
@@ -161,4 +139,19 @@ RRSoundProcessor & RRSoundProcessor::processor()
   return *s.processor;
 }
 
+
+void RRSoundProcessor::setSoundBank( SoundBank* sb )
+{
+  if( _sounds )
+    delete _sounds;
+  _sounds = sb;
+}
+
+
+SoundBank & RRSoundProcessor::soundBank()
+{
+  if( !_sounds )
+    _sounds = new SoundBank;
+  return *_sounds;
+}
 

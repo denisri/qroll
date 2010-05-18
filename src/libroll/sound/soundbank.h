@@ -1,8 +1,8 @@
 /***************************************************************************
-                          lock.h  -  description
-                             -------------------
+                          soundBank.h
+                       -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 1999-2010 by Denis Rivière
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -16,44 +16,38 @@
  ***************************************************************************/
 
 
-#ifndef ROLL_GAME_LOCK_H
-#define ROLL_GAME_LOCK_H
+#ifndef SOMA_SOMASOUND_SOUNDBANK_H
+#define SOMA_SOMASOUND_SOUNDBANK_H
 
+#include <vector>
+#include <fstream>
 
-#include <roll/game/eatable.h>
-
-
-namespace roll
+namespace soma
 {
 
-  /**	Serrure */
-  class RLock : public REatable
+  /// set of sounds, either loaded into memory, or accessed in files
+  class SoundBank
   {
   public:
-    ///
-    RLock( unsigned num ) : REatable( num ) {}
-    ///
-    virtual ~RLock();
+    struct SoundSlot;
 
-    /**@name	Propriétés de la classe */
-    //@{
-    ///
-    virtual bool isLock() const { return( true ); }
-    ///
-    virtual RollSoundBank::SNDLIST soundWhenEaten() const
-    { return( RollSoundBank::LOCK ); }
-    //@}
+    SoundBank();
+    virtual ~SoundBank();
 
-    /**@name	Propriétés propres à RLock */
-    //@{
-    ///	Numéro de type de clef
-    virtual unsigned lockNum() const;
-    ///	Dit si on peut l'ouvrir par un type de clef particulier
-    virtual bool canBeOpened( unsigned key ) const;
-    //@}
+    int addSound( const std::string & filename, bool shouldBeLoaded=true );
+    void loadSounds();
+    virtual void init();
+    void reserve( unsigned n );
+
+    SoundSlot & sound( unsigned n );
+    std::vector<SoundSlot> & sounds();
+
+  protected:
+    std::vector<SoundSlot> _sounds;
   };
 
 }
+
 
 #endif
 

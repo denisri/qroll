@@ -152,7 +152,7 @@ void RBall::realProcess( unsigned x, unsigned y )
 	  default:
 	    dir = GAU_N;
 	  }
-      RRSoundProcessor::processor().process( RRSoundProcessor::BALL );
+      RRSoundProcessor::processor().process( RollSoundBank::BALL );
     }
 
   GElem		*&el2 = game.tbct.d[x+x2][y+y2];	// case verticale visÃ©e
@@ -194,7 +194,7 @@ void RBall::realProcess( unsigned x, unsigned y )
 	      default:
 		dir = HAU_N;
 	      }
-	  RRSoundProcessor::processor().process( RRSoundProcessor::BALL );
+          RRSoundProcessor::processor().process( RollSoundBank::BALL );
 	}
     }
   else

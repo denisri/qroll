@@ -30,6 +30,7 @@
 #include <roll/gui/seriesArranger.h>
 #include <roll/gui/painter.h>
 #include <roll/gui/gameConfig.h>
+#include <roll/sound/soundProcessor.h>
 
 #include <qapplication.h>
 #include <qmenubar.h>
@@ -1224,8 +1225,8 @@ void QRMainWin::clockTick()
     }
 
   if( t <= 19 && t > 2 && (t & 1) )
-    RRSoundProcessor::processor().process( (RRSoundProcessor::SNDLIST) 
-    (RRSoundProcessor::DONG1 + 9 - t/2) );
+    RRSoundProcessor::processor().process( (RollSoundBank::SNDLIST) 
+    (RollSoundBank::DONG1 + 9 - t/2) );
 
   game.tbct.setTime( game.tbct.time() - 1 );
 

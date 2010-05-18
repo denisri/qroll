@@ -18,6 +18,7 @@
 
 #include <roll/game/hungryMonster.h>
 #include <roll/game/vars.h>
+#include <roll/sound/soundProcessor.h>
 
 using namespace roll;
 

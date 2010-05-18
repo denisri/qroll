@@ -30,9 +30,9 @@ namespace roll
   public:
     RRQSound();
     virtual ~RRQSound();
-    virtual void process( SNDLIST type );
+    virtual void process( int type );
     virtual void stop();
-    virtual void stop( SNDLIST type );
+    virtual void stop( int type );
     virtual void close();
     virtual bool isOK() const;
     virtual std::string name() const;

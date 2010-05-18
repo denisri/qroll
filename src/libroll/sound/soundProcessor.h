@@ -20,6 +20,13 @@
 #define ROLL_SOUND_SOUNDPROCESSOR_H
 
 #include <string>
+#include <vector>
+
+
+namespace soma
+{
+  class SoundBank;
+}
 
 
 /**	Processeur de sons & bruitages.
@@ -48,50 +55,15 @@
 class RRSoundProcessor
 {
 public:
-  enum SNDLIST
-  {
-    BALL, 
-    BLOB, 
-    BOMB, 
-    BONUSLIFE, 
-    CONVEYLEVER, 
-    CONVEYORBELT, 
-    DIAM, 
-    DOOR, 
-    EXPLO, 
-    GRASS, 
-    HUNGRY, 
-    KEY, 
-    KEY_FALL, 
-    LIFT, 
-    LOCK, 
-    ROCK, 
-    ROLL_PUSH, 
-    ROLL_YAWN, 
-    SPRING, 
-    STRENGTH, 
-    TIME, 
-    DONG1, 
-    DONG2, 
-    DONG3, 
-    DONG4, 
-    DONG5, 
-    DONG6, 
-    DONG7, 
-    DONG8, 
-    DONG9, 
-    NO_SOUND
-  };
   RRSoundProcessor();
   virtual ~RRSoundProcessor();
   ///	Commence à jouer un bruitage
-  virtual void process( SNDLIST type );
-  virtual unsigned inuse( SNDLIST type )
+  virtual void process( int type );
+  virtual unsigned inuse( int type )
     { return( _inuse[type] ); }
-  virtual void processIfNotUsed( SNDLIST type )
-    { if( type < NO_SOUND && !inuse( type ) ) process( type ); }
+  virtual void processIfNotUsed( int type );
   virtual void stop() {}
-  virtual void stop( SNDLIST type );
+  virtual void stop( int type );
   ///	Ferme la sortie son (->devient muet)
   virtual void close() {}
   ///	Désactive le son
@@ -108,22 +80,24 @@ public:
      normally have the lowest priority.
    */
   virtual float priorityRating() const { return 0; }
+  void setSoundBank( soma::SoundBank* sbank );
+  soma::SoundBank & soundBank();
 
   static RRSoundProcessor & processor();
 
 protected:
   static void registerProcessor( RRSoundProcessor* p );
   static void unregisterProcessor( RRSoundProcessor* p );
+  virtual void init();
 
   ///	tableau des nb de sons en cours
-  unsigned	_inuse[ NO_SOUND ];
+  std::vector<unsigned> _inuse;
   ///	table des noms de fichiers sons
-  std::string	_sndFile[ NO_SOUND ];
-  virtual void init();
+  soma::SoundBank *_sounds;
 };
 
 
-inline void RRSoundProcessor::stop( SNDLIST ) {}
+inline void RRSoundProcessor::stop( int ) {}
 
 
 #endif

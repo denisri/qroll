@@ -42,8 +42,8 @@ namespace roll
     ///
     virtual GElem* transformed() const;
     ///
-    virtual RRSoundProcessor::SNDLIST soundWhenEaten() const
-    { return( RRSoundProcessor::BONUSLIFE ); }
+    virtual RollSoundBank::SNDLIST soundWhenEaten() const
+    { return( RollSoundBank::BONUSLIFE ); }
     //@}
 
   };
@@ -65,8 +65,8 @@ namespace roll
     ///
     virtual GElem* transformed() const;
     ///
-    virtual RRSoundProcessor::SNDLIST soundWhenEaten() const
-    { return( RRSoundProcessor::STRENGTH ); }
+    virtual RollSoundBank::SNDLIST soundWhenEaten() const
+    { return( RollSoundBank::STRENGTH ); }
     //@}
 
   };
@@ -89,8 +89,8 @@ namespace roll
     ///
     virtual GElem* transformed() const;
     ///
-    virtual RRSoundProcessor::SNDLIST soundWhenEaten() const
-    { return( RRSoundProcessor::TIME ); }
+    virtual RollSoundBank::SNDLIST soundWhenEaten() const
+    { return( RollSoundBank::TIME ); }
     //@}
 
   };

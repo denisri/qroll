@@ -20,6 +20,7 @@
 #include <roll/game/vars.h>
 #include <roll/game/constantes.h>
 #include <roll/game/random.h>
+#include <roll/sound/soundProcessor.h>
 
 
 using namespace roll;

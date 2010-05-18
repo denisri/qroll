@@ -43,11 +43,11 @@ namespace roll
     ///	crée un nouvel élément transformé (si transformable)
     virtual GElem* transformed() const;
     ///
-    virtual RRSoundProcessor::SNDLIST soundWhenEaten() const
-    { return( RRSoundProcessor::BOMB ); }
+    virtual RollSoundBank::SNDLIST soundWhenEaten() const
+    { return( RollSoundBank::BOMB ); }
     ///
-    virtual RRSoundProcessor::SNDLIST soundWhenFalls() const
-    { return( RRSoundProcessor::BOMB ); }
+    virtual RollSoundBank::SNDLIST soundWhenFalls() const
+    { return( RollSoundBank::BOMB ); }
     //@}
 
     /**@name	Propriétés propres à Rbomb */

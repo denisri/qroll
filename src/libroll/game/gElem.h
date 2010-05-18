@@ -22,7 +22,7 @@
 
 #include <roll/game/back.h>
 #include <roll/game/constantes.h>
-#include <roll/sound/soundProcessor.h>
+#include <roll/sound/rollsoundbank.h>
 
 #include <stdlib.h>
 
@@ -132,10 +132,10 @@ namespace roll
 	moving elements which could go outside of it or leave a hole there: 
 	borders must be 'solid' elements */
     virtual bool canBeInBorder() const;
-    virtual RRSoundProcessor::SNDLIST soundWhenEaten() const
-    { return( RRSoundProcessor::NO_SOUND ); }
-    virtual RRSoundProcessor::SNDLIST soundWhenFalls() const
-    { return( RRSoundProcessor::NO_SOUND ); }
+    virtual RollSoundBank::SNDLIST soundWhenEaten() const
+    { return( RollSoundBank::NO_SOUND ); }
+    virtual RollSoundBank::SNDLIST soundWhenFalls() const
+    { return( RollSoundBank::NO_SOUND ); }
     //@}
 
     /**@name	Instance properties */
@@ -205,8 +205,8 @@ namespace roll
     ///
     virtual bool isEatable() const { return( true ); }
     ///
-    virtual RRSoundProcessor::SNDLIST soundWhenEaten() const
-    { return( RRSoundProcessor::GRASS ); }
+    virtual RollSoundBank::SNDLIST soundWhenEaten() const
+    { return( RollSoundBank::GRASS ); }
 
   protected:
   };
@@ -226,8 +226,8 @@ namespace roll
     ///
     virtual bool isEatable() const { return( true ); }
     ///
-    virtual RRSoundProcessor::SNDLIST soundWhenEaten() const
-    { return( RRSoundProcessor::GRASS ); }
+    virtual RollSoundBank::SNDLIST soundWhenEaten() const
+    { return( RollSoundBank::GRASS ); }
 
   protected:
   };

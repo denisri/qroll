@@ -1,8 +1,8 @@
 /***************************************************************************
-                          lock.h  -  description
-                             -------------------
+                          rollSoundBank.h
+                       -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Rivière
+    copyright            : (C) 1999-2010 by Denis Rivière
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -16,41 +16,56 @@
  ***************************************************************************/
 
 
-#ifndef ROLL_GAME_LOCK_H
-#define ROLL_GAME_LOCK_H
+#ifndef SOMA_SOMASOUND_ROLLSOUNDBANK_H
+#define SOMA_SOMASOUND_ROLLSOUNDBANK_H
 
-
-#include <roll/game/eatable.h>
-
+#include "soundbank.h"
 
 namespace roll
 {
 
-  /**	Serrure */
-  class RLock : public REatable
+  class RollSoundBank : public soma::SoundBank
   {
   public:
-    ///
-    RLock( unsigned num ) : REatable( num ) {}
-    ///
-    virtual ~RLock();
+    enum SNDLIST
+    {
+      BALL,
+      BLOB,
+      BOMB,
+      BONUSLIFE,
+      CONVEYLEVER,
+      CONVEYORBELT,
+      DIAM,
+      DOOR,
+      EXPLO,
+      GRASS,
+      HUNGRY,
+      KEY,
+      KEY_FALL,
+      LIFT,
+      LOCK,
+      ROCK,
+      ROLL_PUSH,
+      ROLL_YAWN,
+      SPRING,
+      STRENGTH,
+      TIME,
+      DONG1,
+      DONG2,
+      DONG3,
+      DONG4,
+      DONG5,
+      DONG6,
+      DONG7,
+      DONG8,
+      DONG9,
+      NO_SOUND
+    };
 
-    /**@name	Propriétés de la classe */
-    //@{
-    ///
-    virtual bool isLock() const { return( true ); }
-    ///
-    virtual RollSoundBank::SNDLIST soundWhenEaten() const
-    { return( RollSoundBank::LOCK ); }
-    //@}
+    RollSoundBank();
+    virtual ~RollSoundBank();
 
-    /**@name	Propriétés propres à RLock */
-    //@{
-    ///	Numéro de type de clef
-    virtual unsigned lockNum() const;
-    ///	Dit si on peut l'ouvrir par un type de clef particulier
-    virtual bool canBeOpened( unsigned key ) const;
-    //@}
+    virtual void init();
   };
 
 }

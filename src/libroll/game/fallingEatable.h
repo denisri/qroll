@@ -33,8 +33,8 @@ namespace roll
     RFallingEatable( unsigned num ) : RFallingElem( num ) {}
     virtual ~RFallingEatable();
     virtual bool isEatable() const { return( true ); }
-    virtual RRSoundProcessor::SNDLIST soundWhenFalls() const
-    { return( RRSoundProcessor::DIAM ); }
+    virtual RollSoundBank::SNDLIST soundWhenFalls() const
+    { return( RollSoundBank::DIAM ); }
   };
 
 }

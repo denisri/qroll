@@ -19,8 +19,8 @@
 
 #ifdef RR_ALSA
 
-#include <roll/sound/alsaProcessor.h>
-#include <roll/struct/general.h>
+#include "alsaProcessor.h"
+#include "soundslot.h"
 #include <sys/ioctl.h>
 #include <alsa/asoundlib.h>
 #include <fcntl.h>
@@ -30,6 +30,7 @@
 #include <iostream>
 #include <stdlib.h>
 
+using namespace soma;
 using namespace std;
 
 
@@ -61,8 +62,6 @@ RRAlsaSound::~RRAlsaSound()
 {
   close();
   delete[] buffer;
-  for( int i=0; i<NO_SOUND; ++i )
-    delete[] sounds[i];
   delete d;
 }
 
@@ -73,14 +72,6 @@ void RRAlsaSound::init()
   RRSoundProcessor::init();
 
 #define QR_SOUNDDEV     "default"
-
-  int   i;
-
-  for( i=0; i<NO_SOUND; ++i )
-    {
-      sounds[i] = 0;
-      sndLen[i] = 0;
-    }
 
   cout << "Sound device : " << QR_SOUNDDEV << endl;
 
@@ -163,51 +154,29 @@ void RRAlsaSound::loadSounds()
   if( !ok )
     return;
 
-  int   i;
-  int   f;
-  string        fnbase;
-  string        filename;
-  struct stat   fst;
-  ssize_t       rd;
-
-  fnbase = roll::qRollSharePath() + "/sounds/";
-
-  for( i=0; i<NO_SOUND; ++i )
-    if( !sounds[i] )
-      {
-        filename = fnbase + _sndFile[ i ] + ".wav";
-        f = open( filename.c_str(), O_RDONLY );
-        if( f == -1 || fstat( f, &fst ) != 0 )
-          {
-            cerr << "unable to load sample " << filename << ".\n";
-          }
-        else
-          {
-            const unsigned      whl = 44;       // .wav header length
-            sndLen[i] = fst.st_size - whl;
-            sounds[i] = new unsigned char[ sndLen[i] ];
-            lseek( f, whl, SEEK_SET );
-            rd = read( f, sounds[i], sndLen[i] );
-            if( rd != (ssize_t) sndLen[i] )
-              {
-                cerr << filename << " : only " << rd << " bytes read, "
-                     << (int) sndLen[i] << " expected !\n";
-                sndLen[i] = rd;
-              }
-            ::close( f );
-            // cout << filename << " read, " << rd << " bytes.\n";
-          }
-      }
+  // FIXME: too early, the bank is not here yet !
+  soundBank().init();
+  soundBank().loadSounds();
 }
 
 
-void RRAlsaSound::process( SNDLIST type )
+void RRAlsaSound::process( int type )
 {
-  if( type >= NO_SOUND || !ok )
-    return;
-
   pthread_mutex_lock( &listLock );
-  //cout << "jeu lock\n";
+
+  unsigned nsnd = soundBank().sounds().size();
+  if( (unsigned) type >= nsnd || !ok )
+  {
+    pthread_mutex_unlock( &listLock );
+    return;
+  }
+
+  if( _inuse.size() <= (unsigned) type )
+  {
+    _inuse.reserve( nsnd );
+    _inuse.insert( _inuse.end(), nsnd - _inuse.size(), 0 );
+  }
+
   unsigned      n = _inuse[ type ];
   if( n >= MaxSameSample )
     stopOld( type );    // too many sounds at the same time: stop one of them
@@ -258,6 +227,12 @@ void RRAlsaSound::update()
 
   pthread_mutex_lock( &listLock );
   //cout << "thread lock\n" << flush;
+  unsigned nsnd = soundBank().sounds().size();
+  _inuse.reserve( nsnd );
+  if( _inuse.size() < nsnd )
+    _inuse.insert( _inuse.end(), nsnd - _inuse.size(), 0 );
+  for( i=0; i<nsnd; ++i )
+    _inuse[i] = 0;
 
   while( jobs.size() != 0 )
     {
@@ -272,11 +247,12 @@ void RRAlsaSound::update()
             {
               pos = (*ij).pos + i;
               smp = (*ij).type;
-              if( pos < (int) sndLen[smp] )
+              SoundBank::SoundSlot & sl = _sounds->sound( smp );
+              if( sl.valid && sl.loaded && pos < (int) sl.buffer.size() )
                 {
                   if( pos >= 0 )        // if started
                     {
-                      snd += sounds[smp][pos];
+                      snd += sl.buffer[pos];
                       ++ns;
                     }
                   ++ij;
@@ -321,7 +297,7 @@ void RRAlsaSound::update()
       //cout << "waiting...\n";
       //snd_pcm_wait( d->handle, -1 );
       int done = 0;
-      while( done < sz )
+      while( done < (int) sz )
       {
         frames = snd_pcm_writei( d->handle, buffer + done, sz - done );  // play
 //       cout << "frames: " << frames << endl;
@@ -363,7 +339,7 @@ void RRAlsaSound::stop()
   pthread_mutex_lock( &listLock );
   //cout << "jeu lock (stop)\n" << flush;
   jobs.erase( jobs.begin(), jobs.end() );
-  for( i = 0; i<NO_SOUND; ++i )
+  for( i = 0; i<_inuse.size(); ++i )
     _inuse[ i ] = 0;
   //cout << "jeu unlock (stop)\n" << flush;
   pthread_mutex_unlock( &listLock );
@@ -374,7 +350,7 @@ void RRAlsaSound::stop()
 }
 
 
-void RRAlsaSound::stop( SNDLIST type )
+void RRAlsaSound::stop( int type )
 {
   if( !ok )
     return;
@@ -383,7 +359,7 @@ void RRAlsaSound::stop( SNDLIST type )
 
   pthread_mutex_lock( &listLock );
   //cout << "jeu lock (stop 1)\n" << flush;
-  if( _inuse[ type ] )
+  if( _inuse.size() > (unsigned) type && _inuse[ type ] )
     {
       for( ij=jobs.begin(); ij!=fj; ++ij )
         if( (*ij).type == type )
@@ -399,7 +375,7 @@ void RRAlsaSound::stop( SNDLIST type )
 }
 
 
-void RRAlsaSound::stopOld( SNDLIST type )
+void RRAlsaSound::stopOld( int type )
 {
   list<SndReq>::iterator        ij, fj=jobs.end(), tj;
   bool                          fst = true;
@@ -407,8 +383,8 @@ void RRAlsaSound::stopOld( SNDLIST type )
 
   //pthread_mutex_lock( &listLock );
   //cout << "jeu lock (stopOld)\n" << flush;
-  if( _inuse[ type ] )
-    {
+  if( _inuse.size() > (unsigned) type && _inuse[ type ] )
+  {
       for( ij=jobs.begin(); ij!=fj; ++ij )
         if( (*ij).type == type )
           {
@@ -442,11 +418,15 @@ void RRAlsaSound::close()
 }
 
 
-unsigned RRAlsaSound::inuse( SNDLIST type )
+unsigned RRAlsaSound::inuse( int type )
 {
   pthread_mutex_lock( &listLock );
   //cout << "jeu lock (inuse)\n" << flush;
-  unsigned num = _inuse[ type ];
+  unsigned num;
+  if( _inuse.size() <= (unsigned) type )
+    num = 0;
+  else
+    num = _inuse[ type ];
   //cout << "jeu unlock (inuse)\n" << flush;
   pthread_mutex_unlock( &listLock );
 

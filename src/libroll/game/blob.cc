@@ -19,6 +19,7 @@
 #include <roll/game/blob.h>
 #include <roll/game/vars.h>
 #include <roll/game/random.h>
+#include <roll/sound/soundProcessor.h>
 
 
 using namespace roll;
@@ -53,7 +54,7 @@ void RBlob::realProcess( unsigned x, unsigned y )
     }
 
   ++bebet[nob].cpt;		// compteur de bÃ©bettes
-  RRSoundProcessor::processor().processIfNotUsed( RRSoundProcessor::BLOB );
+  RRSoundProcessor::processor().processIfNotUsed( RollSoundBank::BLOB );
 
   if( x == 0 ) bebet[nob].flg = 3;	// bord: pas transformable
   else grow( x-1, y, nob );

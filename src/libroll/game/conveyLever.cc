@@ -19,6 +19,7 @@
 #include <roll/game/conveyLever.h>
 #include <roll/game/vars.h>
 #include <roll/sound/soundProcessor.h>
+#include <roll/sound/rollsoundbank.h>
 
 using namespace roll;
 
@@ -48,7 +49,7 @@ void RConveyLever::activate( unsigned, unsigned )
   else
     st = -1;
   setState( st );
-  RRSoundProcessor::processor().process( RRSoundProcessor::CONVEYLEVER );
+  RRSoundProcessor::processor().process( RollSoundBank::CONVEYLEVER );
 }
 
 

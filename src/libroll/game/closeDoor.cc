@@ -20,6 +20,7 @@
 #include <roll/game/door.h>
 #include <roll/game/vars.h>
 #include <roll/game/back.h>
+#include <roll/sound/soundProcessor.h>
 
 using namespace roll;
 
@@ -46,7 +47,7 @@ void RCloseDoor::realProcess( unsigned x, unsigned y )
       // move to background as well
       game.tbct.b[x][y] = new MirrorBack( s+1 );
       game.tbct.b[x][y]->f = flgs;
-      RRSoundProcessor::processor().process( RRSoundProcessor::DOOR );
+      RRSoundProcessor::processor().process( RollSoundBank::DOOR );
       delete this;	// oui; je sais... mais comment je fais, sinon ?
     }
 }

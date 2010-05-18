@@ -18,6 +18,7 @@
 
 #include <roll/game/lift.h>
 #include <roll/game/vars.h>
+#include <roll/sound/soundProcessor.h>
 
 using namespace roll;
 using namespace std;
@@ -74,7 +75,7 @@ void RLift::realProcess( unsigned x, unsigned y )
     }
 
   if( _dir != olddir )
-    RRSoundProcessor::processor().process( RRSoundProcessor::LIFT );
+    RRSoundProcessor::processor().process( RollSoundBank::LIFT );
 }
 
 
@@ -131,10 +132,12 @@ void RAutoLift::stop( unsigned x, unsigned y )
 	  _dir = 1;
 	}
       else if( !down->isTemporary() )
+      {
 	if( up->isEmpty() && game.tbct.d[x][y-2]->isEmpty() )	// peut monter
 	  moveUp( x, y );
 	else	// non: on s'arrÃªte vraiment
 	  _dir = 0;
+      }
       break;
     case -1:
       if( up->isEmpty() && game.tbct.d[x][y-2]->isEmpty() )	// peut monter

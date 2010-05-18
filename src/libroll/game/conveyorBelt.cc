@@ -18,6 +18,7 @@
 
 #include <roll/game/conveyorBelt.h>
 #include <roll/game/vars.h>
+#include <roll/sound/soundProcessor.h>
 
 using namespace roll;
 
@@ -34,7 +35,7 @@ void RConveyorBelt::realProcess( unsigned x, unsigned y )
     case 1:	// droite
       {
 	RRSoundProcessor::processor().processIfNotUsed
-          ( RRSoundProcessor::CONVEYORBELT );
+          ( RollSoundBank::CONVEYORBELT );
 	if( !flags ) flags = DROI;
 	GElem	*&next = game.tbct.d[x+dir][y-1];
 	GElem	*&over = game.tbct.d[x][y-1];

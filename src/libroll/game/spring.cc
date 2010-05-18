@@ -19,6 +19,7 @@
 #include <roll/game/spring.h>
 #include <roll/game/vars.h>
 #include <roll/game/ball.h>
+#include <roll/sound/soundProcessor.h>
 
 using namespace roll;
 
@@ -100,7 +101,7 @@ bool RSpring::checkExtendDir( unsigned x, unsigned y, int dx, int dy )
 	  enear = new RSpring( s, direction, dir( dx, dy ) );
 	  if( dx > 0 || dy > 0 )
 	    enear->f |= BUSY;
-	  RRSoundProcessor::processor().process( RRSoundProcessor::SPRING );
+          RRSoundProcessor::processor().process( RollSoundBank::SPRING );
 	  return( true );
 	}
     }

@@ -46,8 +46,8 @@ namespace roll
     ///	en général, c'est glissant, un truc qui tombe
     virtual bool isSlippery() const { return( true ); }
     virtual bool canEat( const GElem* el ) const { return( el->isEmpty() ); }
-    virtual RRSoundProcessor::SNDLIST soundWhenFalls() const
-    { return( RRSoundProcessor::ROCK ); }
+    virtual RollSoundBank::SNDLIST soundWhenFalls() const
+    { return( RollSoundBank::ROCK ); }
 
   protected:
     virtual void realProcess( unsigned x, unsigned y );
