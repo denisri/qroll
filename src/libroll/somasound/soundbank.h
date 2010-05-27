@@ -21,16 +21,16 @@
 
 #include <vector>
 #include <fstream>
+#include <string>
 
 namespace soma
 {
+  struct SoundSlot;
 
   /// set of sounds, either loaded into memory, or accessed in files
   class SoundBank
   {
   public:
-    struct SoundSlot;
-
     SoundBank();
     virtual ~SoundBank();
 

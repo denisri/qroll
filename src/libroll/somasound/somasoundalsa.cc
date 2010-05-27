@@ -20,7 +20,10 @@
 #ifdef SOMA_SOUND_ALSA
 
 #include "somasoundalsa.h"
+#include "soundbank.h"
 #include "soundslot.h"
+#include "sounditerator.h"
+#include "diffcode.h"
 #include <sys/ioctl.h>
 #include <alsa/asoundlib.h>
 #include <fcntl.h>
@@ -31,6 +34,7 @@
 #include <stdlib.h>
 
 using namespace soma;
+using namespace audiq;
 using namespace std;
 
 
@@ -45,12 +49,20 @@ struct SomaSoundAlsa::Private
   unsigned sampleSize;
   unsigned nchannels;
   bool signedSamples;
+  unsigned bufferTime;
 };
 
 
 SomaSoundAlsa::Private::Private()
-  : handle( 0 ), sampleSize( 1 ), nchannels( 1 ), signedSamples( false )
+  : handle( 0 ), sampleSize( 1 ), nchannels( 1 ), signedSamples( false ),
+    bufferTime( 25000 )
 {
+}
+
+
+SomaSoundAlsa::SndReq::~SndReq()
+{
+  delete iterator;
 }
 
 
@@ -154,20 +166,10 @@ void SomaSoundAlsa::init()
     ok = false;
     return;
   }
-  if( ( err = snd_pcm_hw_params( handle, hw_params ) ) < 0 )
-  {
-    cerr << "ALSA error: " << snd_strerror(err) << endl;
-    snd_pcm_hw_params_free( hw_params );
-    snd_pcm_close(handle);
-    ok = false;
-    return;
-  }
-
-  unsigned bufferTime = 25000;    // 1/40 second
   int dir = 1;
 
   err = snd_pcm_hw_params_set_buffer_time_near( handle, hw_params,
-      &bufferTime, &dir);
+      &d->bufferTime, &dir);
   if (err < 0)
   {
     /*
@@ -179,7 +181,16 @@ void SomaSoundAlsa::init()
     ok = false;
     return;
   }
-  // cout << "buffer time: " << bufferTime << endl;
+  // cout << "buffer time: " << d->bufferTime << endl;
+
+  if( ( err = snd_pcm_hw_params( handle, hw_params ) ) < 0 )
+  {
+    cerr << "ALSA error: " << snd_strerror(err) << endl;
+    snd_pcm_hw_params_free( hw_params );
+    snd_pcm_close(handle);
+    ok = false;
+    return;
+  }
 
   snd_pcm_uframes_t bufsz = 0;
   err = snd_pcm_hw_params_get_buffer_size( hw_params, &bufsz );
@@ -188,9 +199,10 @@ void SomaSoundAlsa::init()
     cerr << "Unable to get buffer size for playback: "
       << snd_strerror(err) << endl;
     // why doesn't this work ???
-    bufsz = ((long long) bufferTime) * freqDsp / 1000000;
+    bufsz = ((long long) d->bufferTime) * freqDsp / 1000000;
   }
   // cout << "obtained buffer size : " << bufsz << endl;
+
   snd_pcm_hw_params_free( hw_params );
 
   if( ( err = snd_pcm_prepare( handle ) ) < 0 )
@@ -202,6 +214,7 @@ void SomaSoundAlsa::init()
   }
 
   bufferSize = bufsz;
+  cout << "buffer size: " << bufferSize << endl;
   d->handle = handle;
 
   delete[] buffer;
@@ -209,6 +222,102 @@ void SomaSoundAlsa::init()
   listLock = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER;
 
   loadSounds();
+}
+
+
+void SomaSoundAlsa::setBufferTime( float ms )
+{
+  d->bufferTime = (unsigned) ( ms * 1000 );
+  if( !d->handle )
+    return;
+
+  int err;
+  snd_pcm_hw_params_t *hw_params;
+  if( ( err = snd_pcm_hw_params_malloc( &hw_params ) ) < 0 )
+  {
+    cerr << snd_strerror(err) << endl;
+    snd_pcm_close(d->handle);
+    d->handle = 0;
+    return;
+  }
+
+  int dir = 1;
+
+  err = snd_pcm_hw_params_set_buffer_time_near( d->handle, hw_params,
+      &d->bufferTime, &dir);
+  if (err < 0)
+  {
+    /*
+    cerr << "Unable to set buffer time " << d->bufferTime << " for playback: "
+      << snd_strerror(err) << endl;
+    */
+    snd_pcm_hw_params_free( hw_params );
+    snd_pcm_close(d->handle);
+    d->handle = 0;
+    return;
+  }
+  // cout << "buffer time: " << bufferTime << endl;
+
+  if( ( err = snd_pcm_hw_params( d->handle, hw_params ) ) < 0 )
+  {
+    cerr << "ALSA error: " << snd_strerror(err) << endl;
+    snd_pcm_hw_params_free( hw_params );
+    snd_pcm_close(d->handle);
+    d->handle = 0;
+    return;
+  }
+
+  snd_pcm_uframes_t bufsz = 0;
+  err = snd_pcm_hw_params_get_buffer_size( hw_params, &bufsz );
+  if (err < 0)
+  {
+    cerr << "Unable to get buffer size for playback: "
+      << snd_strerror(err) << endl;
+    // why doesn't this work ???
+    bufsz = ((long long) d->bufferTime) * freqDsp / 1000000;
+  }
+  // cout << "obtained buffer size : " << bufsz << endl;
+
+  snd_pcm_hw_params_free( hw_params );
+
+  if( ( err = snd_pcm_prepare( d->handle ) ) < 0 )
+  {
+    cerr << "ALSA error: " << snd_strerror(err) << endl;
+    snd_pcm_close(d->handle);
+    d->handle = 0;
+    return;
+  }
+
+  bufferSize = bufsz;
+  cout << "buffer size: " << bufferSize << endl;
+
+  delete[] buffer;
+  buffer = new unsigned char[ bufferSize ];
+}
+
+
+void SomaSoundAlsa::setFrequency( int freq )
+{
+  freqDsp = freq;
+}
+
+
+void SomaSoundAlsa::setChannels( int ch )
+{
+  d->nchannels = ch;
+}
+
+
+void SomaSoundAlsa::setParams( int slot )
+{
+  SoundSlot & sound = soundBank().sound( slot );
+  const WavHeader &hdr = sound.compressinfo.hdr;
+  d->nchannels = hdr.channels;
+  d->sampleSize = hdr.sampleSize;
+  d->signedSamples = hdr.sign;
+  freqDsp = hdr.rate;
+  stop();
+  init();
 }
 
 
@@ -243,13 +352,15 @@ void SomaSoundAlsa::process( int type )
   unsigned      n = _inuse[ type ];
   if( n >= MaxSameSample )
     stopOld( type );    // too many sounds at the same time: stop one of them
+  SoundIterator *iter
+    = SoundIterator::makeIterator( soundBank().sound( type ) );
   if( n > 0 )   // this one already plays : setup a little delay
-    {
-      int       r = rand() & 0x7ff;     // up to about 0.1 s
-      jobs.push_back( (SndReq) { type, -r } );
-    }
-  else
-    jobs.push_back( (SndReq) { type, 0 } );
+  {
+    int       r = rand() & 0x7ff;     // up to about 0.1 s
+    iter->seek( -r );
+  }
+  jobs.push_back( SndReq( type ) );
+  jobs.back().iterator = iter;
   ++_inuse[ type ];
   //cout << "jeu unlock\n";
   pthread_mutex_unlock( &listLock );
@@ -277,12 +388,7 @@ void SomaSoundAlsa::update()
   unsigned                      sz, i, smp, ns;
   int                           snd, pos;
 
-  //cout << "thread start\n";
-
-  /* sz = (unsigned) ( freqDsp * 0.05 );        // pas de 1/20 seconde environ
-  if( (int) sz > bufferSize )
-    sz = bufferSize;                    // limited bu buffer size too
-  */
+  // cout << "thread start\n";
 
   sz = bufferSize;      // write series of buffer size (synchro)
 
@@ -299,6 +405,61 @@ void SomaSoundAlsa::update()
 
   while( jobs.size() != 0 )
     {
+      #if 0
+      for( i=0; i<sz; ++i )       // pour chaque pas de temps
+      {
+        snd = 0;
+        ns = 0;
+        //dbgn = jobs.size();
+        ij = jobs.begin();
+        fj = jobs.end();
+        while( ij!=fj )
+          {
+            pos = (*ij).pos + i;
+            smp = (*ij).type;
+            SoundSlot & sl = _sounds->sound( smp );
+            if( sl.valid && sl.loaded && pos < (int) sl.buffer.size() )
+              {
+                if( pos >= 0 )  // if started
+                  {
+                    snd += sl.buffer[pos];
+                    ++ns;
+                  }
+                ++ij;
+              }
+            else        // sample fini
+              {
+                itmp = ij;
+                ++ij;
+                --_inuse[ (*itmp).type ];
+                jobs.erase( itmp );
+                //fj = jobs.end();
+                /*cout << "sample fini : " << dbgn << " -> " << jobs.size()
+                  << ".\n";*/
+              }
+          }
+        snd -= (ns-1) * 128;    // remettre le bon zÃ¯Â¿Â½ro
+        if( snd < 0 )
+          snd = 0;
+        else if( snd > 255 )
+          snd = 255;            // couper ce qui dÃ¯Â¿Â½passe
+#if defined( sun ) || defined( __sun )
+        snd -= 128;             // signÃ¯Â¿Â½ sur Sun
+#endif
+
+        buffer[i] = (unsigned char) snd;
+      }
+
+    for( ij=jobs.begin(), fj=jobs.end(); ij!=fj; ++ij )
+      {
+        (*ij).pos += sz;
+        //cout << (*ij).pos << " ";
+      }
+#endif
+
+
+      #if 1
+      // cout << "sz: " << sz << ", jobs: " << jobs.size() << endl;
       for( i=0; i<sz; ++i )     // pour chaque pas de temps
         {
           snd = 0;
@@ -308,28 +469,30 @@ void SomaSoundAlsa::update()
           fj = jobs.end();
           while( ij!=fj )
             {
-              pos = (*ij).pos + i;
+              SoundIterator & iter = *ij->iterator;
+              pos = (int) iter.pos();
               smp = (*ij).type;
-              SoundBank::SoundSlot & sl = _sounds->sound( smp );
-              if( sl.valid && sl.loaded && pos < (int) sl.buffer.size() )
+              if( iter.sound().valid && pos < (int) iter.size() )
+              {
+                if( pos >= 0 )        // if started
                 {
-                  if( pos >= 0 )        // if started
-                    {
-                      snd += sl.buffer[pos];
-                      ++ns;
-                    }
-                  ++ij;
+                  snd += (unsigned char) iter.getch();
+                  ++ns;
                 }
+                else
+                  iter.getch();
+                ++ij;
+              }
               else      // sample fini
-                {
-                  itmp = ij;
-                  ++ij;
-                  --_inuse[ (*itmp).type ];
-                  jobs.erase( itmp );
-                  //fj = jobs.end();
-                  /*cout << "sample fini : " << dbgn << " -> " << jobs.size()
-                    << ".\n";*/
-                }
+              {
+                itmp = ij;
+                ++ij;
+                --_inuse[ (*itmp).type ];
+                jobs.erase( itmp );
+                //fj = jobs.end();
+                /*cout << "sample fini : " << dbgn << " -> " << jobs.size()
+                  << ".\n";*/
+              }
             }
           snd -= (ns-1) * 128;  // shift for zero
           if( snd < 0 )
@@ -339,21 +502,11 @@ void SomaSoundAlsa::update()
 
           buffer[i] = (unsigned char) snd;
         }
+      #endif
 
-      // update samples positions
-
-      for( ij=jobs.begin(), fj=jobs.end(); ij!=fj; ++ij )
-        {
-          (*ij).pos += sz;
-          //cout << (*ij).pos << " ";
-        }
-      //cout << jobs.size() << " samples, sz= " << sz << "\n";
-
-      // c'est hyper pas du tout optimisé cette routine...
-
-      //cout << "thread unlock (joue)\n" << flush;
+      // cout << "thread unlock (joue)\n" << flush;
       pthread_mutex_unlock( &listLock );
-      //cout << "OK\n" << flush;
+      // cout << "OK\n" << flush;
 
       // force playing sound, wait for it to finish (without taking CPU)
       // la synchro est faite automatiquement par la taille des buffers...
@@ -363,18 +516,22 @@ void SomaSoundAlsa::update()
       while( done < (int) sz )
       {
         frames = snd_pcm_writei( d->handle, buffer + done, sz - done );  // play
-//       cout << "frames: " << frames << endl;
+        cout << "frames: " << frames << " / " << sz - done << endl;
         if( frames < 0 )
+        {
+          cerr << "snd_pcm_writei <0: " << snd_strerror(frames) << endl;
           frames = snd_pcm_recover( d->handle, frames, 1 );
+          cout << "recover: " << frames << endl;
+        }
+        if( frames < 0 )
+        {
+          cerr << "snd_pcm_writei failed: " << snd_strerror(frames) << endl;
+          break;
+        }
         else
         {
           done += frames;
         }
-/*        if( frames < 0 )
-        {
-          cerr << "snd_pcm_writei failed: " << snd_strerror(frames) << endl;
-          break;
-        }*/
       }
 //       if( frames > 0 && (unsigned) frames < sz )
 //         cerr << "Short write (expected " << sz << ", wrote " << frames
@@ -451,11 +608,12 @@ void SomaSoundAlsa::stopOld( int type )
       for( ij=jobs.begin(); ij!=fj; ++ij )
         if( (*ij).type == type )
           {
-            if( fst || (*ij).pos > maxpos )
+            SoundIterator::size_type ipos = ij->iterator->pos();
+            if( fst || ipos > maxpos )
               {
                 fst = false;
                 tj = ij;
-                maxpos = (*ij).pos;
+                maxpos = ipos;
               }
           }
       if( !fst )

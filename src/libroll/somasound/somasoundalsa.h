@@ -28,6 +28,8 @@
 namespace soma
 {
 
+  class SoundIterator;
+
   /**     Sound using ALSA lib, using a threaded mixer: it implements
     pseudo-real-time mixing of a varaible number of channels.
   */
@@ -37,9 +39,14 @@ namespace soma
     /// Sound request structure
     struct SndReq
     {
+      SndReq( int type ) : type( type ), iterator( 0 )
+      , pos( 0 )
+      {}
+      ~SndReq();
       /// sound number
       int type;
-      /// Current position while reading (negative = not started)
+      SoundIterator *iterator;
+      // / Current position while reading (negative = not started)
       int pos;
     };
     /// Max number of sounds of the same type playing at the same time
@@ -52,6 +59,10 @@ namespace soma
     virtual void close();
     virtual void disable() { SomaSoundProcessor::disable(); ok = false; }
     virtual unsigned inuse( int type );
+    virtual void setBufferTime( float ms );
+    virtual void setFrequency( int );
+    virtual void setChannels( int );
+    virtual void setParams( int );
     bool isOK() const { return( ok ); }
     virtual std::string name() const;
     /** The ALSA sound has priority 150 (better than old OSS API)

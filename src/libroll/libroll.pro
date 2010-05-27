@@ -97,6 +97,9 @@ HEADERS = \
 	somasound/somasoundoss.h \
 	somasound/somasoundprocessor.h \
 	somasound/soundbank.h \
+	somasound/sounditerator.h \
+	somasound/soundslot.h \
+	somasound/wavheader.h \
 	sound/rollsoundbank.h \
 	sound/soundProcessor.h \
 	socket/qPlayerServer.h \
@@ -189,6 +192,7 @@ SOURCES = \
 	somasound/somasoundoss.cc \
 	somasound/somasoundprocessor.cc \
 	somasound/soundbank.cc \
+	somasound/sounditerator.cc \
 	somasound/wavheader.cc \
 	sound/rollsoundbank.cc \
 	socket/qPlayerServer.cc \

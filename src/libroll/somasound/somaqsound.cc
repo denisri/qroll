@@ -17,6 +17,7 @@
  ***************************************************************************/
 
 #include "somaqsound.h"
+#include "soundbank.h"
 #include "soundslot.h"
 #include <qsound.h>
 #include <memory>

@@ -46,10 +46,9 @@ int main( int argc, char** argv )
   init( argc, argv );		// initialise le jeu, charge les données
 #ifdef SOMA_SOUND_ALSA
   new SomaSoundAlsa;
-#else
+#endif
 #ifdef SOMA_SOUND_OSS
   new SomaSoundOSS;
-#endif
 #endif
   new SomaQSound;
 

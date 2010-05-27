@@ -15,6 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "soundbank.h"
 #include "soundslot.h"
 #include <unistd.h>
 
@@ -23,17 +24,15 @@ using namespace audiq;
 using namespace std;
 
 
-SoundBank::SoundSlot::SoundSlot( const string & filename, bool shouldbeloaded )
+SoundSlot::SoundSlot( const string & filename, bool shouldbeloaded )
 : filename( filename ), shouldbeloaded( shouldbeloaded ), valid( true ),
-  loaded( false ), stream( 0 ), diffcoded( false )
+  loaded( false ), diffcoded( false )
 {
 }
 
 
-SoundBank::SoundSlot::~SoundSlot()
+SoundSlot::~SoundSlot()
 {
-  if( stream )
-    delete stream;
   if( !tempfilename.empty() )
     unlink( tempfilename.c_str() );
 }
@@ -117,13 +116,13 @@ void SoundBank::reserve( unsigned n )
 }
 
 
-SoundBank::SoundSlot & SoundBank::sound( unsigned n )
+SoundSlot & SoundBank::sound( unsigned n )
 {
   return _sounds[n];
 }
 
 
-std::vector<SoundBank::SoundSlot> & SoundBank::sounds()
+std::vector<SoundSlot> & SoundBank::sounds()
 {
   return _sounds;
 }

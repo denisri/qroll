@@ -58,6 +58,12 @@ namespace soma
     virtual void disable() { close(); }
     /// Re-enable sound
     virtual void enable() { disable(); init(); }
+    /// set buffer time in milliseconds
+    virtual void setBufferTime( float ) {}
+    virtual void setFrequency( int ) {}
+    virtual void setChannels( int ) {}
+    /// set freq/channels etc params from one of the sound slots
+    virtual void setParams( int ) {}
     /// Tells if the implemention works on the current computer
     virtual bool isOK() const { return( false ); }
     virtual std::string name() const { return "no sound"; }

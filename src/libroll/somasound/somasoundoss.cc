@@ -20,6 +20,7 @@
 #ifdef SOMA_SOUND_OSS
 
 #include "somasoundoss.h"
+#include "soundbank.h"
 #include "soundslot.h"
 #include <sys/ioctl.h>
 #ifdef linux
@@ -73,7 +74,7 @@ void SomaSoundOSS::init()
 #endif
 
 #ifdef SOMA_SOUND_OSS_SOUNDDEV
-  cout << "Sound device : " << SOMA_SOUND_OSS_SOUNDDEV << endl;
+  cout << "OSS Sound device : " << SOMA_SOUND_OSS_SOUNDDEV << endl;
 
   // Open the soundcard device.
   if ( (fd = open( SOMA_SOUND_OSS_SOUNDDEV, O_WRONLY)) < 0 )
@@ -319,7 +320,7 @@ void SomaSoundOSS::update()
           {
             pos = (*ij).pos + i;
             smp = (*ij).type;
-            SoundBank::SoundSlot & sl = _sounds->sound( smp );
+            SoundSlot & sl = _sounds->sound( smp );
             if( sl.valid && sl.loaded && pos < (int) sl.buffer.size() )
               {
                 if( pos >= 0 )	// if started

@@ -19,13 +19,13 @@
 #ifndef SOMA_SOMASOUND_SOUNDSLOT_H
 #define SOMA_SOMASOUND_SOUNDSLOT_H
 
-#include "soundbank.h"
 #include "diffcode.h"
+#include <vector>
 
 namespace soma
 {
 
-  struct SoundBank::SoundSlot
+  struct SoundSlot
   {
     SoundSlot( const std::string & filename, bool shouldbeloaded=true );
     ~SoundSlot();
@@ -34,11 +34,9 @@ namespace soma
     bool shouldbeloaded;
     bool valid;
     bool loaded;
-    std::ifstream *stream;
     std::vector<unsigned char> buffer;
     bool diffcoded;
     audiq::DiffCode::CompressInfo compressinfo;
-    audiq::DiffCode::CompressedPos compresspos;
     std::string tempfilename;
   };
 

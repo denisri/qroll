@@ -17,6 +17,7 @@
 
 
 #include "somasoundprocessor.h"
+#include "soundbank.h"
 #include "soundslot.h"
 #include <iostream>
 #include <list>
