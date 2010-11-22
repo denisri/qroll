@@ -2,9 +2,12 @@ cmake_minimum_required( VERSION 2.6 )
 
 find_package( brainvisa-cmake )
 message( 'roploploff1' )
-if( brainvisa-cmake_FOUND )
+if( 0 ) #brainvisa-cmake_FOUND )
   message( 'roploploff brainvisa' )
+  set( brainvisa_enabled "1" )
   BRAINVISA_PROJECT()
+else()
+  set( brainvisa_enabled "" )
 endif()
 message( 'roploploff2' )
 
@@ -24,7 +27,7 @@ if (EXISTS '/usr/include/sys/soundcard.h' OR EXISTS '/usr/include/sys/audioio.h'
   set(QROLL_DEFINITIONS "${QROLL_DEFINITIONS} -DSOMA_SOUND_OSS" )
 endif()
 if(ALSA_FOUND)
-  if( brainvisa-cmake_FOUND )
+  if( brainvisa_enabled )
     BRAINVISA_DEPENDENCY(RUN DEPENDS libasound2 RUN)
   endif()
   set(QROLL_DEFINITIONS "${QROLL_DEFINITIONS} -DSOMA_SOUND_ALSA")
@@ -33,9 +36,9 @@ endif()
 add_definitions( ${QROLL_DEFINITIONS} )
 
 add_subdirectory( src )
-add_subdirectory( doxygen )
+# add_subdirectory( doxygen )
 
-if( brainvisa-cmake_FOUND )
+if( brainvisa_enabled )
   # qt translation files
   BRAINVISA_ADD_TRANSLATION( "shared" "share/anatomist-${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}" ${PROJECT_NAME})
 
@@ -50,4 +53,11 @@ if( brainvisa-cmake_FOUND )
   BRAINVISA_GENERATE_DOCBOOK_DOC()
 
   BRAINVISA_CREATE_CMAKE_CONFIG_FILES()
+
+else()
+
+set( QROLL_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include )
+include_directories( ${QROLL_INCLUDE_DIR} )
+
 endif()
+
