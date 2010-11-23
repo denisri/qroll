@@ -1,7 +1,4 @@
 
-set( QROLL_INCLUDE_DIR ${PROJECT_BINARY_DIR}/include )
-include_directories( "${QROLL_INCLUDE_DIR}" "${ALSA_INCLUDE_DIR}" )
-
 if( brainvisa_enabled )
   BRAINVISA_GET_FILE_LIST_FROM_PRO( libroll.pro "HEADERS" _headers "SOURCES" _sources )
   BRAINVISA_COPY_AND_INSTALL_HEADERS( _headers roll headersTarget )
