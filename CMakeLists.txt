@@ -2,7 +2,7 @@ cmake_minimum_required( VERSION 2.6 )
 
 find_package( brainvisa-cmake )
 message( 'roploploff1' )
-if( 0 ) #brainvisa-cmake_FOUND )
+if( brainvisa-cmake_FOUND )
   message( 'roploploff brainvisa' )
   set( brainvisa_enabled "1" )
   BRAINVISA_PROJECT()
