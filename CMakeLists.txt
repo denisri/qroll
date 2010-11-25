@@ -2,12 +2,23 @@ cmake_minimum_required( VERSION 2.6 )
 
 find_package( brainvisa-cmake )
 message( 'roploploff1' )
-if( brainvisa-cmake_FOUND )
+if( 0 ) #brainvisa-cmake_FOUND )
   message( 'roploploff brainvisa' )
   set( brainvisa_enabled "1" )
   BRAINVISA_PROJECT()
+  message( 'roploploff brainvisa done' )
+
 else()
+
   set( brainvisa_enabled "" )
+  set( PROJECT_NAME qroll )
+  set( qroll_VERSION 0.7 )
+  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin" )
+  if ( NOT DEFINED WIN32 )
+    set( CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )
+  else()
+    set( CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin" )
+  endif()
 endif()
 message( 'roploploff2' )
 
@@ -17,7 +28,7 @@ endif()
 if( DESIRED_QT_VERSION EQUAL 4 )
   find_package( Qt4 COMPONENTS QtCore QtGui Qt3Support QtOpenGL REQUIRED )
 endif()
-find_package( QtVersion ) #REQUIRED )
+find_package( QtVersion )
 find_package( OpenGL REQUIRED )
 
 set( QROLL_DEFINITIONS "-DQROLL_EXPORTS" "-DHAS_GLEXT" )
@@ -26,7 +37,11 @@ set( QROLL_INCLUDE_DIR ${PROJECT_BINARY_DIR}/include )
 include_directories( "${QROLL_INCLUDE_DIR}" "${QT_QTCORE_INCLUDE_DIR}" "${QT_QTGUI_INCLUDE_DIR}" "${QT_QTOPENGL_INCLUDE_DIR}" "${QT_QT3SUPPORT_INCLUDE_DIR}" )
 set( QROL_LIBS "${QT_QT3SUPPORT_LIBRARY}" "${QT_QTOPENGL_LIBRARY}" "${QT_QTGUI_LIBRARY}" "${QT_QTCORE_LIBRARY}" )
 
-find_package(Alsa)
+find_package(ALSA) # system cmake
+if( NOT ALSA_FOUND AND brainvisa_enabled )
+  find_package(Alsa) # brainvisa
+endif()
+
 if (EXISTS '/usr/include/sys/soundcard.h' OR EXISTS '/usr/include/sys/audioio.h' )
   set(QROLL_DEFINITIONS "${QROLL_DEFINITIONS} -DSOMA_SOUND_OSS" )
 endif()
