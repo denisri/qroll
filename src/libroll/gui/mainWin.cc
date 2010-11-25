@@ -333,11 +333,11 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
 
   QPixmap	rpix( (RR_path + "/icons/rockroll.xpm").c_str() );
   if( rpix.isNull() )
-    cerr << "Pas d'ic�e\n";
+    cerr << "No icon\n";
   else setIcon( rpix );
   setCaption( tr( "QRoll, heir of Rock'N'Roll" ) );
 
-  load( (RR_path + "/levels/serie0.r&r").c_str() );
+  load( (RR_path + "/levels/serie0.rol").c_str() );
 
   //	Timer
 
@@ -349,7 +349,7 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
   _clockTimer = new QTimer( this, "clock" );
   connect( _clockTimer, SIGNAL( timeout() ), this, SLOT( clockTick() ) );
 
-  d->filesfilter = tr( "Rock'n'roll series" ) + "( *.r&r );;" + 
+  d->filesfilter = tr( "Rock'n'roll series" ) + "( *.r&r *.rol );;" +
     tr( "All files" ) + "( * )";
   d->seriespath = ( RR_path + "/levels" ).c_str();
 

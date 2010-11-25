@@ -1,13 +1,9 @@
 cmake_minimum_required( VERSION 2.6 )
 
 find_package( brainvisa-cmake )
-message( 'roploploff1' )
 if( brainvisa-cmake_FOUND )
-  message( 'roploploff brainvisa' )
   set( brainvisa_enabled "1" )
   BRAINVISA_PROJECT()
-  message( 'roploploff brainvisa done' )
-
 else()
 
   set( brainvisa_enabled "" )
@@ -20,7 +16,6 @@ else()
     set( CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin" )
   endif()
 endif()
-message( 'roploploff2' )
 
 if( NOT DESIRED_QT_VERSION )
   find_package( Qt REQUIRED )
@@ -72,9 +67,9 @@ if( brainvisa_enabled )
   # qt translation files
 #   BRAINVISA_ADD_TRANSLATION( "share" "share/qroll-${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}" ${PROJECT_NAME})
 
-#   BRAINVISA_COPY_DIRECTORY( ${CMAKE_CURRENT_SOURCE_DIR}/share
-#                             share/qroll-${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}
-#                             ${PROJECT_NAME} )
+  BRAINVISA_COPY_DIRECTORY( ${CMAKE_CURRENT_SOURCE_DIR}/share
+                            share/qroll-${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}
+                            ${PROJECT_NAME} )
 
   # BRAINVISA_CREATE_CMAKE_CONFIG_FILES()
 
