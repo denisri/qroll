@@ -26,26 +26,24 @@ endif()
 find_package( QtVersion )
 find_package( OpenGL REQUIRED )
 
-set( QROLL_DEFINITIONS "-DQROLL_EXPORTS" "-DHAS_GLEXT" )
-
-set( QROLL_INCLUDE_DIR ${PROJECT_BINARY_DIR}/include )
-include_directories( "${QROLL_INCLUDE_DIR}" "${QT_QTCORE_INCLUDE_DIR}" "${QT_QTGUI_INCLUDE_DIR}" "${QT_QTOPENGL_INCLUDE_DIR}" "${QT_QT3SUPPORT_INCLUDE_DIR}" )
-set( QROL_LIBS "${QT_QT3SUPPORT_LIBRARY}" "${QT_QTOPENGL_LIBRARY}" "${QT_QTGUI_LIBRARY}" "${QT_QTCORE_LIBRARY}" )
-
 find_package(ALSA) # system cmake
 if( NOT ALSA_FOUND AND brainvisa_enabled )
   find_package(Alsa) # brainvisa
 endif()
 
+set( QROLL_DEFINITIONS "-DQROLL_EXPORTS" "-DHAS_GLEXT" )
+set( QROLL_LIBRARIES ${OPENGL_LIBRARIES} )
+
 if (EXISTS '/usr/include/sys/soundcard.h' OR EXISTS '/usr/include/sys/audioio.h' )
-  set(QROLL_DEFINITIONS "${QROLL_DEFINITIONS} -DSOMA_SOUND_OSS" )
+  set( QROLL_DEFINITIONS "${QROLL_DEFINITIONS} -DSOMA_SOUND_OSS" )
 endif()
 if(ALSA_FOUND)
   include_directories( "${ALSA_INCLUDE_DIR}" )
   if( brainvisa_enabled )
     BRAINVISA_DEPENDENCY(RUN DEPENDS libasound2 RUN)
   endif()
-  set(QROLL_DEFINITIONS "${QROLL_DEFINITIONS} -DSOMA_SOUND_ALSA")
+  set( QROLL_DEFINITIONS "${QROLL_DEFINITIONS} -DSOMA_SOUND_ALSA" )
+  set( QROLL_LIBRARIES ${QROLL_LIBRARIES} ${ALSA_LIBRARIES} )
 endif()
 
 add_definitions( ${QROLL_DEFINITIONS} )
@@ -56,8 +54,10 @@ include_directories( "${QROLL_INCLUDE_DIR}" )
 if( DESIRED_QT_VERSION EQUAL 3 )
   include_directories( ${QT_INCLUDE_DIR} )
   add_definitions( ${QT_DEFINITIONS} )
+  set( QROLL_LIBRARIES ${QROLL_LIBRARIES} ${QT_LIBRARIES} )
 else()
   include( "${QT_USE_FILE}" )
+  set( QROLL_LIBRARIES ${QROLL_LIBRARIES} ${QT_QT3SUPPORT_LIBRARY} ${QT_QTOPENGL_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTCORE_LIBRARY} )
 endif()
 
 add_subdirectory( src )

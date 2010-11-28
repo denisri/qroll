@@ -1,9 +1,10 @@
 
 add_executable( qroll main.cc )
-add_dependencies( qroll roll )
-set( _libraries roll ${OPENGL_LIBRARIES} ${QT_LIBRARIES} )
-if(ALSA_FOUND)
-  set( _libraries ${_libraries} ${ALSA_LIBRARIES} )
+target_link_libraries( qroll roll ${QROLL_LIBRARIES} )
+
+if( brainvisa_enabled )
+  BRAINVISA_INSTALL( TARGETS qroll
+    DESTINATION bin
+    COMPONENT ${PROJECT_NAME} )
 endif()
-target_link_libraries( qroll ${_libraries} )
 

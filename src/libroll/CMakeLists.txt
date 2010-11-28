@@ -7,11 +7,7 @@ if( brainvisa_enabled )
   add_library( roll SHARED ${_sources} )
   add_dependencies( roll ${headersTarget} )
   set_property( TARGET roll PROPERTY VERSION ${${PROJECT_NAME}_VERSION} )
-  set( _libraries ${OPENGL_LIBRARIES} ${QT_LIBRARIES} )
-  if(ALSA_FOUND)
-    set( _libraries ${_libraries} ${ALSA_LIBRARIES} )
-  endif()
-  target_link_libraries( roll ${_libraries} )
+  target_link_libraries( roll ${QROLL_LIBRARIES} )
 
   BRAINVISA_INSTALL( TARGETS roll
                 DESTINATION lib
@@ -251,12 +247,7 @@ else()
 
   add_library( roll SHARED ${_sources} )
   add_dependencies( roll roll_headers )
-  message( "version: ${PROJECT_NAME} ${${PROJECT_NAME}_VERSION}")
   set_property( TARGET roll PROPERTY VERSION ${${PROJECT_NAME}_VERSION} )
-  set( _libraries ${OPENGL_LIBRARIES} ${QT_LIBRARIES} )
-  if(ALSA_FOUND)
-    set( _libraries ${_libraries} ${ALSA_LIBRARIES} )
-  endif()
-  target_link_libraries( roll ${_libraries} )
+  target_link_libraries( roll ${QROLL_LIBRARIES} )
 
 endif()
