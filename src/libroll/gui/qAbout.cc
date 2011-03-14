@@ -106,7 +106,7 @@ namespace
 
 
   QScrollingLabel::QScrollingLabel( QWidget* parent, const char* name )
-  : QLabel( parent, name ), nextline( false ), text( 0 ), current( 0 ),
+  : QLabel( parent ), nextline( false ), text( 0 ), current( 0 ),
   offset( 0 ), speed( 1 ), mustfill( true )
   {
   }

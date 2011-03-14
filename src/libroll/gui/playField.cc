@@ -19,15 +19,16 @@
 #include <roll/gui/playField.h>
 #include <roll/gui/mainWin.h>
 #include <roll/gui/qGameField.h>
+#ifndef ANDROID
 #include <roll/gui/qglGameField.h>
+#endif
 #include <roll/gui/scoreBox.h>
 #include <roll/game/vars.h>
 #include <roll/gui/editPalette.h>
 #include <iostream>
 #if QT_VERSION >= 0x040000
 #include <qnamespace.h>
-#include <q3vbox.h>
-typedef Q3VBox QVBox;
+#include <qlayout.h>
 #else
 #include <qkeycode.h>
 #include <qvbox.h>
@@ -60,7 +61,7 @@ namespace roll
     bool		opengl;
     RGameField		*gameField;
     QWidget		*gameWid;
-    QVBox		*game;
+    QWidget		*game;
     bool		dragging;
     QPoint		dragorg;
     int			draglvlorgx;
@@ -77,7 +78,7 @@ map<int, QRPlayField::KeyCode>	QRPlayField::KeyMapMulti;
 
 QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl, 
 			  QWidget *parent, const char *name ) 
-  : QWidget( parent, name ), d( new QRPlayField_Private )
+  : QWidget( parent ), d( new QRPlayField_Private )
 {
   d->parentMW = parentMW;
 
@@ -85,7 +86,9 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
 
   QHBoxLayout	*lay= new QHBoxLayout( this );
 
-  d->game = new QVBox( this );
+  d->game = new QWidget( this );
+  QVBoxLayout *vg = new QVBoxLayout( d->game );
+  d->game->setLayout( vg );
   d->opengl = !usegl;
   setUseOpenGL( usegl );
 
@@ -517,6 +520,7 @@ void QRPlayField::setUseOpenGL( bool x )
 				 "GLGameField" );
 	  d->gameField = gf;
 	  d->gameWid = gf;
+          d->game->layout()->addWidget( gf );
 	}
       else
 	{
@@ -526,6 +530,7 @@ void QRPlayField::setUseOpenGL( bool x )
 			       "QRGameField" );
 	  d->gameField = gf;
 	  d->gameWid = gf;
+          d->game->layout()->addWidget( gf );
 #ifndef RR_NO_OPENGL
 	}
 #endif

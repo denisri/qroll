@@ -41,7 +41,7 @@ namespace roll
 
   string rrVersionString()
   {
-    return "0.7";
+    return "1.0";
   }
 
 }

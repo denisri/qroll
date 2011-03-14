@@ -91,6 +91,7 @@ QREditPalette::QREditPalette( QWidget* parent, const char* name, WFlags f )
 
 #if QT_VERSION >= 0x040000
   d->quick = addToolBar( tr( "Quick selection" ) );
+  setAttribute( Qt::WA_DeleteOnClose );
 #else
   d->quick = new QToolBar( tr( "Quick selection" ), this );
 #endif

@@ -35,10 +35,9 @@
 #include <qapplication.h>
 #include <qmenubar.h>
 #if QT_VERSION >= 0x040000
-#include <q3popupmenu.h>
+#include <qmenu.h>
 #include <q3accel.h>
 #include <q3filedialog.h>
-typedef Q3PopupMenu QPopupMenu;
 typedef Q3Accel QAccel;
 #else
 #include <qpopupmenu.h>
@@ -113,7 +112,7 @@ struct QRMainWin::Private
   int			timing;
   QRConfigWin		*config;
   bool		opengl;
-  QPopupMenu		*editM;
+  QMenu		*editM;
   bool		editmode;
   QLabel		*editstat;
   QREditPalette	*editpal;
@@ -170,7 +169,7 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
 
   //	Menus
 
-  _file = new QPopupMenu;
+  _file = new QMenu;
   menuBar()->insertItem( tr( "File" ), _file );
   _file->insertItem( openIcon, tr( "Open" ), this, SLOT( load() ), 
 		    CTRL+Key_O, 0 );
@@ -182,7 +181,7 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
   _file->insertSeparator();
   _file->insertItem( tr( "Quit" ), qApp, SLOT(quit()), CTRL+Key_Q );
 
-  _game = new QPopupMenu;
+  _game = new QMenu;
   menuBar()->insertItem( tr( "Game" ), _game );
   _game->insertItem( playIcon, tr( "Start game" ), this, SLOT(start()), 
 		     CTRL+Key_J, 0 );
@@ -197,14 +196,14 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
   _game->setItemEnabled( 1, false );
   _game->setItemEnabled( 2, false );
 
-  QPopupMenu	*stage = new QPopupMenu;
+  QMenu	*stage = new QMenu;
   menuBar()->insertItem( tr( "Level" ), stage );
   stage->insertItem( tr( "Next level" ), this, SLOT( nextStage() ), 
 		     Key_Plus, 0 );
   stage->insertItem( tr( "Previous level" ), this, SLOT( prevStage() ), 
 		     Key_Minus, 1 );
 
-  _networkMen = new QPopupMenu;
+  _networkMen = new QMenu;
   menuBar()->insertItem( tr( "Network / players" ), _networkMen );
   _networkMen->insertItem( tr( "Create server" ), this, 
 			   SLOT( netServer() ), 0, 0 );
@@ -219,7 +218,7 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
 			   SLOT( removePlayer() ), 0, 4 );
   _networkMen->setItemEnabled( 4, false );
 
-  _soundM = new QPopupMenu;
+  _soundM = new QMenu;
   menuBar()->insertItem( tr( "Sound" ), _soundM );
   _soundM->insertItem( tr( "Sound on/off" ), this, 
 		       SLOT( soundOnOff() ), 0, 0 );
@@ -228,7 +227,7 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
   else
     _soundM->setItemChecked( 0, true );
 
-  _viewM = new QPopupMenu;
+  _viewM = new QMenu;
   menuBar()->insertItem( tr( "View" ), _viewM );
   _viewM->insertItem( tr( "Allow zoom (very fast CPU/graphics card " 
 			  "only !!)" ), 
@@ -236,7 +235,7 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
   _viewM->insertItem( tr( "Standard size" ), this, 
 		      SLOT( standardSize() ), 0, 1 );
 
-  d->editM = new QPopupMenu;
+  d->editM = new QMenu;
   menuBar()->insertItem( tr( "Edit" ), d->editM );
   d->editM->insertItem( tr( "Edit level" ), this, SLOT( editLevel() ), 0, 0 );
   d->editM->insertItem( tr( "Level parameters..." ), this, 
@@ -251,7 +250,7 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
 			SLOT( arrangeSeries() ), 0, 6 );
   d->editM->setItemChecked( 6, false );
 
-  QPopupMenu	*helpM = new QPopupMenu;
+  QMenu	*helpM = new QMenu;
   menuBar()->insertSeparator();
   menuBar()->insertItem( tr( "Help" ), helpM );
   helpM->insertItem( tr( "About..." ), this, SLOT( about() ) );

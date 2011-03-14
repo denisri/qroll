@@ -61,7 +61,7 @@ string GameConfig::homedir()
   if( path )
     return path;
 #ifdef _WIN32
-  return "C:\";
+  return "C:\\";
 #else
   return "/";
 #endif

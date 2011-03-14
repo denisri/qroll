@@ -21,12 +21,7 @@
 
 
 #include <qmainwindow.h>
-#if QT_VERSION >= 0x040000
-#include <q3popupmenu.h>
-#else
-#include <qpopupmenu.h>
-typedef QPopupMenu Q3PopupMenu;
-#endif
+#include <qmenu.h>
 #include <qtoolbutton.h>
 #include <roll/gui/playField.h>
 #include <roll/struct/workLevel.h>
@@ -211,11 +206,11 @@ private:
   QRPlayField			*_playField;
   std::set<QRPlayField *>	_otherWins;
 
-  Q3PopupMenu			*_file;
-  Q3PopupMenu			*_game;
-  Q3PopupMenu			*_networkMen;
-  Q3PopupMenu			*_soundM;
-  Q3PopupMenu			*_viewM;
+  QMenu                         *_file;
+  QMenu                         *_game;
+  QMenu                         *_networkMen;
+  QMenu                 	*_soundM;
+  QMenu 			*_viewM;
   QToolButton			*_openBtn;
   QToolButton			*_playBtn;
   QToolButton			*_stopBtn;

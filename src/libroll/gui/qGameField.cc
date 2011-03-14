@@ -30,7 +30,7 @@ using namespace std;
 
 QRGameField::QRGameField( const QPixmap * const * sprites, 
 			  QWidget *parent, const char *name ) 
-  : QWidget( parent, name ), RGameField(), _pscr( 0 ),
+  : QWidget( parent ), RGameField(), _pscr( 0 ),
     _sprite( sprites ), _eraseborder( true ), _pwidth( 0 ), _pheight( 0 )
 {
   resize( 512, 384 );

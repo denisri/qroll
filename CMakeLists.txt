@@ -8,7 +8,7 @@ else()
 
   set( brainvisa_enabled "" )
   set( PROJECT_NAME qroll )
-  set( qroll_VERSION 0.7 )
+  set( qroll_VERSION 1.0 )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin" )
   if ( NOT DEFINED WIN32 )
     set( CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )

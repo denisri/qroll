@@ -71,6 +71,7 @@ QRConfigWin::QRConfigWin( QWidget* parent, const char* name, Qt::WFlags f )
 
   QVBoxLayout	*mainlay = new QVBoxLayout( this, 10, 10 );
 #if QT_VERSION >= 0x040000
+  setAttribute( Qt::WA_DeleteOnClose );
   QTabBar	*tbar = new QTabBar( this );
   mainlay->addWidget( tbar );
 

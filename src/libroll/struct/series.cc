@@ -2,7 +2,7 @@
                           series.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2001 by Denis RiviÃ¨re
+    copyright            : (C) 2000-2001 by Denis Riviere
     email                : nudz@free.fr
  ***************************************************************************/
 
