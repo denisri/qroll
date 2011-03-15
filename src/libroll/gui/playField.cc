@@ -80,6 +80,8 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
 			  QWidget *parent, const char *name ) 
   : QWidget( parent ), d( new QRPlayField_Private )
 {
+  if( name )
+    setObjectName( name );
   d->parentMW = parentMW;
 
   initKeyCodes();
@@ -237,13 +239,13 @@ void QRPlayField::keyPressedEvent( QKeyEvent* key )
 	  return;
 	}
 
-      if( key->state() & ControlButton )
+      if( key->modifiers() & Qt::ControlModifier )
 	ctrl = true;
       else ctrl = false;
-      if( key->state() & ShiftButton )
+      if( key->modifiers() & Qt::ShiftModifier )
 	shft = true;
       else shft = false;
-      if( key->state() & AltButton )
+      if( key->modifiers() & Qt::AltModifier )
 	alt = true;
       else alt = false;
 
@@ -329,13 +331,13 @@ void QRPlayField::keyReleasedEvent( QKeyEvent* key )
 	  return;
 	}
 
-      if( key->state() & ControlButton )
+      if( key->modifiers() & Qt::ControlModifier )
 	ctrl = true;
       else ctrl = false;
-      if( key->state() & ShiftButton )
+      if( key->modifiers() & Qt::ShiftModifier )
 	shft = true;
       else shft = false;
-      if( key->state() & AltButton )
+      if( key->modifiers() & Qt::AltModifier )
 	alt = true;
       else alt = false;
 

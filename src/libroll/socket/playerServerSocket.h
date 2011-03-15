@@ -20,14 +20,9 @@
 #define ROLL_SOCKET_PLAYERSERVERSOCKET_H
 
 #include <qglobal.h>
-#if QT_VERSION >= 0x040000
+#ifndef ANDROID
 #include <q3socket.h>
 #include <q3serversocket.h>
-#else
-#include <qsocket.h>
-#include <qserversocket.h>
-typedef QSocket Q3Socket;
-typedef QServerSocket Q3ServerSocket;
 #endif
 #include <set>
 
@@ -47,8 +42,10 @@ namespace roll
     PlayerServerSocket( QPlayerServer* parent );
     virtual ~PlayerServerSocket();
 
+#ifndef ANDROID
     virtual NetMessage* readMessage( Q3Socket* s ) const;
     virtual void writeMessage( Q3Socket* s, const NetMessage & msg );
+#endif
     virtual void writeMessage( const NetMessage & msg );
     QPlayerServer* playerServer();
     const QPlayerServer* playerServer() const;
@@ -58,6 +55,7 @@ namespace roll
   };
 
 
+#ifndef ANDROID
   class ServerSocket : public Q3ServerSocket, public PlayerServerSocket
   {
     Q_OBJECT
@@ -112,6 +110,7 @@ namespace roll
 
   protected:
   };
+#endif
 
   //	inline utility functions
 

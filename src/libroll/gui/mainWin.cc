@@ -18,33 +18,32 @@
 
 #include <roll/gui/mainWin.h>
 #include <roll/gui/clientDialog.h>
-#include <roll/gui/qAbout.h>
-#include <roll/socket/qPlayerServer.h>
 #include <roll/game/random.h>
+#include <roll/socket/qPlayerServer.h>
+#ifdef ANDROID
+class QLevelParams;
+class QRConfigWin;
+#else
+#include <roll/gui/qAbout.h>
 #include <roll/gui/configWin.h>
 #include <roll/gui/editPalette.h>
 #include <roll/gui/levelParams.h>
+#endif
 #include <roll/struct/series.h>
 #include <roll/struct/seriesManager.h>
 #include <roll/struct/simpleLevel.h>
+#ifndef ANDROID
 #include <roll/gui/seriesArranger.h>
 #include <roll/gui/painter.h>
+#endif
 #include <roll/gui/gameConfig.h>
 #include <roll/sound/soundProcessor.h>
 
 #include <qapplication.h>
 #include <qmenubar.h>
-#if QT_VERSION >= 0x040000
 #include <qmenu.h>
-#include <q3accel.h>
-#include <q3filedialog.h>
-typedef Q3Accel QAccel;
-#else
-#include <qpopupmenu.h>
-#include <qaccel.h>
+#include <qaction.h>
 #include <qfiledialog.h>
-typedef QFileDialog Q3FileDialog;
-#endif
 #include <qpixmap.h>
 #include <qstatusbar.h>
 #include <qtoolbar.h>
@@ -91,44 +90,69 @@ struct QRMainWin::Private
   Private() 
     : timing( 0 ), config( 0 ), opengl( false ), editM( 0 ), 
       editmode( false ), editstat( 0 ), editpal( 0 ), levelparams( 0 ), 
-      filedialog( 0 ) {}
+      filedialog( 0 ), openaction( 0 ), startaction( 0 ), stopaction( 0 ),
+      pauseaction( 0 ), configaction( 0 ), editaction( 0 ),
+      editinsertaction( 0 ), editdelaction( 0 ), editarrangeaction( 0 ),
+      serveraction( 0 ), clientaction( 0 ), disconnectaction( 0 ),
+      removeaction( 0 ), soundaction( 0 ), zoomaction( 0 )
+  {}
+
   ~Private()
   {
+#ifndef ANDROID
     delete config;
     delete editpal;
     unsigned i, n = painters.size();
     for( i=0; i<n; ++i )
       delete painters[i];
+#endif
   }
 
-  Q3FileDialog *fileDialog()
+  QFileDialog *fileDialog()
   {
     if( !filedialog )
-      filedialog = new Q3FileDialog( seriespath, filesfilter, theQRWin, 
-				     "r&r filedialog", true );
+      filedialog = new QFileDialog( theQRWin, "R&R files", seriespath,
+                                    filesfilter );
     return( filedialog );
   }
 
   int			timing;
   QRConfigWin		*config;
-  bool		opengl;
-  QMenu		*editM;
-  bool		editmode;
+  bool                  opengl;
+  QMenu                 *editM;
+  bool                  editmode;
   QLabel		*editstat;
-  QREditPalette	*editpal;
-  QLevelParams	*levelparams;
+  QREditPalette         *editpal;
+  QLevelParams          *levelparams;
   QString		filesfilter;
   QString		seriespath;
-  Q3FileDialog		*filedialog;
+  QFileDialog		*filedialog;
   vector<Painter*>      painters;
+  QAction               *openaction;
+  QAction               *startaction;
+  QAction               *stopaction;
+  QAction               *pauseaction;
+  QAction               *configaction;
+  QAction               *editaction;
+  QAction               *editinsertaction;
+  QAction               *editdelaction;
+  QAction               *editarrangeaction;
+  QAction               *serveraction;
+  QAction               *clientaction;
+  QAction               *disconnectaction;
+  QAction               *removeaction;
+  QAction               *soundaction;
+  QAction               *zoomaction;
 };
 
 
 QRMainWin::QRMainWin( QWidget *parent, const char *name ) 
-  : QMainWindow( parent, name ), _paused( false ), 
+  : QMainWindow( parent ), _paused( false ),
     _tempo( 75 ), _tick( false ), d( new Private )
 {
   theQRWin = this;
+  if( name )
+    setObjectName( name );
 
   //	Sprites
 
@@ -141,11 +165,13 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
 
   //    painters
 
+#ifndef ANDROID
   d->painters.push_back( new DrawPainter( this ) );
   d->painters.push_back( new FillPainter( this ) );
   d->painters.push_back( new RectPainter( this ) );
   d->painters.push_back( new CopyPainter( this ) );
   d->painters.push_back( new PatternPainter( this ) );
+#endif
 
   //	signaux intra-classe
 
@@ -169,183 +195,149 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
 
   //	Menus
 
-  _file = new QMenu;
-  menuBar()->insertItem( tr( "File" ), _file );
-  _file->insertItem( openIcon, tr( "Open" ), this, SLOT( load() ), 
-		    CTRL+Key_O, 0 );
-  _file->insertSeparator();
-  _file->insertItem( openIcon, tr( "Append levels..." ), this, 
-		     SLOT( mergeSeries() ) );
-  _file->insertItem( tr( "Save" ), this, SLOT( save() ) );
-  _file->insertItem( tr( "Save as..." ), this, SLOT( saveAs() ) );
-  _file->insertSeparator();
-  _file->insertItem( tr( "Quit" ), qApp, SLOT(quit()), CTRL+Key_Q );
+  _file = menuBar()->addMenu( tr( "File" ) );
+  QAction *ac = new QAction( openIcon, tr( "Open Levels" ), this );
+  d->openaction = ac;
+  ac->setShortcut( Qt::CTRL + Qt::Key_0 );
+  d->openaction->setStatusTip( tr( "Loads a Rock'n'roll levels file, "
+                                   "replacing the current levels set" ) );
+  connect( ac, SIGNAL( triggered() ), this, SLOT( load() ) );
+  _file->addAction( ac );
+  _file->addSeparator();
+  ac = new QAction( openIcon, tr( "Append levels..." ), this );
+  connect( ac, SIGNAL( triggered() ), this, SLOT( mergeSeries()) );
+  _file->addAction( ac );
+  _file->addAction( tr( "Save" ), this, SLOT( save() ) );
+  _file->addAction( tr( "Save as..." ), this, SLOT( saveAs() ) );
+  _file->addSeparator();
+  _file->addAction( tr( "Quit" ), qApp, SLOT(quit()), CTRL+Key_Q );
 
-  _game = new QMenu;
-  menuBar()->insertItem( tr( "Game" ), _game );
-  _game->insertItem( playIcon, tr( "Start game" ), this, SLOT(start()), 
-		     CTRL+Key_J, 0 );
-  _game->insertItem( stopIcon, tr( "Stop game" ), this, SLOT(stop()), 
-		     CTRL+Key_S, 1 );
-  _game->insertSeparator();
-  _game->insertItem( pauseIcon, tr( "Pause" ), this, SLOT(pause()), 
-		     CTRL+Key_P, 2 );
-  _game->insertSeparator();
-  _game->insertItem( tr( "Configure" ), this, SLOT( configure() ), 0, 3 );
+  _game = menuBar()->addMenu( tr( "Game" ) );
+  ac = new QAction( playIcon, tr( "Start game" ), this );
+  d->startaction = ac;
+  d->startaction->setStatusTip( tr( "runs a new game" ) );
+  ac->setShortcut( Qt::CTRL + Qt::Key_J );
+  connect( ac, SIGNAL( triggered() ), this, SLOT( start() ) );
+  _game->addAction( ac );
+  ac = new QAction( stopIcon, tr( "Stop game" ), this );
+  d->stopaction = ac;
+  ac->setShortcut( Qt::CTRL + Qt::Key_S );
+  d->stopaction->setStatusTip( tr( "Finishes the current game" ) );
+  connect( ac, SIGNAL( triggered() ), this, SLOT( stop() ) );
+  _game->addAction( ac );
+  _game->addSeparator();
+  ac = new QAction( pauseIcon, tr( "Pause" ), this );
+  d->pauseaction = ac;
+  ac->setShortcut( Qt::CTRL + Qt::Key_P );
+  d->pauseaction->setStatusTip( tr( "Holds game or return to it" ) );
+  connect( ac, SIGNAL( triggered() ), this, SLOT( pause() ) );
+  _game->addAction( ac );
+  _game->addSeparator();
+  d->configaction = _game->addAction( tr( "Configure" ), this, SLOT( configure() ) );
 
-  _game->setItemEnabled( 1, false );
-  _game->setItemEnabled( 2, false );
+  QMenu *stage = menuBar()->addMenu( tr( "Level" ) );
+  stage->addAction( tr( "Next level" ), this, SLOT( nextStage() ) )
+          ->setShortcut( Qt::Key_Plus );
+  stage->addAction( tr( "Previous level" ), this, SLOT( prevStage() ) )
+          ->setShortcut( Qt::Key_Minus );
 
-  QMenu	*stage = new QMenu;
-  menuBar()->insertItem( tr( "Level" ), stage );
-  stage->insertItem( tr( "Next level" ), this, SLOT( nextStage() ), 
-		     Key_Plus, 0 );
-  stage->insertItem( tr( "Previous level" ), this, SLOT( prevStage() ), 
-		     Key_Minus, 1 );
+  _networkMen = menuBar()->addMenu( tr( "Network / players" ) );
+  d->serveraction = _networkMen->addAction( tr( "Create server" ), this,
+                          SLOT( netServer() ) );
+  d->clientaction = _networkMen->addAction( tr( "Client" ), this, SLOT( netClient() ) );
+  d->disconnectaction = ac = _networkMen->addAction( tr( "Close connection" ), this,
+                          SLOT( netClose() ) );
+  ac->setEnabled( false );
+  _networkMen->addSeparator();
+  _networkMen->addAction( tr( "Add a local player" ), this,
+                          SLOT( addPlayer() ) );
+  ac = _networkMen->addAction( tr( "Remove a local player" ), this,
+                          SLOT( removePlayer() ) );
+  d->removeaction = ac;
+  ac->setEnabled( false );
 
-  _networkMen = new QMenu;
-  menuBar()->insertItem( tr( "Network / players" ), _networkMen );
-  _networkMen->insertItem( tr( "Create server" ), this, 
-			   SLOT( netServer() ), 0, 0 );
-  _networkMen->insertItem( tr( "Client" ), this, SLOT( netClient() ), 0, 1 );
-  _networkMen->insertItem( tr( "Close connection" ), this, 
-			   SLOT( netClose() ), 0, 2 );
-  _networkMen->setItemEnabled( 2, false );
-  _networkMen->insertSeparator();
-  _networkMen->insertItem( tr( "Add a local player" ), this, 
-			   SLOT( addPlayer() ), 0, 3 );
-  _networkMen->insertItem( tr( "Remove a local player" ), this, 
-			   SLOT( removePlayer() ), 0, 4 );
-  _networkMen->setItemEnabled( 4, false );
-
-  _soundM = new QMenu;
-  menuBar()->insertItem( tr( "Sound" ), _soundM );
-  _soundM->insertItem( tr( "Sound on/off" ), this, 
-		       SLOT( soundOnOff() ), 0, 0 );
+  _soundM = menuBar()->addMenu( tr( "Sound" ) );
+  ac = _soundM->addAction( tr( "Sound on/off" ), this,
+                       SLOT( soundOnOff() ) );
+  d->soundaction = ac;
   if( !RRSoundProcessor::processor().isOK() )
-    _soundM->setItemEnabled( 0, false );
+    ac->setEnabled( false );
   else
-    _soundM->setItemChecked( 0, true );
+    ac->setChecked( true );
 
-  _viewM = new QMenu;
-  menuBar()->insertItem( tr( "View" ), _viewM );
-  _viewM->insertItem( tr( "Allow zoom (very fast CPU/graphics card " 
-			  "only !!)" ), 
-		      this, SLOT( allowScale() ), 0, 0 );
-  _viewM->insertItem( tr( "Standard size" ), this, 
-		      SLOT( standardSize() ), 0, 1 );
+  _viewM = menuBar()->addMenu( tr( "View" ) );
+  d->zoomaction = _viewM->addAction( tr( "Allow zoom" ),
+                     this, SLOT( allowScale() ) );
+  _viewM->addAction( tr( "Standard size" ), this,
+                     SLOT( standardSize() ) );
 
-  d->editM = new QMenu;
-  menuBar()->insertItem( tr( "Edit" ), d->editM );
-  d->editM->insertItem( tr( "Edit level" ), this, SLOT( editLevel() ), 0, 0 );
-  d->editM->insertItem( tr( "Level parameters..." ), this, 
-			SLOT( levelParams() ), 0, 1 );
-  d->editM->insertSeparator();
-  d->editM->insertItem( tr( "Insert new level" ), this, SLOT( insertLevel() ), 
-			0, 3 );
-  d->editM->insertItem( tr( "Delete current level" ), this, 
-			SLOT( deleteLevel() ), 0, 4 );
-  d->editM->insertSeparator();
-  d->editM->insertItem( tr( "Series arrangement" ), this, 
-			SLOT( arrangeSeries() ), 0, 6 );
-  d->editM->setItemChecked( 6, false );
+  d->editM = menuBar()->addMenu( tr( "Edit" ) );
+  d->editaction = d->editM->addAction( tr( "Edit level" ), this, SLOT( editLevel() ) );
+  d->editM->addAction( tr( "Level parameters..." ), this,
+                       SLOT( levelParams() ) );
+  d->editM->addSeparator();
+  d->editinsertaction = d->editM->addAction( tr( "Insert new level" ), this, SLOT( insertLevel() ) );
+  d->editdelaction = d->editM->addAction( tr( "Delete current level" ), this,
+                        SLOT( deleteLevel() ) );
+  d->editM->addSeparator();
+  ac = d->editM->addAction( tr( "Series arrangement" ), this,
+                        SLOT( arrangeSeries() ) );
+  d->editarrangeaction = ac;
+  ac->setChecked( false );
 
-  QMenu	*helpM = new QMenu;
-  menuBar()->insertSeparator();
-  menuBar()->insertItem( tr( "Help" ), helpM );
-  helpM->insertItem( tr( "About..." ), this, SLOT( about() ) );
+  menuBar()->addSeparator();
+  QMenu *helpM = menuBar()->addMenu( tr( "Help" ) );
+  helpM->addAction( tr( "About..." ), this, SLOT( about() ) );
 
 
   //	Icons bar
 
   //cout << "icons...\n";
-#if QT_VERSION >= 0x040000
   _tools = addToolBar( tr( "file operations" ) );
   _tools->setIconSize( QSize( 20, 20 ) );
-#else
-  _tools = new QToolBar( this, "file operations" );
-#endif
 
-  _openBtn = new QToolButton( openIcon, tr( "Open levels" ), 
-			      tr( "Loads a Rock'n'roll levels file, " 
-				  "replacing the current levels set" ), this, 
-			      SLOT(load()), _tools, "open" );
-
-#if QT_VERSION >= 0x040000
-  QAction *a = _tools->addWidget( _openBtn );
-  a->setVisible( true );
-#endif
+  _tools->addAction( d->openaction );
+  d->openaction->setVisible( true );
   _tools->addSeparator();
 
-  _playBtn = new QToolButton( playIcon, tr( "Start game" ), 
-			      tr( "runs a new game" ),
-			      this, SLOT(start()), _tools, "play" );
-  _stopBtn = new QToolButton( stopIcon, tr( "Stop game" ), 
-			      tr( "Finishes the current game" ),
-			      this, SLOT(stop()), _tools, "stop" );
-  _pauseBtn = new QToolButton( pauseIcon, tr( "Pause" ), 
-			       tr( "Holds game or return to it" ), this, 
-			       SLOT(pause()), _tools, "pause" );
+  _tools->addAction( d->startaction );
+  d->startaction->setVisible( true );
+  _tools->addAction( d->stopaction );
+  d->stopaction->setVisible( true );
+  _tools->addAction( d->pauseaction );
+  d->pauseaction->setVisible( true );
 
-#if QT_VERSION >= 0x040000
-  a = _tools->addWidget( _playBtn );
-  a->setVisible( true );
-  a = _tools->addWidget( _stopBtn );
-  a->setVisible( true );
-  a = _tools->addWidget( _pauseBtn );
-  a->setVisible( true );
-#endif
-
-  _stopBtn->setEnabled( false );
-  _pauseBtn->setEnabled( false );
-
-  /*
-  _tools->addSeparator();
-
-  QToolButton *b = QWhatsThis::whatsThisButton( _tools );
-#if QT_VERSION >= 0x040000
-  a = _tools->addWidget( b );
-  a->setVisible( true );
-#endif
-  QWhatsThis::add( _openBtn, tr( "Loads levels - really simple !" ) );
-  QWhatsThis::add( _playBtn, 
-		   tr( "Play game - alone or with a network" ) );
-  QWhatsThis::add( _stopBtn,	
-		   tr( "well, this just STOPS the game. Clear ?" ) );
-  QWhatsThis::add( _pauseBtn, tr( "Ooh, can't remember what's this for..." ) );
-  */
+  d->stopaction->setEnabled( false );
+  d->pauseaction->setEnabled( false );
 
   //	Status bar setup
   d->editstat = new QLabel( "  ", statusBar() );
   d->editstat->setPalette( QPalette( QColor( 255, 192, 192 ) ) );
-  statusBar()->addWidget( d->editstat, 0, true );
-  statusBar()->message( tr( "Ready" ) );
+  statusBar()->addWidget( d->editstat, 0 );
+  statusBar()->showMessage( tr( "Ready" ) );
 
-#if QT_VERSION >= 300
   resize( _playField->width(), menuBar()->sizeHint().height() 
   	  + _tools->sizeHint().height() 
 	  + 394 + statusBar()->sizeHint().height() );
-#else
-  resize( _playField->width(), menuBar()->height() + _tools->height() + 
-	  _playField->height() + statusBar()->height() );
-#endif
 
   QPixmap	rpix( (RR_path + "/icons/rockroll.xpm").c_str() );
   if( rpix.isNull() )
     cerr << "No icon\n";
-  else setIcon( rpix );
-  setCaption( tr( "QRoll, heir of Rock'N'Roll" ) );
+  else setWindowIcon( rpix );
+  setWindowTitle( tr( "QRoll, heir of Rock'N'Roll" ) );
 
   load( (RR_path + "/levels/serie0.rol").c_str() );
 
   //	Timer
 
-  _timer = new QTimer( this, "tempo" );
+  _timer = new QTimer( this );
+  _timer->setObjectName( "tempo" );
 
   connect( _timer, SIGNAL( timeout() ), this, SLOT( timeStep() ) );
   _timer->start( _tempo );
 
-  _clockTimer = new QTimer( this, "clock" );
+  _clockTimer = new QTimer( this );
+  _clockTimer->setObjectName( "clock" );
   connect( _clockTimer, SIGNAL( timeout() ), this, SLOT( clockTick() ) );
 
   d->filesfilter = tr( "Rock'n'roll series" ) + "( *.r&r *.rol );;" +
@@ -365,7 +357,7 @@ QRMainWin::~QRMainWin()
 
   //delete _socket;
   for( iw=_otherWins.begin(); iw!=_otherWins.end(); ++iw )
-    (*iw)->close( true );
+    (*iw)->close();
 
   //	sprites
 
@@ -390,45 +382,49 @@ QRMainWin::~QRMainWin()
 
 void QRMainWin::load()
 {
-  Q3FileDialog	*fd = d->fileDialog();
-  fd->setFilters( d->filesfilter );
-  fd->setMode( Q3FileDialog::ExistingFile );
-  fd->setCaption( tr( "Load Rock'n'Roll levels" ) );
+  QFileDialog	*fd = d->fileDialog();
+  fd->setFilters( QStringList( d->filesfilter ) );
+  fd->setFileMode( QFileDialog::ExistingFile );
+  fd->setWindowTitle( tr( "Load Rock'n'Roll levels" ) );
   if( fd->exec() )
     {
-      QString fn = fd->selectedFile();
-      if ( !fn.isEmpty() )
-	{
-	  load( fn );
-	  return;
-	}
+      QStringList files = fd->selectedFiles();
+      QString fn;
+      if( !files.isEmpty() )
+      {
+        fn = files[0];
+        load( fn.toUtf8().data() );
+        return;
+      }
     }
-  statusBar()->message( tr( "Loading aborted" ), 2000 );
+  statusBar()->showMessage( tr( "Loading aborted" ), 2000 );
 }
 
 
 void QRMainWin::mergeSeries()
 {
-  Q3FileDialog	*fd = d->fileDialog();
-  fd->setFilters( d->filesfilter );
-  fd->setMode( Q3FileDialog::ExistingFile );
-  fd->setCaption( tr( "Append Rock'n'Roll levels" ) );
+  QFileDialog	*fd = d->fileDialog();
+  fd->setFilters( QStringList( d->filesfilter ) );
+  fd->setFileMode( QFileDialog::ExistingFile );
+  fd->setWindowTitle( tr( "Append Rock'n'Roll levels" ) );
   if( fd->exec() )
     {
-      QString fn = fd->selectedFile();
-      if ( !fn.isEmpty() )
-	{
-	  if( ser->load( fn.ascii() ) )
-	    {
-	      statusBar()->message( tr( "Merge succeeded." ), 2000 );
-	      emit seriesChanged();
-	    }
-	  else
-	    statusBar()->message( tr( "Merge failed !" ), 2000 );
-	  return;
-	}
+      QStringList files = fd->selectedFiles();
+      QString fn;
+      if( !files.isEmpty() )
+      {
+        fn = files[0];
+        if( ser->load( fn.toUtf8().data() ) )
+        {
+          statusBar()->showMessage( tr( "Merge succeeded." ), 2000 );
+          emit seriesChanged();
+        }
+        else
+          statusBar()->showMessage( tr( "Merge failed !" ), 2000 );
+        return;
+      }
     }
-  statusBar()->message( tr( "Loading aborted" ), 2000 );
+  statusBar()->showMessage( tr( "Loading aborted" ), 2000 );
 }
 
 
@@ -442,8 +438,8 @@ void QRMainWin::load( const char* filename )
       emit seriesChanged();
     }
   else
-    statusBar()->message( tr(  "Couldn't load series " ) + filename + 
-			  tr( " - bad file ?" ), 5000 );
+    statusBar()->showMessage( tr(  "Couldn't load series " ) + filename +
+                              tr( " - bad file ?" ), 5000 );
 }
 
 
@@ -460,23 +456,22 @@ void QRMainWin::save()
 
 void QRMainWin::saveAs()
 {
-  Q3FileDialog	*fd = d->fileDialog();
-  fd->setFilters( d->filesfilter );
-  fd->setMode( Q3FileDialog::AnyFile );
-  fd->setCaption( tr( "Save Rock'n'Roll levels" ) );
-  QString	startf = ser->filename().c_str();
-  if( !startf.isEmpty() )
-    fd->setDir( startf );
+  QFileDialog	*fd = d->fileDialog();
+  fd->setFilters( QStringList( d->filesfilter ) );
+  fd->setFileMode( QFileDialog::ExistingFile );
+  fd->setWindowTitle( tr( "Save Rock'n'Roll levels" ) );
   if( fd->exec() )
+  {
+    QStringList files = fd->selectedFiles();
+    QString fn;
+    if( !files.isEmpty() )
     {
-      QString fn = fd->selectedFile();
-      if ( !fn.isEmpty() )
-	{
-	  save( fn );
-	  return;
-	}
+      fn = files[0];
+      save( fn.toUtf8().data() );
+      return;
     }
-  statusBar()->message( tr( "Saving aborted" ), 2000 );
+  }
+  statusBar()->showMessage( tr( "Saving aborted" ), 2000 );
 }
 
 
@@ -484,10 +479,10 @@ void QRMainWin::save( const char* filename )
 {
   storeLevel();
   if( ser->save( filename ) )
-    statusBar()->message( "Save succeeded.", 2000 );
+    statusBar()->showMessage( "Save succeeded.", 2000 );
   else
-    statusBar()->message( "Save FAILED ! (unable to write in specified "
-			  "directory ?)", 5000 );
+    statusBar()->showMessage( "Save FAILED ! (unable to write in specified "
+                              "directory ?)", 5000 );
 }
 
 
@@ -505,39 +500,33 @@ void QRMainWin::start()
       rrand.srand( rseed );
     }
 
+#ifndef ANDROID
   if( d->config )
     delete d->config;	// close config dialog during game
+#endif
 
   game.run( game.tb );
   game.init( game.tb );
 
   _clockTimer->start( 1000 );
 
-  statusBar()->message( tr( "Running" ) );
+  statusBar()->showMessage( tr( "Running" ) );
   _paused = false;
 
-  _file->setItemEnabled( 0, false );
-  _game->setItemEnabled( 0, false );
+  d->openaction->setEnabled( false );
+  d->startaction->setEnabled( false );
   if( ps.mode() == PlayerServer::Client )
-    _game->setItemEnabled( 1, false );
+    d->stopaction->setEnabled( false );
   else
-    _game->setItemEnabled( 1, true );
-  _game->setItemEnabled( 2, true );
-  _game->setItemChecked( 2, false );
-  _game->setItemEnabled( 3, false );	// configure
+    d->stopaction->setEnabled( true );
+  d->pauseaction->setEnabled( true );
+  d->pauseaction->setChecked( false );
+  d->configaction->setEnabled( false );
   setEditMode( false );
-  d->editM->setItemEnabled( 0, false );
-  d->editM->setItemEnabled( 3, false );
-  d->editM->setItemEnabled( 4, false );
-  d->editM->setItemEnabled( 6, false );
-
-  _openBtn->setEnabled( false );
-  _playBtn->setEnabled( false );
-  if( ps.mode() == PlayerServer::Client )
-    _stopBtn->setEnabled( false );
-  else
-    _stopBtn->setEnabled( true );
-  _pauseBtn->setEnabled( true );
+  d->editaction->setEnabled( false );
+  d->editinsertaction->setEnabled( false );
+  d->editdelaction->setEnabled( false );
+  d->editarrangeaction->setEnabled( false );
 }
 
 
@@ -555,33 +544,22 @@ void QRMainWin::stop()
   game.init( game.tb );
   emit gameStopped();
 
-  statusBar()->message( tr( "Ready" ) );
+  statusBar()->showMessage( tr( "Ready" ) );
   _paused = false;
 
-  _file->setItemEnabled( 0, true );	// open
+  d->openaction->setEnabled( true );	// open
   if( ps.mode() == PlayerServer::Client )	// play
-    _game->setItemEnabled( 0, false );
+    d->startaction->setEnabled( false );
   else
-    _game->setItemEnabled( 0, true );
-  _game->setItemEnabled( 1, false );	// stop
-  _game->setItemEnabled( 2, false );	// pause
-  _game->setItemChecked( 2, false );
-  _game->setItemEnabled( 3, true );	// config
-  d->editM->setItemEnabled( 0, true );
-  d->editM->setItemEnabled( 3, true );
-  d->editM->setItemEnabled( 4, true );
-  d->editM->setItemEnabled( 6, true );
-
-  if( ps.mode() == PlayerServer::Client )	// open
-    _openBtn->setEnabled( false );
-  else
-    _openBtn->setEnabled( true );
-  if( ps.mode() == PlayerServer::Client )	// play
-    _playBtn->setEnabled( false );
-  else
-    _playBtn->setEnabled( true );
-  _stopBtn->setEnabled( false );
-  _pauseBtn->setEnabled( false );
+    d->startaction->setEnabled( true );
+  d->stopaction->setEnabled( false );	// stop
+  d->pauseaction->setEnabled( false );	// pause
+  d->pauseaction->setChecked( false );
+  d->configaction->setEnabled( true );	// config
+  d->editaction->setEnabled( true );
+  d->editinsertaction->setEnabled( true );
+  d->editdelaction->setEnabled( true );
+  d->editarrangeaction->setEnabled( true );
 }
 
 
@@ -608,13 +586,13 @@ void QRMainWin::pauseOFF()
 {
   game.paused = false;
   PlayerServer::server->flushKbd();
-  statusBar()->message( tr( "Running" ) );
+  statusBar()->showMessage( tr( "Running" ) );
   _paused = false;
   _clockTimer->start( 1000 );
 
-  if( _game->isItemChecked( 2 ) )
-    _game->setItemChecked( 2, false );
-  else out << "Menu Pause mal check�n";
+  if( d->pauseaction->isChecked() )
+    d->pauseaction->setChecked( false );
+  else out << "Pause menu badly checked\n";
 }
 
 
@@ -623,12 +601,12 @@ void QRMainWin::pauseON()
   _clockTimer->stop();
   game.paused = true;
   PlayerServer::server->flushKbd();
-  statusBar()->message( tr( "Paused" ) );
+  statusBar()->showMessage( tr( "Paused" ) );
   _paused = true;
 
-  if( _game->isItemChecked( 2 ) )
-    out << "Menu Pause mal check�n";
-  else _game->setItemChecked( 2, true );
+  if( d->pauseaction->isChecked() )
+    out << "Pause menu badly checked\n";
+  else d->pauseaction->setChecked( true );
 }
 
 
@@ -669,10 +647,11 @@ void QRMainWin::keyReleaseEvent( QKeyEvent* key )
 
 void QRMainWin::netServer()
 {
-  statusBar()->message( tr( "Connecting to network..." ) );
-  _networkMen->setItemEnabled( 0, false );
-  _networkMen->setItemEnabled( 1, false );
-  _networkMen->setItemEnabled( 2, true );
+#ifndef ANDROID
+  statusBar()->showMessage( tr( "Connecting to network..." ) );
+  d->serveraction->setEnabled( false );
+  d->clientaction->setEnabled( false );
+  d->disconnectaction->setEnabled( true );
 
   QPlayerServer	*qp = dynamic_cast<QPlayerServer *>( PlayerServer::server );
   if( qp )
@@ -693,25 +672,24 @@ void QRMainWin::netServer()
     cerr << "BUG: PlayerServer is not a QPlayerServer\n";
 
   PlayerServer::server->makeServer( 2000 );
+#endif
 }
 
 
 void QRMainWin::netClient()
 {
+#ifndef ANDROID
   RRClientDialog	cd( this );
   int res = cd.exec();
   if( res == QDialog::Accepted )
     {
-      statusBar()->message( tr( "Connecting to network..." ) );
-      _networkMen->setItemEnabled( 0, false );
-      _networkMen->setItemEnabled( 1, false );
-      _networkMen->setItemEnabled( 2, true );
-      _file->setItemEnabled( 0, false );	// open
-      _game->setItemEnabled( 0, false );	// play
-      _game->setItemEnabled( 1, false );	// stop
-      _playBtn->setEnabled( false );
-      _stopBtn->setEnabled( false );
-      _openBtn->setEnabled( false );
+      statusBar()->showMessage( tr( "Connecting to network..." ) );
+      d->serveraction->setEnabled( false );
+      d->clientaction->setEnabled( false );
+      d->disconnectaction->setEnabled( true );
+      d->openaction->setEnabled( false );	// open
+      d->startaction->setEnabled( false );	// play
+      d->stopaction->setEnabled( false );	// stop
 
       d->timing = 0;
 
@@ -746,12 +724,14 @@ void QRMainWin::netClient()
       PlayerServer::server->makeClient( cd.address(), 2000 );
     }
   else
-    statusBar()->message( tr( "Connection canceled" ), 2000 );
+    statusBar()->showMessage( tr( "Connection canceled" ), 2000 );
+#endif
 }
 
 
 void QRMainWin::netClose()
 {
+#ifndef ANDROID
   PlayerServer::server->makeLocal();
   QPlayerServer	*qp = dynamic_cast<QPlayerServer *>( PlayerServer::server );
   if( qp )
@@ -759,59 +739,52 @@ void QRMainWin::netClose()
       qp->disconnect();
     }
 
-  _networkMen->setItemEnabled( 0, true );
-  _networkMen->setItemEnabled( 1, true );
-  _networkMen->setItemEnabled( 2, false );
-  statusBar()->message( tr( "Connection(s) closed." ), 2000 );
+  d->serveraction->setEnabled( true );
+  d->clientaction->setEnabled( true );
+  d->disconnectaction->setEnabled( false );
+  statusBar()->showMessage( tr( "Connection(s) closed." ), 2000 );
   if( game.running )
     {
-      _file->setItemEnabled( 0, false );	// open
-      _game->setItemEnabled( 0, false );	// play
-      _game->setItemEnabled( 1, true );		// stop
-      _game->setItemEnabled( 2, true );		// pause
-      _playBtn->setEnabled( false );
-      _stopBtn->setEnabled( true );
-      _pauseBtn->setEnabled( true );
-      _openBtn->setEnabled( false );
+      d->openaction->setEnabled( false );	// open
+      d->startaction->setEnabled( false );	// play
+      d->stopaction->setEnabled( true );	// stop
+      d->pauseaction->setEnabled( true );	// pause
     }
   else
     {
-      _file->setItemEnabled( 0, true );		// open
-      _game->setItemEnabled( 0, true );		// play
-      _game->setItemEnabled( 1, false );	// stop
-      _game->setItemEnabled( 2, false );	// pause
-      _game->setItemChecked( 2, false );
-      _playBtn->setEnabled( true );
-      _stopBtn->setEnabled( false );
-      _pauseBtn->setEnabled( false );
-      _openBtn->setEnabled( true );
+      d->openaction->setEnabled( true );	// open
+      d->startaction->setEnabled( true );	// play
+      d->stopaction->setEnabled( false );	// stop
+      d->pauseaction->setEnabled( false );	// pause
+      d->pauseaction->setChecked( false );
     }
+#endif
 }
 
 
 void QRMainWin::clientHostFound()
 {
-  statusBar()->message( tr( "Server found - connecting..." ) );
+  statusBar()->showMessage( tr( "Server found - connecting..." ) );
 }
 
 
 void QRMainWin::localClientConnected()
 {
-  statusBar()->message( tr( "Network connected !" ), 2000 );
-  _playBtn->setEnabled( false );
+  statusBar()->showMessage( tr( "Network connected !" ), 2000 );
+  d->startaction->setEnabled( false );
 }
 
 
 void QRMainWin::localServerConnected()
 {
-  statusBar()->message( tr( "Network OK - waiting for incoming connections" ), 
+  statusBar()->showMessage( tr( "Network OK - waiting for incoming connections" ),
 			3000 );
 }
 
 
 void QRMainWin::remoteClientConnected( int num )
 {
-  statusBar()->message( tr( "Incoming connection : compuer " ) 
+  statusBar()->showMessage( tr( "Incoming connection : compuer " )
 			+ QString::number( num ) 
 			+ tr( " joins the game !" ), 3000 );
 }
@@ -819,14 +792,14 @@ void QRMainWin::remoteClientConnected( int num )
 
 void QRMainWin::remoteClientDisconnected( int num )
 {
-  statusBar()->message( tr( "Client " ) + QString::number( num ) 
+  statusBar()->showMessage( tr( "Client " ) + QString::number( num )
 			+ tr( " leaves the game !" ), 3000 );
 }
 
 
 void QRMainWin::remoteServerDisconnected()
 {
-  statusBar()->message( tr( "Server leaved the game ! - closing." ), 3000 );
+  statusBar()->showMessage( tr( "Server leaved the game ! - closing." ), 3000 );
   netClose();
 }
 
@@ -985,7 +958,7 @@ void QRMainWin::genPixmaps()
 {
   unsigned	i, j, num;
 
-  QImage	img( 32, 32, 32 );
+  QImage	img( 32, 32, QImage::Format_RGB32 );
 
   for( j=0; j<12; ++j )
     for( i=0; i<20; ++i )
@@ -1148,10 +1121,10 @@ void QRMainWin::timeOut()
 void QRMainWin::gameStarts( unsigned level, unsigned randSeed, 
 			    const string & series )
 {
-  out << tr( "Starting game" ).latin1() << " ,\n"
-      << tr( "Level  : " ).latin1() << level << "\n"
-      << tr( "Series : " ).latin1() << series << "\n"
-      << tr( "Random seed : " ).latin1() << randSeed << endl;
+  out << tr( "Starting game" ).toUtf8().data() << " ,\n"
+      << tr( "Level  : " ).toUtf8().data() << level << "\n"
+      << tr( "Series : " ).toUtf8().data() << series << "\n"
+      << tr( "Random seed : " ).toUtf8().data() << randSeed << endl;
     //       << tr( "Nb of players : " ) << (unsigned) gs.numPlayers << "\n" 
 
   if( game.running )
@@ -1176,7 +1149,7 @@ void QRMainWin::addPlayer()
   for( iw=_otherWins.begin(); iw!=fw; ++iw )
     (*iw)->setPlayers( pl );
   pf->setPlayer( player );
-  _networkMen->setItemEnabled( 4, true );
+  d->removeaction->setEnabled( true );
   pf->show();
 }
 
@@ -1185,7 +1158,7 @@ void QRMainWin::removePlayer()
 {
   if( _otherWins.size() > 0 )
     {
-      (*_otherWins.rbegin())->close( true );
+      (*_otherWins.rbegin())->close();
     }
 }
 
@@ -1199,14 +1172,14 @@ void QRMainWin::closePlayField( QRPlayField* win )
       PlayerServer::server->removePlayer( win->player() );
       _otherWins.erase( i );
       if( _otherWins.size() == 0 )
-	_networkMen->setItemEnabled( 4, false );
+        d->removeaction->setEnabled( false );
     }
 }
 
 
 void QRMainWin::playerRemoved( unsigned num )
 {
-  out << "le joueur " << num << " quitte le jeu\n";
+  out << "Player " << num << " quits the game\n";
   emit removePlayer( num );
 }
 
@@ -1248,26 +1221,28 @@ void QRMainWin::playersRenumed( const RenumList & play )
 
 void QRMainWin::about()
 {
+#ifndef ANDROID
   QAbout	ab;
 
   ab.exec();
+#endif
 }
 
 
 void QRMainWin::soundOnOff()
 {
-  if( _soundM->isItemChecked( 0 ) )
+  if( d->soundaction->isChecked() )
     {
       RRSoundProcessor::processor().disable();
-      _soundM->setItemChecked( 0, false );
+      d->soundaction->setChecked( false );
     }
   else
     {
       RRSoundProcessor::processor().enable();
       if( RRSoundProcessor::processor().isOK() )
-	_soundM->setItemChecked( 0, true );
+        d->soundaction->setChecked( true );
       else
-	_soundM->setItemEnabled( 0, false );
+        d->soundaction->setEnabled( false );
     }
 }
 
@@ -1278,21 +1253,13 @@ void QRMainWin::allowScale()
 
   if( _playField->scalingEnabled() )
     {
-#if QT_VERSION >= 0x040000
-      _viewM->changeItem( 0, tr( "Allow zoom" ) );
-#else
-      _viewM->changeItem( tr( "Allow zoom" ), 0 );
-#endif
-      statusBar()->message( tr( "was it too slow ... ?    ;-)" ), 2000 );
+      d->zoomaction->setText( tr( "Allow zoom" ) );
+      statusBar()->showMessage( tr( "was it too slow ... ?    ;-)" ), 2000 );
       f = false;
     }
   else
     {
-#if QT_VERSION >= 0x040000
-      _viewM->changeItem( 0, tr( "Disable zoom" ) );
-#else
-      _viewM->changeItem( tr( "Disable zoom" ), 0 );
-#endif
+      d->zoomaction->setText( tr( "Disable zoom" ) );
       f = true;
     }
 
@@ -1363,12 +1330,14 @@ void QRMainWin::turnEnds()
 
 void QRMainWin::configure()
 {
+#ifndef ANDROID
   if( !d->config )
     {
       d->config = new QRConfigWin;
       connect( d->config, SIGNAL( closed() ), this, SLOT( configClosed() ) );
       d->config->show();
     }
+#endif
 }
 
 
@@ -1413,9 +1382,10 @@ bool QRMainWin::editMode() const
 
 void QRMainWin::editLevel()
 {
+#ifndef ANDROID
   bool	x = !d->editmode;
   d->editmode = x;
-  d->editM->setItemChecked( 0, x );
+  d->editaction->setChecked( x );
   if( x )
     {
       d->editstat->setText( tr( " EDIT mode " ) );
@@ -1434,6 +1404,7 @@ void QRMainWin::editLevel()
       setCursor( ArrowCursor ); // to override a bug in Qt: unsetCursor doesn't
       unsetCursor();            // work (apparently) ...
     }
+#endif
 }
 
 
@@ -1474,12 +1445,13 @@ void QRMainWin::editPaletteClosed()
 
 QREditPalette* QRMainWin::editPalette()
 {
-  return( d->editpal );
+  return d->editpal;
 }
 
 
 void QRMainWin::levelParams()
 {
+#ifndef ANDROID
   if( !d->levelparams )
     {
       d->levelparams = new QLevelParams;
@@ -1491,6 +1463,7 @@ void QRMainWin::levelParams()
 	       SIGNAL( stageChanged( unsigned ) ) );
     }
   d->levelparams->show();
+#endif
 }
 
 
@@ -1556,6 +1529,7 @@ void QRMainWin::deleteLevel()
 
 void QRMainWin::arrangeSeries()
 {
+#ifndef ANDROID
   if( SeriesArranger::instance() )
     delete SeriesArranger::instance();
   else
@@ -1570,12 +1544,13 @@ void QRMainWin::arrangeSeries()
 	       SIGNAL( stageChanged( unsigned ) ) );
       d->editM->setItemChecked( 6, true );
     }
+#endif
 }
 
 
 void QRMainWin::seriesArrangerClosed()
 {
-  d->editM->setItemChecked( 6, false );
+  d->editarrangeaction->setChecked( false );
 }
 
 
@@ -1606,6 +1581,7 @@ QPixmap QRMainWin::originalSprite( unsigned short num ) const
 
 void QRMainWin::paintStart( int x, int y, bool inlevel, QRPlayField* source )
 {
+#ifndef ANDROID
   QREditPalette	*pal = theQRWin->editPalette();
   if( !pal )
     return;
@@ -1615,11 +1591,13 @@ void QRMainWin::paintStart( int x, int y, bool inlevel, QRPlayField* source )
     return;
 
   d->painters[ paintmode ]->start( x, y, inlevel, source );
+#endif
 }
 
 
 void QRMainWin::paintMove( int x, int y, bool inlevel, QRPlayField* source )
 {
+#ifndef ANDROID
   QREditPalette	*pal = theQRWin->editPalette();
   if( !pal )
     return;
@@ -1629,11 +1607,13 @@ void QRMainWin::paintMove( int x, int y, bool inlevel, QRPlayField* source )
     return;
 
   d->painters[ paintmode ]->move( x, y, inlevel, source );
+#endif
 }
 
 
 void QRMainWin::paintStop( int x, int y, bool inlevel, QRPlayField* source )
 {
+#ifndef ANDROID
   QREditPalette	*pal = theQRWin->editPalette();
   if( !pal )
     return;
@@ -1643,6 +1623,7 @@ void QRMainWin::paintStop( int x, int y, bool inlevel, QRPlayField* source )
     return;
 
   d->painters[ paintmode ]->stop( x, y, inlevel, source );
+#endif
 }
 
 

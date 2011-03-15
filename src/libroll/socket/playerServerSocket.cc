@@ -17,7 +17,9 @@
 
 
 #include <roll/socket/playerServerSocket.h>
+#ifndef ANDROID
 #include <roll/socket/singleSocket.h>
+#endif
 #include <roll/socket/netMessages.h>
 #include <iostream>
 #include <set>
@@ -65,6 +67,7 @@ const QPlayerServer* PlayerServerSocket::playerServer() const
 }
 
 
+#ifndef ANDROID
 NetMessage* PlayerServerSocket::readMessage( Q3Socket* s ) const
 {
   NetMessage::MsgHdr	& hdr = d->pendingmsg;
@@ -137,6 +140,7 @@ void PlayerServerSocket::writeMessage( Q3Socket* s, const NetMessage & msg )
   char	*wm = msg.write();
   s->writeBlock( wm, len );
 }
+#endif
 
 
 void PlayerServerSocket::writeMessage( const NetMessage & )
@@ -147,6 +151,7 @@ void PlayerServerSocket::writeMessage( const NetMessage & )
 // -------------- single socket -------------
 
 
+#ifndef ANDROID
 SingleSocket::SingleSocket( ServerSocket* parent, const char* name ) 
   : Q3Socket( parent, name ), _serv( parent ), _sd( 0 )
 {
@@ -195,6 +200,7 @@ void SingleSocket::sendBytesWritten( int nbytes )
 {
   emit bytesWritten( this, nbytes );
 }
+#endif
 
 
 // ----------------- server -----------------
@@ -203,6 +209,7 @@ void SingleSocket::sendBytesWritten( int nbytes )
 namespace roll
 {
 
+#ifndef ANDROID
   struct SockDescr
   {
     SockDescr( SingleSocket* ss, unsigned n ) : qs( ss ), num( n )
@@ -212,7 +219,6 @@ namespace roll
     // computer number on the network
     unsigned		num;
   };
-
 
   struct ServerSocket_Private
   {
@@ -224,10 +230,12 @@ namespace roll
     ServerSocket	*server;
     set<SockDescr *>	sockets;
   };
+#endif
 
 }
 
 
+#ifndef ANDROID
 ServerSocket_Private::ServerSocket_Private( ServerSocket* serv )
   : server( serv )
 {
@@ -421,4 +429,5 @@ void ClientSocket::writeMessage( const NetMessage & msg )
   PlayerServerSocket::writeMessage( this, msg );
 }
 
+#endif
 

@@ -50,7 +50,9 @@ int main( int argc, char** argv )
 #ifdef SOMA_SOUND_OSS
   new SomaSoundOSS;
 #endif
+#ifndef SOMA_NO_SOUND
   new SomaQSound;
+#endif
 
   SomaSoundProcessor::processor().setSoundBank( new RollSoundBank );
   SomaSoundProcessor::processor().soundBank().init();
@@ -74,7 +76,8 @@ int main( int argc, char** argv )
   QRMainWin::setLanguage( lang );
 
   path += lang;
-  QTranslator	*tr = new QTranslator( qApp, "Translator" );
+  QTranslator	*tr = new QTranslator( qApp );
+  tr->setObjectName( "Translator" );
 
   if( tr->load( "qroll", path.c_str() ) )
     qApp->installTranslator( tr );
@@ -92,14 +95,14 @@ int main( int argc, char** argv )
 
   QRMainWin	mwin;
 
-  qApp->setMainWidget( &mwin );
+  qApp->connect( qApp, SIGNAL( lastWindowClosed() ), qApp, SLOT( quit() ) );
 
-  QString	cap = mwin.caption();
-  string	cap2 = (const char *) cap;
+  QString	cap = mwin.windowTitle();
+  string	cap2 = cap.toUtf8().data();
 
   cap2 += " v. ";
   cap2 += rrVersionString();
-  mwin.setCaption( cap2.c_str() );
+  mwin.setWindowTitle( cap2.c_str() );
   mwin.show();
 
   bool	allowSound = true;

@@ -110,10 +110,8 @@ public slots:
   void remoteClientDisconnected( int );
   void remoteServerDisconnected();
   void netError( int err );
-  ///	Rï¿½upï¿½ation des touches des fenï¿½res PLayField
   void receiveKeyPressed( const QRPlayField::KeyCode & key, 
 			  const QRPlayField* win );
-  ///	Rï¿½upï¿½ation des touches des fenï¿½res PlayField
   void receiveKeyReleased( const QRPlayField::KeyCode & key, 
 			   const QRPlayField* win );
   ///	Fin du temps de jeu
@@ -211,10 +209,6 @@ private:
   QMenu                         *_networkMen;
   QMenu                 	*_soundM;
   QMenu 			*_viewM;
-  QToolButton			*_openBtn;
-  QToolButton			*_playBtn;
-  QToolButton			*_stopBtn;
-  QToolButton			*_pauseBtn;
   QToolBar			*_tools;
 
   ///	Niveaux de gris des sprites

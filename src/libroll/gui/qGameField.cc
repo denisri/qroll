@@ -34,10 +34,9 @@ QRGameField::QRGameField( const QPixmap * const * sprites,
     _sprite( sprites ), _eraseborder( true ), _pwidth( 0 ), _pheight( 0 )
 {
   resize( 512, 384 );
-  //setAlignment( AlignLeft | AlignTop );
-  setBackgroundMode( Qt::NoBackground );
-  //setFocusPolicy( NoFocus );
-  //setFocusProxy( parentWidget() );
+  //setBackgroundMode( Qt::NoBackground );
+  if( name )
+    setObjectName( name );
 }
 
 
@@ -66,12 +65,9 @@ void QRGameField::keyReleasedEvent( QKeyEvent* key )
 }
 
 
-void QRGameField::paintEvent( QPaintEvent* e )
+void QRGameField::paintEvent( QPaintEvent* )
 {
-  //cout << "paintEvent\n";
-  //QWidget::paintEvent( e );
   updateScreenQt();
-  //cout << "paintEvent done\n";
 }
 
 
@@ -105,17 +101,17 @@ void QRGameField::setupScreen( unsigned w, unsigned h )
   if( !_pscr )
     _pscr = new QPixmap( w, h );
   else if( (unsigned) _pscr->width() != w || (unsigned) _pscr->height() != h )
-    _pscr->resize( w, h );
+    *_pscr = _pscr->copy( 0, 0, w, h );
 }
 
 
 void QRGameField::copySprite( unsigned spr, int posx, int posy )
 {
-#if QT_VERSION >= 0x040000
-  bitBlt( _pscr, posx, posy, _sprite[spr], 0, 0, 32, 32, true );
-#else
-  bitBlt( _pscr, posx, posy, _sprite[spr], 0, 0, 32, 32, CopyROP, true );
-#endif
+  // bitBlt( _pscr, posx, posy, _sprite[spr], 0, 0, 32, 32, true );
+  QPainter qp;
+  qp.begin( _pscr );
+  qp.drawPixmap( posx, posy, *_sprite[spr] );
+  qp.end();
 }
 
 

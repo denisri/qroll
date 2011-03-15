@@ -36,7 +36,7 @@ class QLevelParams : public QWidget
 
 public:
   QLevelParams( QWidget* parent = 0, const char* name = 0, 
-                Qt::WFlags f = Qt::WDestructiveClose );
+                Qt::WFlags f = 0 );
   virtual ~QLevelParams();
 
 public slots:

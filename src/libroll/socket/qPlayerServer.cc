@@ -17,19 +17,16 @@
 
 
 #include <roll/socket/qPlayerServer.h>
+#include <roll/game/vars.h>
 #include <roll/socket/playerServerSocket.h>
 #include <roll/socket/netMessages.h>
-#include <roll/socket/netMessages.h>
-#include <roll/game/vars.h>
-#if QT_VERSION >= 0x040000
-#include <q3socket.h>
-typedef Q3Socket QSocket;
-#endif
+#ifndef ANDROID
 #ifdef _WIN32
 #include <winsock.h>
 #else
 #include <netdb.h>
 #endif
+#endif // ANDROID
 
 using namespace roll;
 using namespace std;
@@ -105,6 +102,7 @@ PlayerServerSocket & QPlayerServer::socket()
 
 void QPlayerServer::makeServer( unsigned short port )
 {
+#ifndef ANDROID
   //cout << "QPlayerServer::makeServer\n";
 
   PlayerServer::makeServer( port );
@@ -115,7 +113,7 @@ void QPlayerServer::makeServer( unsigned short port )
     {
       cout << "server couldn't launch !\n";
       makeLocal();
-      emit netError( QSocket::ErrConnectionRefused );
+      emit netError( Q3Socket::ErrConnectionRefused );
       return;
     }
   PlayerServer::makeServer( port );
@@ -128,11 +126,13 @@ void QPlayerServer::makeServer( unsigned short port )
   connect( sk, SIGNAL( clientDisconnected( int ) ), this, 
 	   SLOT( clientDisconnected( int ) ) );
   emit networkConnected();
+#endif
 }
 
 
 void QPlayerServer::makeClient( const string & address, unsigned short port )
 {
+#ifndef ANDROID
   //cout << "QPlayerServer::makeClient\n";
 
   PlayerServer::makeClient( address, port );
@@ -164,6 +164,7 @@ void QPlayerServer::makeClient( const string & address, unsigned short port )
 	   SLOT( messageFromServer( const NetMessage & ) ) );
   connect( sk, SIGNAL( connectionClosed() ), this, 
 	   SIGNAL( connectionClosed() ) );
+#endif
 }
 
 
@@ -185,6 +186,7 @@ void QPlayerServer::hostFound()
 
 void QPlayerServer::clientConnected()
 {
+#ifndef ANDROID
   //cout << "QPlayerServer, host connected - client created\n";
   PlayerServer::makeClient( address(), port() );
 
@@ -194,6 +196,7 @@ void QPlayerServer::clientConnected()
   mt.setText( "Rock'N'Roll" );
   sk->writeMessage( mt );
   emit networkConnected();
+#endif
 }
 
 
@@ -241,6 +244,7 @@ void QPlayerServer::messageFromServer( const NetMessage & msg )
 
 void QPlayerServer::clientDisconnected( int num )
 {
+#ifndef ANDROID
   set<unsigned>	r = removeNetLink( (unsigned) num );
   if( !r.empty() )
     {
@@ -255,6 +259,7 @@ void QPlayerServer::clientDisconnected( int num )
     }
 
   emit netClientDisconnected( num );
+#endif
 }
 
 
@@ -275,6 +280,7 @@ void QPlayerServer::serverTextReceived( unsigned client,
 void QPlayerServer::serverAssignPlayersReceived( unsigned client, 
 						 const NetMessage & msg )
 {
+#ifndef ANDROID
   ServerSocket	*sk = (ServerSocket *) _socket;
 
   const MessageAssignPlayers	& m = (MessageAssignPlayers &) msg;
@@ -314,12 +320,14 @@ void QPlayerServer::serverAssignPlayersReceived( unsigned client,
       break;
     }
   emit playersChanged();
+#endif
 }
 
 
 void QPlayerServer::serverNumPlayersReceived( unsigned client, 
 					      const NetMessage & msg )
 {
+#ifndef ANDROID
   ServerSocket	*sk = (ServerSocket *) _socket;
 
   const MessageNumPlayers	&m = (MessageNumPlayers &) msg;
@@ -347,11 +355,13 @@ void QPlayerServer::serverNumPlayersReceived( unsigned client,
 
   apy.whose = 2;	// notify other clients
   sk->writeMessageToOthers( client, apy );
+#endif
 }
 
 
 void QPlayerServer::serverPauseGame( unsigned client, const NetMessage & msg )
 {
+#ifndef ANDROID
   ServerSocket	*s = dynamic_cast<ServerSocket *>( _socket );
   if( s )
     s->writeMessageToOthers( client, msg );
@@ -360,6 +370,7 @@ void QPlayerServer::serverPauseGame( unsigned client, const NetMessage & msg )
 
   //cout << "Pause : " << (int) m.state << endl;
   emit gamePaused( m.state );
+#endif
 }
 
 
@@ -387,6 +398,7 @@ void QPlayerServer::serverReceiveOK( unsigned client, const NetMessage & )
 
 void QPlayerServer::clientTextReceived( const NetMessage & msg )
 {
+#ifndef ANDROID
   ClientSocket	*sk = (ClientSocket *) _socket;
   const MessageText	&mt = (MessageText &) msg;
 
@@ -400,6 +412,7 @@ void QPlayerServer::clientTextReceived( const NetMessage & msg )
   else
     cout << "Message from server :\n"
 	 << mt.text << endl;
+#endif
 }
 
 
@@ -567,6 +580,7 @@ void QPlayerServer::clientEndTurn( const NetMessage & msg )
 void QPlayerServer::startGame( unsigned level, unsigned rseed, 
 			       const string & series )
 {
+#ifndef ANDROID
   ServerSocket	*sk = dynamic_cast<ServerSocket *>( _socket );
   if( sk )
     {
@@ -578,17 +592,20 @@ void QPlayerServer::startGame( unsigned level, unsigned rseed,
 
       sk->writeMessage( m );
     }
+#endif
 }
 
 
 void QPlayerServer::stopGame()
 {
+#ifndef ANDROID
   ServerSocket	*sk = dynamic_cast<ServerSocket *>( _socket );
   if( sk )
     {
       MessageStopGame	m;
       sk->writeMessage( m );
     }
+#endif
 }
 
 
@@ -638,9 +655,11 @@ void QPlayerServer::emitEndTurn()
       m.keys[ (*ip).first ] = k;
     }
 
+#ifndef ANDROID
   ServerSocket	*ss = (ServerSocket *) _socket;
   d->clients = ss->connections();
   _socket->writeMessage( m );
+#endif
   emit turnEndEmitted();
 }
 

@@ -27,33 +27,45 @@ using namespace roll;
 
 
 QRScoreBox::QRScoreBox( QWidget *parent, const char *name ) 
-  : QWidget( parent, name )
+  : QWidget( parent )
 {
+  if( name )
+    setObjectName( name );
   setMinimumWidth( 128 );
-  setBackgroundColor( QColor( 230, 230, 235 ) );
+  QPalette palette;
+  palette.setColor( backgroundRole(), QColor( 230, 230, 335 ) );
+  setPalette( palette );
 
 #define PanelStyle	QFrame::Box | QFrame::Raised
-  _timeLabel = new QLabel( this, "timeLabel" );
+  _timeLabel = new QLabel( this );
+  _timeLabel->setObjectName( "timeLabel" );
   _timeLabel->setFrameStyle( PanelStyle );
-  _time = new QLCDNumber( this, "time" );
+  _time = new QLCDNumber( this );
+  _time->setObjectName( "time" );
   _timeLabel->resize( 100, 20 );
   _time->resize( 60, 20 );
 
-  _scoreLabel = new QLabel( this, "scoreLabel" );
+  _scoreLabel = new QLabel( this );
+  _scoreLabel->setObjectName( "scoreLabel" );
   _scoreLabel->setFrameStyle( PanelStyle );
-  _score = new QLCDNumber( this, "score" );
+  _score = new QLCDNumber( this );
+  _score->setObjectName( "score" );
   _scoreLabel->resize( 100, 20 );
   _score->resize( 60, 20 );
 
-  _livesLabel = new QLabel( this, "livesLabel" );
+  _livesLabel = new QLabel( this );
+  _livesLabel->setObjectName( "livesLabel" );
   _livesLabel->setFrameStyle( PanelStyle );
-  _lives = new QLCDNumber( this, "lives" );
+  _lives = new QLCDNumber( this );
+  _lives->setObjectName( "lives" );
   _livesLabel->resize( 100, 20 );
   _lives->resize( 60, 20 );
 
-  _diamsLabel = new QLabel( this, "diamsLabel" );
+  _diamsLabel = new QLabel( this );
+  _diamsLabel->setObjectName( "diamsLabel" );
   _diamsLabel->setFrameStyle( PanelStyle );
-  _diams = new QLCDNumber( this, "diams" );
+  _diams = new QLCDNumber( this );
+  _diams->setObjectName( "diams" );
   _diamsLabel->resize( 100, 20 );
   _diams->resize( 60, 20 );
 
@@ -91,7 +103,8 @@ QRScoreBox::QRScoreBox( QWidget *parent, const char *name )
 
   _diams->move( 35, 200 );
 
-  QLabel	*keyLabel = new QLabel( this, "keyLabel" );
+  QLabel	*keyLabel = new QLabel( this );
+  keyLabel->setObjectName( "keyLabel" );
   keyLabel->setFrameStyle( PanelStyle );
   keyLabel->setGeometry( 15, 230, 60, 20 );
   keyLabel->setAlignment( Qt::AlignCenter );
@@ -99,11 +112,13 @@ QRScoreBox::QRScoreBox( QWidget *parent, const char *name )
   keyLabel->setText( tr( "KEY :" ) );
   keyLabel->setEnabled( false );
 
-  _key = new QFrame( this, "key" );
+  _key = new QFrame( this );
+  _key->setObjectName( "key" );
   _key->setFrameStyle( PanelStyle );
   _key->setGeometry( 85, 225, 32, 32 );
 
-  QLabel	*bombsLabel = new QLabel( this, "bombsLabel" );
+  QLabel	*bombsLabel = new QLabel( this );
+  bombsLabel->setObjectName( "bombsLabel" );
   bombsLabel->setFrameStyle( PanelStyle );
   bombsLabel->setGeometry( 15, 265, 100, 20 );
   bombsLabel->setAlignment( Qt::AlignCenter );
@@ -113,17 +128,17 @@ QRScoreBox::QRScoreBox( QWidget *parent, const char *name )
 
   for( int i=0; i<4; ++i )
     {
-      _bombsT[i*2] = new QFrame( this, "bombsT" );
+      _bombsT[i*2] = new QFrame( this );
       _bombsT[i*2]->setFrameStyle( PanelStyle );
       _bombsT[i*2]->setGeometry( 12, 293+25*i, 16, 16 );
-      _bombs[i*2] = new QLCDNumber( this, "bombs" );
+      _bombs[i*2] = new QLCDNumber( this );
       _bombs[i*2]->setNumDigits( 2 );
       _bombs[i*2]->setGeometry( 32, 290+25*i, 30, 20 );
 
-      _bombsT[i*2+1] = new QFrame( this, "bombsT" );
+      _bombsT[i*2+1] = new QFrame( this );
       _bombsT[i*2+1]->setFrameStyle( PanelStyle );
       _bombsT[i*2+1]->setGeometry( 68, 293+25*i, 16, 16 );
-      _bombs[i*2+1] = new QLCDNumber( this, "bombs" );
+      _bombs[i*2+1] = new QLCDNumber( this );
       _bombs[i*2+1]->setNumDigits( 2 );
       _bombs[i*2+1]->setGeometry( 88, 290+25*i, 30, 20 );
     }

@@ -110,9 +110,12 @@ namespace roll
 
 
 QLevelParams::QLevelParams( QWidget* parent, const char* name, Qt::WFlags f )
-  : QWidget( parent, name, f ), d( new QLevelParams_Private )
+  : QWidget( parent, f ), d( new QLevelParams_Private )
 {
+  setAttribute( Qt::WA_DeleteOnClose );
   setCaption( tr( "QRoll level parameters" ) );
+  if( name )
+    setObjectName( name );
 
   QVBoxLayout	*mlay = new QVBoxLayout( this, 5, 5 );
   QHBox		*mhb = new QHBox( this );

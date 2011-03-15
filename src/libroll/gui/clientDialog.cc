@@ -19,27 +19,11 @@
 #include <roll/gui/clientDialog.h>
 #include <qpushbutton.h>
 #include <qlayout.h>
-#if QT_VERSION >= 0x040000
-#include <Q3GroupBox>
-#include <Q3VButtonGroup>
-#include <q3grid.h>
-#include <q3hbox.h>
-#include <q3vbox.h>
-typedef Q3VButtonGroup QVButtonGroup;
-typedef Q3Grid QGrid;
-typedef Q3HBox QHBox;
-typedef Q3VBox QVBox;
-#else
-#include <qgroupbox.h>
-#include <qvbuttongroup.h>
-#include <qgrid.h>
-#include <qhbox.h>
-#include <qvbox.h>
-typedef QGroupBox Q3GroupBox;
-#endif
 #include <qradiobutton.h>
 #include <qlabel.h>
 #include <qlineedit.h>
+#include <qgroupbox.h>
+#include <qbuttongroup.h>
 #include <stdio.h>
 #ifdef _WIN32
 #include <winsock.h>
@@ -51,21 +35,24 @@ using namespace std;
 
 
 RRClientDialog::RRClientDialog( QWidget* parent, const char* name ) 
-  : QDialog( parent, name, true ), _mode( LOCAL )
+  : QDialog( parent ), _mode( LOCAL )
 {
-  setCaption( tr( "Network Client : connection choice" ) );
+  if( name )
+    setObjectName( name );
+  setWindowTitle( tr( "Network Client : connection choice" ) );
+  setModal( true );
 
-  QVBoxLayout	*lay2 = new QVBoxLayout( this, 10 );
+  QVBoxLayout *lay2 = new QVBoxLayout( this );
+  lay2->setMargin( 10 );
+  setLayout( lay2 );
 
-  Q3GroupBox	*hg = new Q3GroupBox( 1, Qt::Vertical, tr( "Server address :" ), this );
-  QVButtonGroup	*bts = new QVButtonGroup( hg );
-#if QT_VERSION >= 0x040000
-  bts->setFlat( true );
-#else
-  bts->setFrameStyle( QFrame::NoFrame );
-#endif
-  QVBox		*vals = new QVBox( hg );
-  QRadioButton	*locb = new QRadioButton( tr( "Local :" ), bts );
+  QGroupBox	*hg = new QGroupBox( tr( "Server address :" ), this );
+  QGridLayout	*hgvl = new QGridLayout( hg );
+  hg->setLayout( hgvl );
+  QButtonGroup	*bts = new QButtonGroup( hg );
+  QRadioButton	*locb = new QRadioButton( tr( "Local :" ), hg );
+  bts->addButton( locb );
+  hgvl->addWidget( locb, 0, 0 );
   locb->setChecked( true );
 
   char	host[50];
@@ -73,28 +60,35 @@ RRClientDialog::RRClientDialog( QWidget* parent, const char* name )
   if( res < 0 )
     sprintf( host, "?? unknown ??" );
   _localAddress = host;
-  new QLabel( host, vals );
+  hgvl->addWidget( new QLabel( host, hg ), 0, 1 );
 
-  new QRadioButton( tr( "Distant :" ), bts );
+  QRadioButton *db = new QRadioButton( tr( "Distant :" ), hg );
+  bts->addButton( db );
+  hgvl->addWidget( db, 1, 0 );
 
-  _edit = new QLineEdit( vals );
+  _edit = new QLineEdit( hg );
   _edit->setEnabled( false );
+  hgvl->addWidget( _edit, 1, 1 );
 
-  QHBox		*resFr = new QHBox( this );
-  resFr->setSpacing (10 );
-  QPushButton	*okBtn = new QPushButton( tr( "Connect" ), resFr, "ok" );
-  QPushButton	*cancelBtn = new QPushButton( tr( "Cancel" ), resFr, 
-					      "cancel" );
+  lay2->addWidget( hg );
+  QWidget *dum = new QWidget( this );
+  lay2->addWidget( dum );
+  QHBoxLayout	*resFr = new QHBoxLayout( dum );
+  dum->setLayout( resFr );
+  resFr->setSpacing( 10 );
+  QPushButton	*okBtn = new QPushButton( tr( "Connect" ), dum );
+  okBtn->setObjectName( "ok" );
+  resFr->addWidget( okBtn );
+  QPushButton	*cancelBtn = new QPushButton( tr( "Cancel" ), dum );
+  cancelBtn->setObjectName( "cancel" );
+  resFr->addWidget( cancelBtn );
   okBtn->setFixedSize( okBtn->sizeHint() );
   okBtn->setDefault( true );
   cancelBtn->setFixedSize( cancelBtn->sizeHint() );
 
-  lay2->addWidget( hg );
-  lay2->addWidget( resFr );
-
   connect( okBtn, SIGNAL( clicked() ), this, SLOT( accept() ) );
   connect( cancelBtn, SIGNAL( clicked() ), this, SLOT( reject() ) );
-  connect( bts, SIGNAL( clicked( int ) ), this, SLOT( modeClick( int ) ) );
+  connect( bts, SIGNAL( buttonClicked(int) ), this, SLOT( modeClick( int ) ) );
 }
 
 
@@ -126,7 +120,7 @@ string RRClientDialog::address() const
       return( _localAddress );
     case DISTANT:
     default:
-      return( string( _edit->text().ascii() ) );
+      return( string( _edit->text().toUtf8().data() ) );
     }
 }
 
