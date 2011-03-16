@@ -27,7 +27,15 @@
 #include <qpainter.h>
 #include <qimage.h>
 #include <qevent.h>
+#if defined(__APPLE__)
+/* OpenGL on Mac uses non-standard include paths, it would have been
+   too simple and too much like all other systems, they definitely
+   needed to "think different"... (even Windows is more standard !)
+*/
+# include <OpenGL/gl.h>
+#else
 #include <GL/gl.h>
+#endif
 #include <iostream>
 #include <math.h>
 
