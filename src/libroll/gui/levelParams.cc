@@ -17,26 +17,18 @@
 
 #include <roll/gui/levelParams.h>
 #include <qlayout.h>
-#if QT_VERSION >= 0x040000
-#include <q3hbox.h>
-#include <q3grid.h>
-#include <q3groupbox.h>
-#include <q3buttongroup.h>
-typedef Q3HBox QHBox;
-typedef Q3Grid QGrid;
-#else
-#include <qhbox.h>
-#include <qgrid.h>
-#include <qgroupbox.h>
-#include <qbuttongroup.h>
-typedef QButtonGroup Q3ButtonGroup;
-typedef QGroupBox Q3GroupBox;
-#endif
 #include <qspinbox.h>
 #include <qpushbutton.h>
 #include <qcheckbox.h>
 #include <qcombobox.h>
 #include <qcolordialog.h>
+#include <qgroupbox.h>
+
+#include <q3groupbox.h>
+#include <q3hbox.h>
+#include <q3grid.h>
+#include <q3buttongroup.h>
+
 #include <roll/game/vars.h>
 #include <roll/struct/series.h>
 #include <roll/struct/level.h>
@@ -86,9 +78,9 @@ namespace roll
     QSpinBox	*bombdelay;
 
     QPushButton			*valid;
-    Q3GroupBox			*colpanel;
-    Q3GroupBox			*exppanel;
-    Q3GroupBox			*blbpanel;
+    QGroupBox			*colpanel;
+    QGroupBox			*exppanel;
+    QGroupBox			*blbpanel;
     QPushButton			*colors[5];
     QComboBox			*expl;
     vector<unsigned short>	explnum;
@@ -113,68 +105,109 @@ QLevelParams::QLevelParams( QWidget* parent, const char* name, Qt::WFlags f )
   : QWidget( parent, f ), d( new QLevelParams_Private )
 {
   setAttribute( Qt::WA_DeleteOnClose );
-  setCaption( tr( "QRoll level parameters" ) );
+  setWindowTitle( tr( "QRoll level parameters" ) );
   if( name )
     setObjectName( name );
 
-  QVBoxLayout	*mlay = new QVBoxLayout( this, 5, 5 );
-  QHBox		*mhb = new QHBox( this );
-  QGrid		*mfr = new QGrid( 2, mhb );
-  mhb->setSpacing( 5 );
+  QHBoxLayout   *mhbl = new QHBoxLayout( this );
+  mhbl->setSpacing( 5 );
+  mhbl->setMargin( 2 );
+  setLayout( mhbl );
+  QFrame       *mfr = new QFrame( this );
+  mhbl->addWidget( mfr );
+  QGridLayout	*mfrl = new QGridLayout( mfr );
+  mfr->setLayout( mfrl );
   mfr->setFrameStyle( QFrame::Box | QFrame::Sunken );
-  mfr->setSpacing( 5 );
-  mfr->setMargin( 10 );
-  mlay->addWidget( mhb );
+  mfrl->setSpacing( 5 );
+  mfrl->setMargin( 10 );
 
-  new QLabel( tr( "Level :" ), mfr );
-  d->level = new QSpinBox( 0, ser->numLevels() - 1, 1, mfr );
+  mfrl->addWidget( new QLabel( tr( "Level :" ), mfr ), 0, 0 );
+  d->level = new QSpinBox( mfr );
+  d->level->setMinimum( 0 );
+  d->level->setMaximum( ser->numLevels() - 1 );
   d->level->setButtonSymbols( QSpinBox::PlusMinus );
+  mfrl->addWidget( d->level, 0, 1 );
 
-  QHBox		*szxhb = new QHBox( mfr );
-  szxhb->setSpacing( 5 );
-  new QLabel( tr( "Size :" ), szxhb );
-  d->sizex = new QSpinBox( 0, 255, 16, szxhb );
+  QWidget	*szxhb = new QWidget( mfr );
+  QHBoxLayout   *szxhbl = new QHBoxLayout( szxhb );
+  szxhbl->setMargin( 0 );
+  mfrl->addWidget( szxhb, 1, 0 );
+  szxhb->setLayout( szxhbl );
+  szxhbl->setSpacing( 5 );
+  szxhbl->addWidget( new QLabel( tr( "Size :" ), szxhb ) );
+  d->sizex = new QSpinBox( szxhb );
+  d->sizex->setRange( 0, 255 );
+  d->sizex->setSingleStep( 16 );
+  szxhbl->addWidget( d->sizex );
   QLabel	*xl = new QLabel( "x", szxhb );
+  szxhbl->addWidget( xl );
   xl->setFixedWidth( xl->sizeHint().width() );
-  QHBox		*szyhb = new QHBox( mfr );
-  szyhb->setSpacing( 5 );
-  d->sizey = new QSpinBox( 0, 255, 12, szyhb );
+  d->sizey = new QSpinBox( mfr );
+  d->sizey->setRange( 0, 255 );
+  d->sizey->setSingleStep( 12 );
+  mfrl->addWidget( d->sizey, 1, 1 );
 
-  new QLabel( tr( "Diams :" ), mfr );
-  d->diams = new QSpinBox( 0, 65535, 1, mfr );
+  mfrl->addWidget( new QLabel( tr( "Diams :" ), mfr ), 2, 0 );
+  d->diams = new QSpinBox( mfr );
+  d->diams->setRange( 0, 65536 );
+  mfrl->addWidget( d->diams, 2, 1 );
 
-  new QLabel( tr( "Time :" ), mfr );
-  d->time = new QSpinBox( 0, 65535, 1, mfr );
+  mfrl->addWidget( new QLabel( tr( "Time :" ), mfr ), 3, 0 );
+  d->time = new QSpinBox( mfr );
+  d->time->setRange( 0, 65535 );
+  mfrl->addWidget( d->time, 3, 1 );
 
-  new QLabel( tr( "Wall permeab. :" ), mfr );
-  d->perm = new QSpinBox( 0, 99, 1, mfr );
+  mfrl->addWidget( new QLabel( tr( "Wall permeab. :" ), mfr ), 4, 0 );
+  d->perm = new QSpinBox( mfr );
+  d->perm->setRange( 0, 99 );
+  mfrl->addWidget( d->perm, 4, 1 );
 
-  new QLabel( tr( "Blob speed :" ), mfr );
-  d->speed = new QSpinBox( 0, 99, 1, mfr );
+  mfrl->addWidget( new QLabel( tr( "Blob speed :" ), mfr ), 5, 0 );
+  d->speed = new QSpinBox( mfr );
+  d->speed->setRange( 0, 99 );
+  mfrl->addWidget( d->speed, 5, 1 );
 
-  new QLabel( tr( "Strength :" ), mfr );
-  d->strength = new QSpinBox( 0, 99, 1, mfr );
+  mfrl->addWidget( new QLabel( tr( "Strength :" ), mfr ), 6, 0 );
+  d->strength = new QSpinBox( mfr );
+  d->strength->setRange( 0, 99 );
+  mfrl->addWidget( d->strength, 6, 1 );
 
-  new QLabel( tr( "Gener. speed :" ), mfr );
-  d->genspeed = new QSpinBox( 0, 99, 1, mfr );
+  mfrl->addWidget( new QLabel( tr( "Gener. speed :" ), mfr ), 7, 0 );
+  d->genspeed = new QSpinBox( mfr );
+  d->genspeed->setRange( 0, 99 );
+  mfrl->addWidget( d->genspeed, 7, 1 );
 
-  new QLabel( tr( "Blob max. size :" ), mfr );
-  d->blobsize = new QSpinBox( 0, 65535, 1, mfr );
+  mfrl->addWidget( new QLabel( tr( "Blob max. size :" ), mfr ), 8, 0 );
+  d->blobsize = new QSpinBox( mfr );
+  d->blobsize->setRange( 0, 65535 );
+  mfrl->addWidget( d->blobsize, 8, 1 );
 
-  new QLabel( tr( "Bomb delay :" ), mfr );
-  d->bombdelay = new QSpinBox( 0, 65535, 1, mfr );
+  mfrl->addWidget( new QLabel( tr( "Bomb delay :" ), mfr ), 9, 0 );
+  d->bombdelay = new QSpinBox( mfr );
+  d->bombdelay->setRange( 0, 65535 );
+  mfrl->addWidget( d->bombdelay, 9, 1 );
 
-  QHBox	*ap = new QHBox( mfr );
-  ap->setSpacing( 5 );
+  QWidget	*ap = new QWidget( mfr );
+  QHBoxLayout	*apl = new QHBoxLayout( ap );
+  mfrl->addWidget( ap, 10, 0 );
+  ap->setLayout( apl );
+  apl->setSpacing( 5 );
+  apl->setMargin( 0 );
   QCheckBox	*colcb = new QCheckBox( tr( "Colors" ), ap );
+  apl->addWidget( colcb );
   QCheckBox	*expcb = new QCheckBox( tr( "Explosions" ), ap );
+  apl->addWidget( expcb );
   QCheckBox	*blbcb = new QCheckBox( tr( "Blobs" ), mfr );
+  mfrl->addWidget( blbcb, 10, 1 );
   QCheckBox	*edit = new QCheckBox( tr( "Edit values..." ), mfr );
+  mfrl->addWidget( edit, 11, 0 );
   d->valid = new QPushButton( tr( "Validate" ), mfr );
+  mfrl->addWidget( d->valid, 11, 1 );
 
   // colors panel
 
-  d->colpanel = new Q3GroupBox( 1, Qt::Horizontal, tr( "Colors :" ), mhb );
+  d->colpanel = new QGroupBox( tr( "Colors :" ), this );
+  mhbl->addWidget( d->colpanel );
   d->colpanel->hide();
   d->colors[0] = new QPushButton( d->colpanel );
   d->colors[1] = new QPushButton( d->colpanel );
@@ -187,44 +220,64 @@ QLevelParams::QLevelParams( QWidget* parent, const char* name, Qt::WFlags f )
   d->colors[2]->setFixedSize( sz );
   d->colors[3]->setFixedSize( sz );
   d->colors[4]->setFixedSize( sz );
+  QVBoxLayout *colpl = new QVBoxLayout( d->colpanel );
+  colpl->setMargin( 5 );
+  colpl->setSpacing( 3 );
+  colpl->addWidget( d->colors[0] );
+  colpl->addWidget( d->colors[1] );
+  colpl->addWidget( d->colors[2] );
+  colpl->addWidget( d->colors[3] );
+  colpl->addWidget( d->colors[4] );
+  colpl->addStretch();
 
   // explosions panel
 
-  d->exppanel = new Q3GroupBox( 1, Qt::Horizontal, tr( "Explosions :" ), mhb );
+  d->exppanel = new QGroupBox( tr( "Explosions :" ), this );
+  mhbl->addWidget( d->exppanel );
+  QVBoxLayout *exppl = new QVBoxLayout( d->exppanel );
   d->exppanel->hide();
   d->expl = new QComboBox( d->exppanel );
+  exppl->addWidget( d->expl );
   d->expl->setFixedSize( 64, 44 );
-#if QT_VERSION >= 0x040000
   d->expl->setIconSize( QSize( 32, 32 ) );
-#endif
   QPushButton	*enew = new QPushButton( tr( "New" ), d->exppanel );
   d->newexpl = enew;
+  exppl->addWidget( enew );
   QPushButton	*ermv = new QPushButton( tr( "Remove" ), d->exppanel );
   d->delexpl = ermv;
+  exppl->addWidget( ermv );
   enew->setEnabled( false );
   ermv->setEnabled( false );
-  QGrid	*expgd = new QGrid( 3, d->exppanel );
+  QFrame   *expgd = new QFrame( d->exppanel );
+  exppl->addWidget( expgd );
+  QGridLayout	*expgdl = new QGridLayout( expgd );
+  expgdl->setMargin( 0 );
+  expgdl->setSpacing( 0 );
+  expgd->setLayout( expgdl );
   expgd->setFrameStyle( QFrame::Sunken | QFrame::Panel );
   unsigned	i;
   for( i=0; i<9; ++i )
     {
       d->explab[i] = new internal::QElemDrawer( i, expgd );
+      expgdl->addWidget( d->explab[i], i / 3, i % 3 );
       d->explab[i]->setFixedSize( 32, 32 );
       connect( d->explab[i], SIGNAL( drawn( int, unsigned short ) ), 
 	       this, SLOT( drawExplosion( int, unsigned short ) ) );
     }
   expgd->setFixedSize( expgd->sizeHint() );
+  exppl->addStretch();
 
   // blobs panel
 
-  d->blbpanel = new Q3GroupBox( 1, Qt::Horizontal, tr( "Blobs :" ), mhb );
+  d->blbpanel = new Q3GroupBox( 1, Qt::Horizontal, tr( "Blobs :" ), this );
+  mhbl->addWidget( d->blbpanel );
   d->blbpanel->hide();
   d->blobs = new QComboBox( d->blbpanel );
   d->blobs->setFixedSize( 64, 44 );
 #if QT_VERSION >= 0x040000
   d->blobs->setIconSize( QSize( 32, 32 ) );
 #endif
-  QHBox	*bshb = new QHBox( d->blbpanel );
+  Q3HBox	*bshb = new Q3HBox( d->blbpanel );
   new QLabel( tr( "Size:" ), bshb );
   d->blobspesize = new QSpinBox( bshb );
   QPushButton	*bnew = new QPushButton( tr( "New" ), d->blbpanel );
@@ -235,7 +288,7 @@ QLevelParams::QLevelParams( QWidget* parent, const char* name, Qt::WFlags f )
   brmv->setEnabled( false );
   d->blobspesize->setEnabled( false );
   new QLabel( tr( "Free :" ), d->blbpanel );
-  QGrid	*blbgd = new QGrid( 3, d->blbpanel );
+  Q3Grid	*blbgd = new Q3Grid( 3, d->blbpanel );
   blbgd->setFrameStyle( QFrame::Sunken | QFrame::Panel );
   for( i=0; i<9; ++i )
     {
@@ -246,7 +299,7 @@ QLevelParams::QLevelParams( QWidget* parent, const char* name, Qt::WFlags f )
     }
   blbgd->setFixedSize( blbgd->sizeHint() );
   new QLabel( tr( "Blocked :" ), d->blbpanel );
-  blbgd = new QGrid( 3, d->blbpanel );
+  blbgd = new Q3Grid( 3, d->blbpanel );
   blbgd->setFrameStyle( QFrame::Sunken | QFrame::Panel );
   for( i=0; i<9; ++i )
     {

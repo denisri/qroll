@@ -134,13 +134,13 @@ void RGameField::displayFull()
 
   for( j=0; j<h; ++j )
     for( i=0; i<w; ++i )
-      {
-	if( i+_xx < game.tbct.sizeX() && j+_yy < game.tbct.sizeY() )
-	  spr = game.tbct.d[i+_xx][j+_yy]->sprite
-	    ( game.tbct.b[i+_xx][j+_yy] );
-	else spr = 255;
-	copySprite( spr, i*32, j*32 );
-      }
+    {
+      if( i+_xx < game.tbct.sizeX() && j+_yy < game.tbct.sizeY() )
+        spr = game.tbct.d[i+_xx][j+_yy]->sprite
+          ( game.tbct.b[i+_xx][j+_yy] );
+      else spr = 255;
+      copySprite( spr, i*32, j*32 );
+    }
 
   updateScreen( true, ww, wh );
 }

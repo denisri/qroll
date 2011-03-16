@@ -49,15 +49,18 @@ namespace roll
   struct QRPlayField_Private
   {
     QRPlayField_Private() 
-      : parentMW( 0 ), scoreBox( 0 ), opengl( false ), gameField( 0 ), 
-        gameWid( 0 ), game( 0 ), dragging( false ), interndrag( false ), tapkey( 0 ) {}
+      : parentMW( 0 ), scoreBox( 0 ), opengl( false ), layout( 0 ),
+        gameField( 0 ),
+        gameWid( 0 ), /*game( 0 ),*/ dragging( false ), interndrag( false ),
+        tapkey( 0 ) {}
 
     const QRMainWin	*parentMW;
     QRScoreBox		*scoreBox;
     bool		opengl;
+    QBoxLayout          *layout;
     RGameField		*gameField;
     QWidget		*gameWid;
-    QWidget		*game;
+    // QWidget		*game;
     bool		dragging;
     QPoint		dragorg;
     int			draglvlorgx;
@@ -84,19 +87,26 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
   initKeyCodes();
 
   QHBoxLayout	*lay= new QHBoxLayout( this );
+  d->layout = lay;
+#ifdef ANDROID // keep max of screen space
+  lay->setMargin( 0 );
+#else
+  lay->setMargin( 2 );
+#endif
+  lay->setSpacing( 0 );
   setLayout( lay );
 
-  d->game = new QWidget( this );
-  QVBoxLayout *vg = new QVBoxLayout( d->game );
-  vg->setMargin( 0 );
-  d->game->setLayout( vg );
+  // d->game = new QWidget( this );
+  // QVBoxLayout *vg = new QVBoxLayout( d->game );
+  // vg->setMargin( 0 );
+  // d->game->setLayout( vg );
   d->opengl = !usegl;
   setUseOpenGL( usegl );
 
   d->scoreBox = new QRScoreBox( this, "RRScoreBox" );
   d->scoreBox->setFixedWidth( d->scoreBox->width() );
 
-  lay->addWidget( d->game );
+  // lay->addWidget( d->game );
   lay->addWidget( d->scoreBox );
   resize( d->gameWid->width() + d->scoreBox->width(), d->gameWid->height() );
 
@@ -534,21 +544,23 @@ void QRPlayField::setUseOpenGL( bool x )
       if( x )
 	{
 	  QRGLGameField	*gf 
-	    = new QRGLGameField( d->parentMW->sprites(), d->game, 
+	    = new QRGLGameField( d->parentMW->sprites(), this, // d->game, 
 				 "GLGameField" );
 	  d->gameField = gf;
 	  d->gameWid = gf;
-          d->game->layout()->addWidget( gf );
+          // d->game->layout()->addWidget( gf );
+          d->layout->insertWidget( 0, gf );
 	}
       else
 	{
 #endif
 	  QRGameField	*gf 
-	    = new QRGameField( d->parentMW->sprites(), d->game, 
+	    = new QRGameField( d->parentMW->sprites(), this, // d->game, 
 			       "QRGameField" );
 	  d->gameField = gf;
 	  d->gameWid = gf;
-          d->game->layout()->addWidget( gf );
+          // d->game->layout()->addWidget( gf );
+          d->layout->insertWidget( 0, gf );
 #ifndef RR_NO_OPENGL
 	}
 #endif
@@ -751,9 +763,9 @@ void QRPlayField::tapGesture( QPointF pos, QWidget *widget )
   d->parentMW->statusBar()->showMessage( "tap in: " + wn );
   if( widget == d->scoreBox )
   {
-    x += d->game->width();
+    x += d->gameField->width();
   }
-  if( x < d->game->width() / 2 )
+  if( x < d->gameField->width() / 2 )
   { // left
     if( pos.ry() < height() / 2 )
     {
@@ -772,7 +784,7 @@ void QRPlayField::tapGesture( QPointF pos, QWidget *widget )
   }
   else
   { // right part
-    x = d->game->width() - x;
+    x = d->gameField->width() - x;
     if( pos.ry() < height() / 2 )
     {
       if( pos.ry() < x )

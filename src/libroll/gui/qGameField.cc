@@ -101,13 +101,12 @@ void QRGameField::setupScreen( unsigned w, unsigned h )
   if( !_pscr )
     _pscr = new QPixmap( w, h );
   else if( (unsigned) _pscr->width() != w || (unsigned) _pscr->height() != h )
-    *_pscr = _pscr->copy( 0, 0, w, h );
+    *_pscr = QPixmap( w, h );
 }
 
 
 void QRGameField::copySprite( unsigned spr, int posx, int posy )
 {
-  // bitBlt( _pscr, posx, posy, _sprite[spr], 0, 0, 32, 32, true );
   QPainter qp;
   qp.begin( _pscr );
   qp.drawPixmap( posx, posy, *_sprite[spr] );
