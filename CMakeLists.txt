@@ -24,7 +24,7 @@ if( DESIRED_QT_VERSION EQUAL 4 )
   find_package( Qt4 COMPONENTS QtCore QtGui Qt3Support QtOpenGL REQUIRED )
 endif()
 find_package( QtVersion )
-find_package( OpenGL REQUIRED )
+find_package( OpenGL )
 
 find_package(ALSA) # system cmake
 if( NOT ALSA_FOUND AND brainvisa_enabled )
@@ -33,6 +33,10 @@ endif()
 
 set( QROLL_DEFINITIONS "-DQROLL_EXPORTS" "-DHAS_GLEXT" )
 set( QROLL_LIBRARIES ${OPENGL_LIBRARIES} )
+
+if( NOT OPENGL_FOUND )
+  set( QROLL_DEFINITIONS "-DRR_NO_OPENGL" )
+endif()
 
 if (EXISTS '/usr/include/sys/soundcard.h' OR EXISTS '/usr/include/sys/audioio.h' )
   set( QROLL_DEFINITIONS "${QROLL_DEFINITIONS} -DSOMA_SOUND_OSS" )

@@ -1,5 +1,11 @@
+if( WIN32 )
+  set( _guiExecutable WIN32 )
+endif( WIN32 )
+if( APPLE )
+  set( _guiExecutable MACOSX_BUNDLE )
+endif( APPLE )
 
-add_executable( qroll main.cc )
+add_executable( qroll ${_guiExecutable} main.cc )
 target_link_libraries( qroll roll ${QROLL_LIBRARIES} )
 
 if( brainvisa_enabled )
