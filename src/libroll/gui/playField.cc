@@ -26,19 +26,15 @@
 #include <roll/game/vars.h>
 #include <roll/gui/editPalette.h>
 #include <iostream>
-#if QT_VERSION >= 0x040000
 #include <qnamespace.h>
 #include <qlayout.h>
-#else
-#include <qkeycode.h>
-#include <qvbox.h>
-#endif
 #include <qevent.h>
 #include <qlayout.h>
 #include <qcursor.h>
-// *** DEBUG ***
-//#include <qapplication.h>
-//#include <qfocusdata.h>
+#if QT_VERSION >= 0x040600
+#include <qgesture.h>
+#include <QGestureEvent>
+#endif
 
 using namespace roll;
 using namespace std;
@@ -54,7 +50,7 @@ namespace roll
   {
     QRPlayField_Private() 
       : parentMW( 0 ), scoreBox( 0 ), opengl( false ), gameField( 0 ), 
-	gameWid( 0 ), game( 0 ), dragging( false ), interndrag( false ) {}
+        gameWid( 0 ), game( 0 ), dragging( false ), interndrag( false ), tapkey( 0 ) {}
 
     const QRMainWin	*parentMW;
     QRScoreBox		*scoreBox;
@@ -67,6 +63,7 @@ namespace roll
     int			draglvlorgx;
     int			draglvlorgy;
     bool                interndrag;
+    int                 tapkey;
   };
 
 }
@@ -87,9 +84,11 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
   initKeyCodes();
 
   QHBoxLayout	*lay= new QHBoxLayout( this );
+  setLayout( lay );
 
   d->game = new QWidget( this );
   QVBoxLayout *vg = new QVBoxLayout( d->game );
+  vg->setMargin( 0 );
   d->game->setLayout( vg );
   d->opengl = !usegl;
   setUseOpenGL( usegl );
@@ -135,6 +134,15 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
 
   setFocusPolicy( StrongFocus );
   setFocus();
+
+#if QT_VERSION >= 0x040600
+  grabGesture( Qt::PanGesture );
+  grabGesture( Qt::PinchGesture );
+  grabGesture( Qt::SwipeGesture );
+  grabGesture( Qt::TapGesture );
+  grabGesture( Qt::TapAndHoldGesture );
+#endif
+
   //setActiveWindow();
   /*cout << "toplevel     : " << isTopLevel() << endl;
   cout << "activeWindow : " << isActiveWindow() << endl;
@@ -158,7 +166,7 @@ QRPlayField::~QRPlayField()
 void QRPlayField::initKeyCodes()
 {
   if( KeyMapMono.size() > 0 )
-    return;	// dÃ¯Â¿Â½Ã¯Â¿Â½fait...
+    return;
 
   //	joueur 0 mono-joueur
   KeyMapMono[Key_Up] = KeyCode( 0, game.K_UP );
@@ -208,12 +216,20 @@ unsigned QRPlayField::player() const
 }
 
 
+#include <qstatusbar.h>
 void QRPlayField::resizeEvent( QResizeEvent* )
 {
-  //out << "QRPlayField::resizeEvent\n";
+    d->parentMW->statusBar()->showMessage( "resizeEvent, w: " + QString::number( width() ) + " / g: "+
+                                             QString::number( d->gameWid->width() ) + ", s: " +
+                                             QString::number( d->scoreBox->width() ) );
+    if( d->scoreBox->width() > d->scoreBox->minimumWidth() )
+        d->scoreBox->resize( d->scoreBox->minimumWidth(), d->scoreBox->height() );
+  // out << "QRPlayField::resizeEvent\n";
+#ifndef ANDROID
   d->gameWid->setGeometry( 0, 0, width() - d->scoreBox->width(), height() );
   d->scoreBox->setGeometry( width() - d->scoreBox->width(), 0, 
 			    d->scoreBox->width(), height() );
+#endif
 }
 
 
@@ -268,7 +284,7 @@ void QRPlayField::keyPressedEvent( QKeyEvent* key )
       else
 	{
 	  ik = KeyMapMulti.find( key->key() );
-	  fk = KeyMapMono.end();
+          fk = KeyMapMulti.end();
 	}
 
       if( ik != fk )	// keycode found
@@ -360,7 +376,7 @@ void QRPlayField::keyReleasedEvent( QKeyEvent* key )
       else
 	{
 	  ik = KeyMapMulti.find( key->key() );
-	  fk = KeyMapMono.end();
+          fk = KeyMapMulti.end();
 	}
 
       if( ik != fk )	// keycode found
@@ -707,5 +723,131 @@ const RGameField* QRPlayField::viewport() const
 {
   return( d->gameField );
 }
+
+
+bool QRPlayField::event( QEvent * event )
+{
+#if QT_VERSION >= 0x040600
+  if( event->type() == QEvent::Gesture )
+    return gestureEvent( static_cast<QGestureEvent*>( event ) );
+#endif
+
+  // d->parentMW->statusBar()->showMessage( "Event: " + QString::number( event->type() ) );
+  return QWidget::event( event );
+}
+
+
+#if QT_VERSION >= 0x040600
+#include <qstatusbar.h>
+
+void QRPlayField::tapGesture( QPointF pos, QWidget *widget )
+{
+  int key = Qt::Key_Up;
+
+  qreal x = pos.rx();
+  QString wn = "None";
+  if( widget )
+    wn = widget->objectName();
+  d->parentMW->statusBar()->showMessage( "tap in: " + wn );
+  if( widget == d->scoreBox )
+  {
+    x += d->game->width();
+  }
+  if( x < d->game->width() / 2 )
+  { // left
+    if( pos.ry() < height() / 2 )
+    {
+      if( pos.ry() < x )
+        key = Qt::Key_Up;
+      else
+        key = Qt::Key_Left;
+    }
+    else
+    {
+      if( height() - pos.ry() < x )
+        key = Qt::Key_Down;
+      else
+        key = Qt::Key_Left;
+    }
+  }
+  else
+  { // right part
+    x = d->game->width() - x;
+    if( pos.ry() < height() / 2 )
+    {
+      if( pos.ry() < x )
+        key = Qt::Key_Up;
+      else
+        key = Qt::Key_Right;
+    }
+    else
+    {
+      if( height() - pos.ry() < x )
+        key = Qt::Key_Down;
+      else
+        key = Qt::Key_Right;
+    }
+  }
+  if( d->tapkey )
+  {
+    QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
+    keyReleasedEvent( &kup );
+  }
+  QKeyEvent ke( QEvent::KeyPress, key, 0 );
+  keyPressedEvent( &ke );
+  d->tapkey = key;
+}
+
+
+bool QRPlayField::gestureEvent( QGestureEvent *event )
+{
+  if( QGesture *swipe = event->gesture( Qt::SwipeGesture ) )
+  {
+    d->parentMW->statusBar()->showMessage( "SWIPE" );
+    // swipeTriggered( static_cast<QSwipeGesture *>( swipe ) );
+  }
+  else if( QGesture *pan = event->gesture( Qt::PanGesture ) )
+  {
+    d->parentMW->statusBar()->showMessage( "PAN" );
+    // panTriggered( static_cast<QPanGesture *>( pan ) );
+  }
+  if( QGesture *pinch = event->gesture(Qt::PinchGesture ) )
+  {
+    d->parentMW->statusBar()->showMessage( "PINCH" );
+    // pinchTriggered( static_cast<QPinchGesture *>( pinch ) );
+  }
+  if( QGesture *tap = event->gesture( Qt::TapGesture ) )
+  {
+    if( tap->state() == Qt::GestureCanceled || tap->state() == Qt::GestureFinished )
+    {
+      if( d->tapkey )
+      {
+        QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
+        keyReleasedEvent( &kup );
+        d->tapkey = 0;
+      }
+      return true;
+    }
+    QTapGesture *tapg = static_cast<QTapGesture *>( tap );
+    tapGesture( tapg->position(), event->widget() );
+  }
+  else if( QGesture *taphold = event->gesture(Qt::TapAndHoldGesture ) )
+  {
+    if( taphold->state() == Qt::GestureCanceled || taphold->state() == Qt::GestureFinished )
+    {
+      if( d->tapkey )
+      {
+        QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
+        keyReleasedEvent( &kup );
+        d->tapkey = 0;
+      }
+      return true;
+    }
+    QTapAndHoldGesture *tapg = static_cast<QTapAndHoldGesture*>( taphold );
+    tapGesture( tapg->position(), event->widget() );
+  }
+  return true;
+}
+#endif
 
 

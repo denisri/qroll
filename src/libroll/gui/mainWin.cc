@@ -54,6 +54,7 @@ class QRConfigWin;
 #include <qlabel.h>
 #include <qtimer.h>
 #include <qmessagebox.h>
+#include <qdesktopwidget.h>
 
 #include <assert.h>
 #include <iostream>
@@ -1272,6 +1273,9 @@ void QRMainWin::allowScale()
 
 void QRMainWin::standardSize()
 {
+#ifdef ANDROID
+  resize( qApp->desktop()->size() );
+#else
   //_playField->setGameSize( 512, 384 );
   resize( 640, menuBar()->frameGeometry().height() 
 	  + _tools->frameGeometry().height() 
@@ -1280,6 +1284,7 @@ void QRMainWin::standardSize()
   set<QRPlayField *>::const_iterator	iw, fw=_otherWins.end();
   for( iw=_otherWins.begin(); iw!=fw; ++iw )
     (*iw)->setGameSize( 512, 384 );
+#endif
 }
 
 

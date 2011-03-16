@@ -88,31 +88,18 @@ signals:
   //@}
 
 protected:
-  ///
   QLabel	*_timeLabel;
-  ///
   QLabel	*_scoreLabel;
-  ///
   QLabel	*_livesLabel;
-  ///
   QLabel	*_diamsLabel;
-  ///
   QLCDNumber	*_time;
-  ///
   QLCDNumber	*_score;
-  ///
   QLCDNumber	*_lives;
-  ///
   QLCDNumber	*_diams;
-  ///
   QLCDNumber	*_bombs[8];
-  ///
   QFrame	*_key;
-  ///
   QFrame	*_bombsT[8];
-  // /
   //QTimer	*_timer;
-  ///
   unsigned	_player;
 
 private:

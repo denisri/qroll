@@ -218,4 +218,3 @@ void QRScoreBox::setPlayer( unsigned num )
 
 
 
-

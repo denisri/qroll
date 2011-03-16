@@ -21,6 +21,9 @@
 
 
 #include <qwidget.h>
+#if QT_VERSION >= 0x040600
+class QGestureEvent;
+#endif
 #include <set>
 #include <map>
 
@@ -117,6 +120,11 @@ signals:
 
 protected:
   virtual void resizeEvent( QResizeEvent* re );
+  virtual bool event( QEvent *event );
+#if QT_VERSION >= 0x040600
+  virtual bool gestureEvent( QGestureEvent * event );
+  virtual void tapGesture( QPointF pos, QWidget *widget );
+#endif
 
   ///	Liste des joueurs gérés par cette fenêtre
   std::set<unsigned>		_players;

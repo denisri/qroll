@@ -35,6 +35,10 @@ int main( int argc, char** argv )
 #endif
   */
 
+#ifdef ANDROID
+    putenv( "ROLLDIR=/sdcard/share/qroll" );
+#endif
+
   setArgv0( argv[0] );
 
   // QApplication::setColorSpec( QApplication::ManyColor );
