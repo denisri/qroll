@@ -85,7 +85,7 @@ void SomaQSound::stop()
 {
   if( !isOK() )
     return;
-
+  
   unsigned	i, n = d->sounds.size();
   for( i=0; i<n; ++i )
     d->sounds[i]->stop();
@@ -94,7 +94,7 @@ void SomaQSound::stop()
 
 void SomaQSound::stop( int type )
 {
-  if( !isOK() || d->sounds.size() >= type )
+  if( !isOK() || d->sounds.size() <= type )
     return;
 
   d->sounds[ type ]->stop();
