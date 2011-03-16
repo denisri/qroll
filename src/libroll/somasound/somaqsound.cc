@@ -94,7 +94,7 @@ void SomaQSound::stop()
 
 void SomaQSound::stop( int type )
 {
-  if( !isOK() )
+  if( !isOK() || d->sounds.size() >= type )
     return;
 
   d->sounds[ type ]->stop();
