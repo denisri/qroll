@@ -158,13 +158,16 @@ void QRGLGameField::setupScreen( unsigned, unsigned )
   glLoadIdentity();*/
 
   if( scalingEnabled() )
-    glViewport( 0, height() - (GLint) ( sHeight() * 32 * sc ), 
-		(GLint) ( sWidth() * 32 * sc ), 
-		(GLint) ( sHeight() * 32 * sc ) );
+  glViewport( 0, height() - (GLint) ( sHeight() * 32 * sc ),
+              (GLint) ( sWidth() * 32 * sc ),
+              (GLint) ( sHeight() * 32 * sc ) );
   else
-    glViewport( 0, height() & 31 ? ( height() & 31 ) - 32 : 0, 
-		( ( width() >> 5 ) << 5 ) + ( width() & 31 ? 32 : 0 ), 
-		( ( height() >> 5 ) << 5 ) + ( height() & 31 ? 32 : 0 ) );
+    glViewport( 0, height() - (GLint) ( sHeight() * 32 * sc ),
+              (GLint) ( sWidth() * 32 * sc ),
+              (GLint) ( sHeight() * 32 * sc ) );
+//     glViewport( 0, height() & 31 ? ( height() & 31 ) - 32 : 0,
+//                 ( ( width() >> 5 ) << 5 ) + ( width() & 31 ? 32 : 0 ),
+//                 ( ( height() >> 5 ) << 5 ) + ( height() & 31 ? 32 : 0 ) );
 
   if( _glmode == Texture )
     {
