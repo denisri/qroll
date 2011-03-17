@@ -32,6 +32,12 @@
 class RGameField
 {
 public:
+  enum ScalingMode
+  {
+    StandardFOV,
+    ArbitraryScale,
+  };
+
   RGameField();
   virtual ~RGameField();
 
@@ -55,6 +61,9 @@ public:
   void enableScaling( bool f ) { if( _scale != f ) { _scale = f; reset(); } }
   bool scalingEnabled() const { return( _scale ); }
   float scaleFactor() const { return( _scfac ); }
+  void setScaleFactor( float s ) { _scfac = s; }
+  void setScalingMode( ScalingMode m ) { _sclmode = m; }
+  ScalingMode scalingMode() const { return _sclmode; }
   unsigned beginX() const { return( _xx ); }
   unsigned beginY() const { return( _yy ); }
   ///	Dessine le tableau, cases entières
@@ -98,6 +107,7 @@ private:
   unsigned		_w;
   ///	Nombre de sprites affichés en hauteur
   unsigned		_h;
+  ScalingMode           _sclmode;
 
 };
 

@@ -2,7 +2,7 @@
                           playField.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2002 by Denis RiviÃ¯Â¿Â½e
+    copyright            : (C) 2000-2002 by Denis Riviere
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -38,9 +38,7 @@
 
 using namespace roll;
 using namespace std;
-#if QT_VERSION >= 0x040000
 using namespace Qt;
-#endif
 
 
 namespace roll
@@ -151,6 +149,7 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
   grabGesture( Qt::SwipeGesture );
   grabGesture( Qt::TapGesture );
   grabGesture( Qt::TapAndHoldGesture );
+  QTapAndHoldGesture::setTimeout( 100 );
 #endif
 
   //setActiveWindow();
@@ -226,14 +225,11 @@ unsigned QRPlayField::player() const
 }
 
 
-#include <qstatusbar.h>
 void QRPlayField::resizeEvent( QResizeEvent* )
 {
-    d->parentMW->statusBar()->showMessage( "resizeEvent, w: " + QString::number( width() ) + " / g: "+
-                                             QString::number( d->gameWid->width() ) + ", s: " +
-                                             QString::number( d->scoreBox->width() ) );
     if( d->scoreBox->width() > d->scoreBox->minimumWidth() )
-        d->scoreBox->resize( d->scoreBox->minimumWidth(), d->scoreBox->height() );
+        d->scoreBox->resize( d->scoreBox->minimumWidth(), d->scoreBox->height()
+      );
   // out << "QRPlayField::resizeEvent\n";
 #ifndef ANDROID
   d->gameWid->setGeometry( 0, 0, width() - d->scoreBox->width(), height() );
@@ -744,7 +740,6 @@ bool QRPlayField::event( QEvent * event )
     return gestureEvent( static_cast<QGestureEvent*>( event ) );
 #endif
 
-  // d->parentMW->statusBar()->showMessage( "Event: " + QString::number( event->type() ) );
   return QWidget::event( event );
 }
 
@@ -752,54 +747,21 @@ bool QRPlayField::event( QEvent * event )
 #if QT_VERSION >= 0x040600
 #include <qstatusbar.h>
 
-void QRPlayField::tapGesture( QPointF pos, QWidget *widget )
+void QRPlayField::tapGesture( QPointF pos )
 {
   int key = Qt::Key_Up;
 
-  qreal x = pos.rx();
-  QString wn = "None";
-  if( widget )
-    wn = widget->objectName();
-  d->parentMW->statusBar()->showMessage( "tap in: " + wn );
-  if( widget == d->scoreBox )
-  {
-    x += d->gameField->width();
-  }
-  if( x < d->gameField->width() / 2 )
-  { // left
-    if( pos.ry() < height() / 2 )
-    {
-      if( pos.ry() < x )
-        key = Qt::Key_Up;
-      else
-        key = Qt::Key_Left;
-    }
-    else
-    {
-      if( height() - pos.ry() < x )
-        key = Qt::Key_Down;
-      else
-        key = Qt::Key_Left;
-    }
-  }
+  qreal y = pos.ry() - mapToGlobal( QPoint( 0, 0) ).y();
+
+  if( y < height() / 3 )
+    key = Qt::Key_Up;
+  else if( y >= height() * 2 / 3 )
+    key = Qt::Key_Down;
+  else if( pos.rx() < width() / 2 )
+    key = Qt::Key_Left;
   else
-  { // right part
-    x = d->gameField->width() - x;
-    if( pos.ry() < height() / 2 )
-    {
-      if( pos.ry() < x )
-        key = Qt::Key_Up;
-      else
-        key = Qt::Key_Right;
-    }
-    else
-    {
-      if( height() - pos.ry() < x )
-        key = Qt::Key_Down;
-      else
-        key = Qt::Key_Right;
-    }
-  }
+    key = Qt::Key_Right;
+
   if( d->tapkey )
   {
     QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
@@ -808,6 +770,39 @@ void QRPlayField::tapGesture( QPointF pos, QWidget *widget )
   QKeyEvent ke( QEvent::KeyPress, key, 0 );
   keyPressedEvent( &ke );
   d->tapkey = key;
+}
+
+
+void QRPlayField::pinchGesture( QPinchGesture * gesture )
+{
+  if( gesture->state() == Qt::GestureCanceled
+      || gesture->state() == Qt::GestureFinished )
+    return;
+
+  d->parentMW->statusBar()->showMessage( "PINCH, scale: " + QString::number(
+    gesture->totalScaleFactor() ) );
+
+  d->gameField->setScaleFactor( d->gameField->scaleFactor()
+    * gesture->scaleFactor() );
+}
+
+
+void QRPlayField::panGesture( QPanGesture * gesture )
+{
+  if( gesture->state() == Qt::GestureCanceled
+      || gesture->state() == Qt::GestureFinished )
+    return;
+
+  QPointF mov = gesture->delta() / d->gameField->scaleFactor() / 32;
+  int posx = d->gameField->beginX() - int( mov.rx() );
+  if( posx < 0 )
+    posx = 0;
+  int posy = d->gameField->beginY() - int( mov.ry() );
+  if( posy < 0 )
+    posy = 0;
+  d->gameField->setPos( posx, posy );
+
+  d->parentMW->statusBar()->showMessage( "PAN" );
 }
 
 
@@ -820,44 +815,53 @@ bool QRPlayField::gestureEvent( QGestureEvent *event )
   }
   else if( QGesture *pan = event->gesture( Qt::PanGesture ) )
   {
-    d->parentMW->statusBar()->showMessage( "PAN" );
-    // panTriggered( static_cast<QPanGesture *>( pan ) );
+    panGesture( static_cast<QPanGesture *>( pan ) );
+    return true;
   }
   if( QGesture *pinch = event->gesture(Qt::PinchGesture ) )
   {
     d->parentMW->statusBar()->showMessage( "PINCH" );
-    // pinchTriggered( static_cast<QPinchGesture *>( pinch ) );
+    pinchGesture( static_cast<QPinchGesture *>( pinch ) );
+    return true;
   }
-  if( QGesture *tap = event->gesture( Qt::TapGesture ) )
+
+  // use tap gestures only during game, otherwise panning is preferred
+  if( game.running )
   {
-    if( tap->state() == Qt::GestureCanceled || tap->state() == Qt::GestureFinished )
+    if( QGesture *taphold = event->gesture(Qt::TapAndHoldGesture ) )
     {
-      if( d->tapkey )
+      if( taphold->state() == Qt::GestureCanceled
+        || taphold->state() == Qt::GestureFinished )
       {
-        QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
-        keyReleasedEvent( &kup );
-        d->tapkey = 0;
+        if( d->tapkey )
+        {
+          QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
+          keyReleasedEvent( &kup );
+          d->tapkey = 0;
+        }
+        return true;
       }
-      return true;
+      QTapAndHoldGesture *tapg = static_cast<QTapAndHoldGesture*>( taphold );
+      tapGesture( tapg->hotSpot() );
     }
-    QTapGesture *tapg = static_cast<QTapGesture *>( tap );
-    tapGesture( tapg->position(), event->widget() );
-  }
-  else if( QGesture *taphold = event->gesture(Qt::TapAndHoldGesture ) )
-  {
-    if( taphold->state() == Qt::GestureCanceled || taphold->state() == Qt::GestureFinished )
+    else if( QGesture *tap = event->gesture( Qt::TapGesture ) )
     {
-      if( d->tapkey )
+      if( tap->state() == Qt::GestureCanceled
+        || tap->state() == Qt::GestureFinished )
       {
-        QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
-        keyReleasedEvent( &kup );
-        d->tapkey = 0;
+        if( d->tapkey )
+        {
+          QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
+          keyReleasedEvent( &kup );
+          d->tapkey = 0;
+        }
+        return true;
       }
-      return true;
+      QTapGesture *tapg = static_cast<QTapGesture *>( tap );
+      tapGesture( tapg->hotSpot() );
     }
-    QTapAndHoldGesture *tapg = static_cast<QTapAndHoldGesture*>( taphold );
-    tapGesture( tapg->position(), event->widget() );
   }
+
   return true;
 }
 #endif

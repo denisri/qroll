@@ -22,14 +22,20 @@
 #include <roll/game/playerServer.h>
 #include <roll/game/gElem.h>
 #include <iostream>
+#include <cmath>
 
 using namespace roll;
+using namespace std;
 
 
 RGameField::RGameField() 
   : _xx( 0 ), _yy( 0 ), _player( 0 ), _scale( false ), 
-    _scfac( 1 ), _w( 16 ), _h( 12 )
+    _scfac( 1 ), _w( 16 ), _h( 12 ), _sclmode( StandardFOV )
 {
+#ifdef ANDROID
+  // on Android, enable the arbitrary scale, used with pinch gesture
+  _sclmode = ArbitraryScale;
+#endif
 }
 
 
@@ -41,15 +47,26 @@ RGameField::~RGameField()
 void RGameField::reset()
 {
   if( _scale )
+  {
+    if( _sclmode == StandardFOV )
     {
       _w = 16;
       _h = 12;
     }
-  else
+    else
     {
-      _w = ( width() >> 5 ); // + ( width() & 31 == 0 ? 0 : 1);
-      _h = height() >> 5; // + ( height() & 31 == 0 ? 0 : 1);
+      float sf = 1.;
+      if( _scfac != 0. )
+        sf = 1. / _scfac;
+      _w = int( ceil( sf * width() / 32 ) );
+      _h = int( ceil( sf * height() / 32 ) );
     }
+  }
+  else
+  {
+    _w = int( ceil( width() / 32 ) );
+    _h = int( ceil( height() / 32 ) );
+  }
 
   Coord	cp;
 
@@ -61,28 +78,28 @@ void RGameField::reset()
   if( _w >= game.tbct.sizeX() )
     _xx = 0;
   else
-    {
-      _xx = (cp.x > 8 ? cp.x - 8 : 0 );
-      if( _xx + _w > game.tbct.sizeX() )
-	_xx = (unsigned) game.tbct.sizeX() - _w;
-    }
+  {
+    _xx = (cp.x > 8 ? cp.x - 8 : 0 );
+    if( _xx + _w > game.tbct.sizeX() )
+      _xx = (unsigned) game.tbct.sizeX() - _w;
+  }
   if( _h >= game.tbct.sizeY() )
     _yy = 0;
   else
-    {
-      _yy = (cp.y > 6 ? cp.y - 6 : 0 );
-      if( _yy + _h > game.tbct.sizeY() )
-	_yy = (unsigned) game.tbct.sizeY() - _h;
-    }
+  {
+    _yy = (cp.y > 6 ? cp.y - 6 : 0 );
+    if( _yy + _h > game.tbct.sizeY() )
+      _yy = (unsigned) game.tbct.sizeY() - _h;
+  }
 
   // rajuster les tailles
-  if( !_scale )
-    {
-      if( (_w << 5) < (unsigned) width() )
-	++_w;
-      if( (_h << 5) < (unsigned) height() )
-	++_h;
-    }
+/*  if( !_scale )
+  {
+    if( (_w << 5) < (unsigned) width() )
+      ++_w;
+    if( (_h << 5) < (unsigned) height() )
+      ++_h;
+  }*/
 }
 
 
@@ -109,19 +126,31 @@ void RGameField::displayFull()
   float		sc = 1;
 
   if( _scale )
+  {
+    if( _sclmode == StandardFOV )
     {
       sc = ((float) height()) / 384;
       float sc2 = ((float) width()) / 512;
       if( sc2 < sc )
-	sc = sc2;
+        sc = sc2;
       w = 16;
       h = 12;
     }
-  else
+    else
     {
-      w = ( width() >> 5 ) + ( ( width() & 31 ) == 0 ? 0 : 1);
-      h = ( height() >> 5 ) + ( ( height() & 31 ) == 0 ? 0 : 1);
+      sc = _scfac;
+      float sf = 1.;
+      if( _scfac != 0. )
+        sf = 1. / _scfac;
+      w = int( ceil( sf * width() / 32 ) );
+      h = int( ceil( sf * height() / 32 ) );
     }
+  }
+  else
+  {
+    w = int( ceil( width() / 32 ) );
+    h = int( ceil( height() / 32 ) );
+  }
 
   _w = w;
   _h = h;

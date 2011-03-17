@@ -23,6 +23,8 @@
 #include <qwidget.h>
 #if QT_VERSION >= 0x040600
 class QGestureEvent;
+class QPinchGesture;
+class QPanGesture;
 #endif
 #include <set>
 #include <map>
@@ -123,7 +125,9 @@ protected:
   virtual bool event( QEvent *event );
 #if QT_VERSION >= 0x040600
   virtual bool gestureEvent( QGestureEvent * event );
-  virtual void tapGesture( QPointF pos, QWidget *widget );
+  virtual void tapGesture( QPointF pos );
+  virtual void pinchGesture( QPinchGesture * gesture );
+  virtual void panGesture( QPanGesture *gesture );
 #endif
 
   ///	Liste des joueurs gérés par cette fenêtre
