@@ -149,7 +149,9 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
   grabGesture( Qt::SwipeGesture );
   grabGesture( Qt::TapGesture );
   grabGesture( Qt::TapAndHoldGesture );
+#if QT_VERSION >= 0x040700
   QTapAndHoldGesture::setTimeout( 100 );
+#endif
 #endif
 
   //setActiveWindow();
