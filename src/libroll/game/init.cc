@@ -258,7 +258,7 @@ void load_sprlink()
 		      ios::in | ios::binary );
   if( !fich )
     {
-      out << "spritedef.b pas trouvÃ¯Â¿Â½n";
+      out << "spritedef.b not found\n";
       exit( 1 );
     }
   fich.unsetf( ios::skipws );
@@ -292,8 +292,6 @@ void load_beb()
 {
   unsigned char			c1, c2;
   unsigned short		spr, ad=0;
-
-  //	out << "Chargement des bÃ¯Â¿Â½Ã¯Â¿Â½es\n";
 
   ifstream	fich( (RR_path + "/data/bebetes.b").c_str(), 
 		      ios::in | ios::binary );

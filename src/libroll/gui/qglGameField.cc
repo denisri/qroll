@@ -47,6 +47,7 @@ QRGLGameField::GLMode	QRGLGameField::_glmode = QRGLGameField::DrawPixels;
 
 static map<unsigned short, QImage>	glsprites;
 static GLuint				*gltexmap = 0, *gltexmap2 = 0;
+static vector<pair<GLfloat,GLfloat> >   gltexcoord;
 static QGLWidget			*sharedwid = 0;
 
 #ifdef RR_DEBUG
@@ -195,15 +196,17 @@ void QRGLGameField::copySprite( unsigned spr, int posx, int posy )
 
   if( _glmode == Texture )
     {
+      float tsz = 1. / 16;
       glBindTexture( GL_TEXTURE_2D, gltexmap[spr] );
       glBegin( GL_QUADS );
-      glTexCoord2f( 0, 0 );
+      const pair<GLfloat,GLfloat> & tc = gltexcoord[ spr ];
+      glTexCoord2f( tc.first, tc.second );
       glVertex2f( x, y );
-      glTexCoord2f( 0, 1 );
+      glTexCoord2f( tc.first, tc.second + tsz );
       glVertex2f( x, y+sy );
-      glTexCoord2f( 1, 1 );
+      glTexCoord2f( tc.first + tsz, tc.second + tsz );
       glVertex2f( x+sx, y+sy );
-      glTexCoord2f( 1, 0 );
+      glTexCoord2f( tc.first + tsz, tc.second );
       glVertex2f( x+sx, y );
       glEnd();
 
@@ -224,7 +227,15 @@ void QRGLGameField::copySprite( unsigned spr, int posx, int posy )
   else
     {
       glRasterPos2f( x, y );
-      glDrawPixels( 32, 32, GL_RGBA, GL_UNSIGNED_BYTE, glsprites[spr].bits() );
+      glPixelStorei( GL_UNPACK_ROW_LENGTH, 512 );
+      const pair<GLfloat,GLfloat> & tc = gltexcoord[ spr ];
+      glPixelStorei( GL_UNPACK_SKIP_PIXELS, int(round(tc.first*16))*32 );
+      glPixelStorei( GL_UNPACK_SKIP_ROWS, int(round(tc.second*16))*32 );
+      glDrawPixels( 32, 32, GL_RGBA, GL_UNSIGNED_BYTE,
+                    glsprites[spr>>8].bits() );
+      glPixelStorei( GL_UNPACK_SKIP_PIXELS, 0 );
+      glPixelStorei( GL_UNPACK_SKIP_ROWS, 0 );
+      glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
     }
 }
 
@@ -284,66 +295,63 @@ void QRGLGameField::makeTextures()
   GLenum	status;
 
   if( !gltexmap )
+  {
+    gltexmap = new GLuint[ 512 ];
+    gltexmap2 = new GLuint[ 2 ];
+    gltexcoord.resize( 512 );
+    glGenTextures( 2, gltexmap2 );
+
+    for( i=0; i<256; ++i )
     {
-      gltexmap = new GLuint[ 256 + n ];
-      gltexmap2 = new GLuint[ n*2+1 ];
-      glGenTextures( n*2+1, gltexmap2 );
-
-      for( i=0; i<n; ++i )
-	{
-	  gltexmap[i] = gltexmap2[i];
-	  gltexmap[i+256] = gltexmap2[n+1+i];
-	}
-      gltexmap[255] = gltexmap2[n];
-
-      status = glGetError();
-      if( status != GL_NO_ERROR )
-	cerr << "OpenGL error tex: " << gluErrorString(status) << endl;
-
-      setColorsChanged( true );
+      gltexmap[i] = gltexmap2[0];
+      gltexmap[i+256] = gltexmap2[1];
     }
+
+    status = glGetError();
+    if( status != GL_NO_ERROR )
+      cerr << "OpenGL error tex: " << gluErrorString(status) << endl;
+
+    setColorsChanged( true );
+  }
 
   if( colorsChanged() )
+  {
+    float xscl = 1. / 16, yscl = 1. / 16;
+    for( i=0; i<1; ++i )
     {
-      for( i=0; i<n; ++i )
-	{
-	  glBindTexture( GL_TEXTURE_2D, gltexmap[i] );
-	  glsprites[i] = convertToGLFormat( _sprite[i]->convertToImage() );
-	  glTexImage2D( GL_TEXTURE_2D, 0, 4, 32, 32, 0, GL_RGBA, 
-			GL_UNSIGNED_BYTE, glsprites[i].bits() );
-	  status = glGetError();
-	  if( status != GL_NO_ERROR )
-	    cerr << "OpenGL error tex: " << gluErrorString(status) << endl;
-	}
+      QImage im( 512, 512, QImage::Format_RGB32 );
+      QPainter p;
+      p.begin( &im );
+      for( int j=0; j<256; ++j )
+      {
+        int ind = j+256*i;
+        if( _sprite[ ind ] )
+        {
+          int x = j & 15;
+          int y = j >> 4;
+          p.drawPixmap( x * 32, y * 32, *_sprite[ ind ] );
+          gltexcoord[ ind ] = make_pair( GLfloat( x * xscl),
+                                          GLfloat( 15. / 16 - y * yscl ) );
+        }
+      }
+      p.end();
+      glsprites[i] = convertToGLFormat( im );
 
-      glBindTexture( GL_TEXTURE_2D, gltexmap[255] );
-      glsprites[255] = convertToGLFormat( _sprite[255]->convertToImage() );
-      glTexImage2D( GL_TEXTURE_2D, 0, 4, 32, 32, 0, GL_RGBA, 
-		    GL_UNSIGNED_BYTE, 
-		    glsprites[255].bits() );
+      glBindTexture( GL_TEXTURE_2D, gltexmap2[i] );
+      glTexImage2D( GL_TEXTURE_2D, 0, 4, 512, 512, 0, GL_RGBA,
+                    GL_UNSIGNED_BYTE, glsprites[i].bits() );
       status = glGetError();
       if( status != GL_NO_ERROR )
-	cerr << "OpenGL error tex: " << gluErrorString(status) << endl;
-
-      for( i=0; i<n; ++i )
-	{
-	  glBindTexture( GL_TEXTURE_2D, gltexmap[i+256] );
-	  glsprites[i+256] 
-	    = convertToGLFormat( _sprite[i+256]->convertToImage() );
-	  glTexImage2D( GL_TEXTURE_2D, 0, 4, 32, 32, 0, GL_RGBA, 
-			GL_UNSIGNED_BYTE, glsprites[i+256].bits() );
-	  status = glGetError();
-	  if( status != GL_NO_ERROR )
-	    cerr << "OpenGL error tex: " << gluErrorString(status) << endl;
-	}
-      setColorsChanged( false );
+        cerr << "OpenGL error tex: " << gluErrorString(status) << endl;
     }
+    setColorsChanged( false );
+  }
 #ifdef RR_DEBUG
   for( i=0; i<256+240; ++i )
-    {
-      nonres[i] = false;
-      usedres[i] = false;
-    }
+  {
+    nonres[i] = false;
+    usedres[i] = false;
+  }
 #endif
 }
 

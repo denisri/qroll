@@ -362,15 +362,13 @@ QRMainWin::~QRMainWin()
 
   //	sprites
 
-  for( i=0; i<240; ++i )
+  for( i=0; i<256; ++i )
     {
       delete _sprite[i];
       delete _sprite[ i + 256 ];
       delete _osprite[i];
       delete _osprite[ i + 256 ];
     }
-  delete _sprite[255];
-  delete _osprite[255];
 
   delete _greySprite[0];
   delete _greySprite[256];
@@ -863,7 +861,7 @@ void QRMainWin::initPixmaps()
   unsigned		i, j;
   unsigned const	W=32, H=32, SZ=W*H;	// taille des sprites
 
-  //	Allocation des donn�s des sprites
+  //	Allocation des sprites data
   for( i=0; i<240; ++i )
     {
       _greySprite[i] = gbuf1 + i*SZ;
@@ -891,6 +889,14 @@ void QRMainWin::initPixmaps()
 #endif
     }
 
+  for( i=240; i<256; ++i )
+    {
+      _sprite[ i     ] = 0;
+      _sprite[ i+256 ] = 0;
+      _osprite[ i     ] = 0;
+      _osprite[ i+256 ] = 0;
+    }
+
 #if defined( _WIN32 ) && defined( WIN32_AVOID_PIXMAPS )
   _sprite[ 255 ] = new QPixmap( W, H );
   _sprite[ 255 ]->fill( QColor( 0, 0, 0 ) );	// vide
@@ -902,14 +908,6 @@ void QRMainWin::initPixmaps()
   _osprite[ 255 ] = new QPixmap( W, H );
   _osprite[ 255 ]->fill( QColor( 0, 0, 0 ) );
 #endif
-
-  for( i=240; i<255; ++i )
-    {
-      _sprite[ i     ] = 0;	// pr�aution anti-bug
-      _sprite[ i+256 ] = 0;
-      _osprite[ i     ] = 0;
-      _osprite[ i+256 ] = 0;
-    }
 
   unsigned	num;
 
