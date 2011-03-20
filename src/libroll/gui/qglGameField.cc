@@ -3,7 +3,7 @@
                           qglGameField.cc  -  description
                              -------------------
     begin                : 2001
-    copyright            : (C) 2001 by Denis RiviÃ¯Â¿Â½e
+    copyright            : (C) 2001 by Denis Rivière
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -52,8 +52,8 @@ static QGLWidget			*sharedwid = 0;
 
 #ifdef RR_DEBUG
 // temp, debug
-static bool				nonres[240+256];
-static bool				usedres[240+256];
+static bool				nonres[512];
+static bool				usedres[512];
 #endif
 
 
@@ -146,9 +146,9 @@ void QRGLGameField::setupScreen( unsigned, unsigned )
   float	sc = scaleFactor();
 
   if( _glmode == DrawPixels && scalingEnabled() )
-    {
-      glPixelZoom( sc, sc );
-    }
+  {
+    glPixelZoom( sc, sc );
+  }
   else
     glPixelZoom( 1, 1 );
 
@@ -176,6 +176,18 @@ void QRGLGameField::setupScreen( unsigned, unsigned )
       glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
       glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glEnable( GL_TEXTURE_2D );
+
+      // toy to test "real" 3D...
+      /*
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();
+      GLfloat m[16] = { 8.66025388e-01, 0.5, 0, 0,
+        -0.5, 8.66025388e-01, 0, 0,
+        0, 0, 1., 0,
+        0, 0, 0, 1.,
+      };
+      glLoadMatrixf( m );
+      */
     }
   else
     {
