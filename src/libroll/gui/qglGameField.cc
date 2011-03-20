@@ -208,8 +208,39 @@ void QRGLGameField::copySprite( unsigned spr, int posx, int posy )
 
   if( _glmode == Texture )
     {
+      const pair<GLfloat,GLfloat> & tc = gltexcoord[ spr ];
       float tsz = 1. / 16;
       glBindTexture( GL_TEXTURE_2D, gltexmap[spr] );
+      glEnableClientState( GL_VERTEX_ARRAY );
+      glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+      GLfloat vert[8];
+      GLfloat tex[8];
+      GLuint vpoly[4];
+      vert[0] = x;
+      vert[1] = y;
+      vert[2] = x;
+      vert[3] = y + sy;
+      vert[4] = x + sx;
+      vert[5] = y + sy;
+      vert[6] = x + sx;
+      vert[7] = y;
+      tex[0] = tc.first;
+      tex[1] = tc.second;
+      tex[2] = tc.first;
+      tex[3] = tc.second + tsz;
+      tex[4] = tc.first + tsz;
+      tex[5] = tc.second + tsz;
+      tex[6] = tc.first + tsz;
+      tex[7] = tc.second;
+      vpoly[0] = 0;
+      vpoly[1] = 1;
+      vpoly[2] = 2;
+      vpoly[3] = 3;
+      glVertexPointer( 2, GL_FLOAT, 0, vert );
+      glTexCoordPointer( 2, GL_FLOAT, 0, tex );
+      glDrawElements( GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, vpoly );
+
+      /*
       glBegin( GL_QUADS );
       const pair<GLfloat,GLfloat> & tc = gltexcoord[ spr ];
       glTexCoord2f( tc.first, tc.second );
@@ -221,6 +252,7 @@ void QRGLGameField::copySprite( unsigned spr, int posx, int posy )
       glTexCoord2f( tc.first + tsz, tc.second );
       glVertex2f( x+sx, y );
       glEnd();
+      */
 
 #ifdef RR_DEBUG
       /*GLint	tr = 0;
