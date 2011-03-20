@@ -20,12 +20,11 @@
 #include <roll/gui/clientDialog.h>
 #include <roll/game/random.h>
 #include <roll/socket/qPlayerServer.h>
+#include <roll/gui/configWin.h>
 #ifdef ANDROID
 class QLevelParams;
-class QRConfigWin;
 #else
 #include <roll/gui/qAbout.h>
-#include <roll/gui/configWin.h>
 #include <roll/gui/editPalette.h>
 #include <roll/gui/levelParams.h>
 #endif
@@ -89,7 +88,7 @@ QRMainWin	*roll::theQRWin = 0;
 struct QRMainWin::Private
 {
   Private() 
-    : timing( 0 ), config( 0 ), opengl( false ), editM( 0 ), 
+    : timing( 0 ), config( 0 ), opengl( false ), editM( 0 ),
       editmode( false ), editstat( 0 ), editpal( 0 ), levelparams( 0 ), 
       filedialog( 0 ), openaction( 0 ), startaction( 0 ), stopaction( 0 ),
       pauseaction( 0 ), configaction( 0 ), editaction( 0 ),
@@ -101,8 +100,8 @@ struct QRMainWin::Private
 
   ~Private()
   {
-#ifndef ANDROID
     delete config;
+#ifndef ANDROID
     delete editpal;
     unsigned i, n = painters.size();
     for( i=0; i<n; ++i )
@@ -500,10 +499,8 @@ void QRMainWin::start()
       rrand.srand( rseed );
     }
 
-#ifndef ANDROID
   if( d->config )
     delete d->config;	// close config dialog during game
-#endif
 
   game.run( game.tb );
   game.init( game.tb );
@@ -1334,14 +1331,12 @@ void QRMainWin::turnEnds()
 
 void QRMainWin::configure()
 {
-#ifndef ANDROID
   if( !d->config )
     {
       d->config = new QRConfigWin;
       connect( d->config, SIGNAL( closed() ), this, SLOT( configClosed() ) );
       d->config->show();
     }
-#endif
 }
 
 

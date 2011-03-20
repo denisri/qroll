@@ -139,12 +139,14 @@ GLWidget::GLWidget( QWidget* parent, const char* name,
   : QGLWidget( parent, shareWidget, f )
 {
   setObjectName( name );
+#ifndef ANDROID
   QGLFormat format = QGLFormat::defaultFormat();
   if ( shareWidget )
     setContext( new shfj::GLContext( format, this ), shareWidget->context() );
   else
-      setContext( new shfj::GLContext( format, this ) );
+    setContext( new shfj::GLContext( format, this ) );
   // setBackgroundMode( Qt::NoBackground );
+#endif
 }
 
 
@@ -154,11 +156,13 @@ GLWidget::GLWidget( const QGLFormat& format, QWidget* parent,
   : QGLWidget( format, parent, shareWidget, f )
 {
   setObjectName( name );
+#ifndef ANDROID
   if ( shareWidget )
     setContext( new shfj::GLContext( format, this ), shareWidget->context() );
   else
-      setContext( new shfj::GLContext( format, this ) );
+    setContext( new shfj::GLContext( format, this ) );
   // setBackgroundMode( Qt::NoBackground );
+#endif
 }
 
 
