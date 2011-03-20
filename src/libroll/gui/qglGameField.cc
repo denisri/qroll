@@ -34,7 +34,11 @@
 */
 # include <OpenGL/gl.h>
 #else
+#ifdef ANDROID
+#include <GLES/gl.h>
+#else
 #include <GL/gl.h>
+#endif
 #endif
 #include <iostream>
 #include <math.h>
@@ -79,9 +83,12 @@ QRGLGameField::QRGLGameField( const QPixmap * const * sprites,
     _sprite( sprites ), d( new QRGLGameField_Private )
 {
   resize( 512, 384 );
-  setBackgroundMode( Qt::NoBackground );
+  // setBackgroundMode( Qt::NoBackground );
   if( !sharedwid )
-    sharedwid = new QGLWidget( 0, "shared widget", this );
+  {
+    sharedwid = new QGLWidget( 0, this );
+    sharedwid->setObjectName( "shared widget" );
+  }
 }
 
 
@@ -145,12 +152,16 @@ void QRGLGameField::setupScreen( unsigned, unsigned )
 
   float	sc = scaleFactor();
 
+#ifndef GL_VERSION_ES_CM_1_0
+  // no glDrawPixels in GLES
+  // no glPixelZoom either
   if( _glmode == DrawPixels && scalingEnabled() )
   {
     glPixelZoom( sc, sc );
   }
   else
     glPixelZoom( 1, 1 );
+#endif
 
   /*glMatrixMode( GL_PROJECTION );
   glLoadIdentity();
@@ -170,32 +181,35 @@ void QRGLGameField::setupScreen( unsigned, unsigned )
 //                 ( ( width() >> 5 ) << 5 ) + ( width() & 31 ? 32 : 0 ),
 //                 ( ( height() >> 5 ) << 5 ) + ( height() & 31 ? 32 : 0 ) );
 
+#ifndef GL_VERSION_ES_CM_1_0
   if( _glmode == Texture )
-    {
-      glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL );
-      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glEnable( GL_TEXTURE_2D );
+  {
+#endif
+    glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glEnable( GL_TEXTURE_2D );
 
-      // toy to test "real" 3D...
-      /*
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
-      GLfloat m[16] = { 8.66025388e-01, 0.5, 0, 0,
-        -0.5, 8.66025388e-01, 0, 0,
-        0, 0, 1., 0,
-        0, 0, 0, 1.,
-      };
-      glLoadMatrixf( m );
-      */
-    }
+    // toy to test "real" 3D...
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    GLfloat m[16] = { 8.66025388e-01, 0.5, 0, 0,
+      -0.5, 8.66025388e-01, 0, 0,
+      0, 0, 1., 0,
+      0, 0, 0, 1.,
+    };
+    glLoadMatrixf( m );
+
+#ifndef GL_VERSION_ES_CM_1_0
+  }
   else
-    {
-      glDisable( GL_TEXTURE_2D );
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-      glPixelStoref( GL_UNPACK_SKIP_PIXELS, 0 );
-      glPixelStoref( GL_UNPACK_SKIP_ROWS, 0 );
-    }
+  {
+    glDisable( GL_TEXTURE_2D );
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glPixelStoref( GL_UNPACK_SKIP_PIXELS, 0 );
+    glPixelStoref( GL_UNPACK_SKIP_ROWS, 0 );
+  }
+#endif
 }
 
 
@@ -206,81 +220,72 @@ void QRGLGameField::copySprite( unsigned spr, int posx, int posy )
   float	sx = 2.F / sWidth();
   float	sy = 2.F / sHeight();
 
+#ifndef GL_VERSION_ES_CM_1_0
   if( _glmode == Texture )
-    {
-      const pair<GLfloat,GLfloat> & tc = gltexcoord[ spr ];
-      float tsz = 1. / 16;
-      glBindTexture( GL_TEXTURE_2D, gltexmap[spr] );
-      glEnableClientState( GL_VERTEX_ARRAY );
-      glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-      GLfloat vert[8];
-      GLfloat tex[8];
-      GLuint vpoly[4];
-      vert[0] = x;
-      vert[1] = y;
-      vert[2] = x;
-      vert[3] = y + sy;
-      vert[4] = x + sx;
-      vert[5] = y + sy;
-      vert[6] = x + sx;
-      vert[7] = y;
-      tex[0] = tc.first;
-      tex[1] = tc.second;
-      tex[2] = tc.first;
-      tex[3] = tc.second + tsz;
-      tex[4] = tc.first + tsz;
-      tex[5] = tc.second + tsz;
-      tex[6] = tc.first + tsz;
-      tex[7] = tc.second;
-      vpoly[0] = 0;
-      vpoly[1] = 1;
-      vpoly[2] = 2;
-      vpoly[3] = 3;
-      glVertexPointer( 2, GL_FLOAT, 0, vert );
-      glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-      glDrawElements( GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, vpoly );
-
-      /*
-      glBegin( GL_QUADS );
-      const pair<GLfloat,GLfloat> & tc = gltexcoord[ spr ];
-      glTexCoord2f( tc.first, tc.second );
-      glVertex2f( x, y );
-      glTexCoord2f( tc.first, tc.second + tsz );
-      glVertex2f( x, y+sy );
-      glTexCoord2f( tc.first + tsz, tc.second + tsz );
-      glVertex2f( x+sx, y+sy );
-      glTexCoord2f( tc.first + tsz, tc.second );
-      glVertex2f( x+sx, y );
-      glEnd();
-      */
+  {
+#endif
+    const pair<GLfloat,GLfloat> & tc = gltexcoord[ spr ];
+    float tsz = 1. / 16;
+    glBindTexture( GL_TEXTURE_2D, gltexmap[spr] );
+    glEnableClientState( GL_VERTEX_ARRAY );
+    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+    GLfloat vert[8];
+    GLfloat tex[8];
+    GLushort vpoly[4];
+    vert[0] = x;
+    vert[1] = y;
+    vert[2] = x;
+    vert[3] = y + sy;
+    vert[4] = x + sx;
+    vert[5] = y + sy;
+    vert[6] = x + sx;
+    vert[7] = y;
+    tex[0] = tc.first;
+    tex[1] = tc.second;
+    tex[2] = tc.first;
+    tex[3] = tc.second + tsz;
+    tex[4] = tc.first + tsz;
+    tex[5] = tc.second + tsz;
+    tex[6] = tc.first + tsz;
+    tex[7] = tc.second;
+    vpoly[0] = 0;
+    vpoly[1] = 1;
+    vpoly[2] = 2;
+    vpoly[3] = 3;
+    glVertexPointer( 2, GL_FLOAT, 0, vert );
+    glTexCoordPointer( 2, GL_FLOAT, 0, tex );
+    glDrawElements( GL_TRIANGLE_FAN, 4, GL_UNSIGNED_SHORT, vpoly );
 
 #ifdef RR_DEBUG
-      /*GLint	tr = 0;
-	glGetTexParameteriv( GL_TEXTURE_2D, GL_TEXTURE_RESIDENT, &tr );
-	cout << tr << " ";*/
+    /*GLint	tr = 0;
+      glGetTexParameteriv( GL_TEXTURE_2D, GL_TEXTURE_RESIDENT, &tr );
+      cout << tr << " ";*/
 
-      GLboolean	tr2 = GL_FALSE;
-      glAreTexturesResident( 1, &gltexmap[spr], &tr2 );
+    GLboolean	tr2 = GL_FALSE;
+    glAreTexturesResident( 1, &gltexmap[spr], &tr2 );
 
-      if( tr2 )
-	usedres[spr] = true;
-      else
-	nonres[spr] = true;
+    if( tr2 )
+      usedres[spr] = true;
+    else
+      nonres[spr] = true;
 #endif
-    }
+
+#ifndef GL_VERSION_ES_CM_1_0
+  }
   else
-    {
-      glRasterPos2f( x, y );
-      glPixelStorei( GL_UNPACK_ROW_LENGTH, 512 );
-      const pair<GLfloat,GLfloat> & tc = gltexcoord[ spr ];
-      glPixelStorei( GL_UNPACK_SKIP_PIXELS, int(round(tc.first*16))*32 );
-      glPixelStorei( GL_UNPACK_SKIP_ROWS, int(round(tc.second*16))*32 );
-      glDrawPixels( 32, 32, GL_RGBA, GL_UNSIGNED_BYTE,
-                    glsprites[spr>>8].bits() );
-      glPixelStorei( GL_UNPACK_SKIP_PIXELS, 0 );
-      glPixelStorei( GL_UNPACK_SKIP_ROWS, 0 );
-      glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
-    }
+  {
+    glRasterPos2f( x, y );
+    glPixelStorei( GL_UNPACK_ROW_LENGTH, 512 );
+    const pair<GLfloat,GLfloat> & tc = gltexcoord[ spr ];
+    glPixelStorei( GL_UNPACK_SKIP_PIXELS, int(round(tc.first*16))*32 );
+    glPixelStorei( GL_UNPACK_SKIP_ROWS, int(round(tc.second*16))*32 );
+    glDrawPixels( 32, 32, GL_RGBA, GL_UNSIGNED_BYTE,
+                  glsprites[spr>>8].bits() );
+    glPixelStorei( GL_UNPACK_SKIP_PIXELS, 0 );
+    glPixelStorei( GL_UNPACK_SKIP_ROWS, 0 );
+    glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
+  }
+#endif
 }
 
 
@@ -326,8 +331,10 @@ void QRGLGameField::initializeGL()
   glShadeModel(GL_FLAT);
   glDisable( GL_DEPTH_TEST );
   glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+#ifndef GL_VERSION_ES_CM_1_0
   glPixelStoref( GL_UNPACK_SKIP_PIXELS, 0 );
   glPixelStoref( GL_UNPACK_SKIP_ROWS, 0 );
+#endif
 
   makeTextures();
 }
@@ -335,7 +342,7 @@ void QRGLGameField::initializeGL()
 
 void QRGLGameField::makeTextures()
 {
-  unsigned	i, n = 240;
+  unsigned	i;
   GLenum	status;
 
   if( !gltexmap )
@@ -351,9 +358,11 @@ void QRGLGameField::makeTextures()
       gltexmap[i+256] = gltexmap2[1];
     }
 
+#ifndef GL_VERSION_ES_CM_1_0
     status = glGetError();
     if( status != GL_NO_ERROR )
       cerr << "OpenGL error tex: " << gluErrorString(status) << endl;
+#endif
 
     setColorsChanged( true );
   }
@@ -384,9 +393,11 @@ void QRGLGameField::makeTextures()
       glBindTexture( GL_TEXTURE_2D, gltexmap2[i] );
       glTexImage2D( GL_TEXTURE_2D, 0, 4, 512, 512, 0, GL_RGBA,
                     GL_UNSIGNED_BYTE, glsprites[i].bits() );
+#ifndef GL_VERSION_ES_CM_1_0
       status = glGetError();
       if( status != GL_NO_ERROR )
         cerr << "OpenGL error tex: " << gluErrorString(status) << endl;
+#endif
     }
     setColorsChanged( false );
   }
@@ -451,6 +462,6 @@ void QRGLGameField::mouseMoveEvent( QMouseEvent* e )
 }
 
 
-#endif
+#endif // RR_NO_OPENGL
 
 

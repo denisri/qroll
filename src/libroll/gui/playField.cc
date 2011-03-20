@@ -19,9 +19,7 @@
 #include <roll/gui/playField.h>
 #include <roll/gui/mainWin.h>
 #include <roll/gui/qGameField.h>
-#ifndef ANDROID
 #include <roll/gui/qglGameField.h>
-#endif
 #include <roll/gui/scoreBox.h>
 #include <roll/game/vars.h>
 #include <roll/gui/editPalette.h>
@@ -81,7 +79,6 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
   if( name )
     setObjectName( name );
   d->parentMW = parentMW;
-
   initKeyCodes();
 
   QHBoxLayout	*lay= new QHBoxLayout( this );

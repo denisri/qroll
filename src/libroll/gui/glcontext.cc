@@ -34,7 +34,9 @@
 #define private public
 #define protected public
 #endif
+
 #include <qgl.h>
+
 #if defined(_WS_X11_) || defined(Q_WS_X11)
 #undef private
 #undef protected
@@ -134,27 +136,29 @@ void *GLContext::tryVisual( const QGLFormat& f, int bufDepth )
 
 GLWidget::GLWidget( QWidget* parent, const char* name,
                     const QGLWidget* shareWidget, Qt::WFlags f )
-  : QGLWidget( parent, name, shareWidget, f )
+  : QGLWidget( parent, shareWidget, f )
 {
-    QGLFormat format = QGLFormat::defaultFormat();
-    if ( shareWidget )
-	setContext( new shfj::GLContext( format, this ), shareWidget->context() );
-    else
-	setContext( new shfj::GLContext( format, this ) );
-    setBackgroundMode( Qt::NoBackground );
+  setObjectName( name );
+  QGLFormat format = QGLFormat::defaultFormat();
+  if ( shareWidget )
+    setContext( new shfj::GLContext( format, this ), shareWidget->context() );
+  else
+      setContext( new shfj::GLContext( format, this ) );
+  // setBackgroundMode( Qt::NoBackground );
 }
 
 
 GLWidget::GLWidget( const QGLFormat& format, QWidget* parent, 
 		    const char* name, const QGLWidget* shareWidget, 
                     Qt::WFlags f )
-  : QGLWidget( format, parent, name, shareWidget, f )
+  : QGLWidget( format, parent, shareWidget, f )
 {
-    if ( shareWidget )
-	setContext( new shfj::GLContext( format, this ), shareWidget->context() );
-    else
-	setContext( new shfj::GLContext( format, this ) );
-    setBackgroundMode( Qt::NoBackground );
+  setObjectName( name );
+  if ( shareWidget )
+    setContext( new shfj::GLContext( format, this ), shareWidget->context() );
+  else
+      setContext( new shfj::GLContext( format, this ) );
+  // setBackgroundMode( Qt::NoBackground );
 }
 
 

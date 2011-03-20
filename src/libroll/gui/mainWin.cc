@@ -96,7 +96,8 @@ struct QRMainWin::Private
       editinsertaction( 0 ), editdelaction( 0 ), editarrangeaction( 0 ),
       serveraction( 0 ), clientaction( 0 ), disconnectaction( 0 ),
       removeaction( 0 ), soundaction( 0 ), zoomaction( 0 )
-  {}
+  {
+  }
 
   ~Private()
   {

@@ -26,7 +26,6 @@
 
 #ifndef RR_NO_OPENGL
 
-
 #include <qgl.h>
 
 
