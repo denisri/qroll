@@ -189,6 +189,10 @@ void QRGLGameField::setupScreen( unsigned, unsigned )
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glEnable( GL_TEXTURE_2D );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                      GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                      GL_LINEAR );
 
     // toy to test "real" 3D...
     glMatrixMode(GL_MODELVIEW);
@@ -225,7 +229,7 @@ void QRGLGameField::copySprite( unsigned spr, int posx, int posy )
   {
 #endif
     const pair<GLfloat,GLfloat> & tc = gltexcoord[ spr ];
-    float tsz = 1. / 16;
+    float tsz = 1. / 16.;
     glBindTexture( GL_TEXTURE_2D, gltexmap[spr] );
     glEnableClientState( GL_VERTEX_ARRAY );
     glEnableClientState( GL_TEXTURE_COORD_ARRAY );

@@ -46,9 +46,10 @@ namespace roll
   {
     QRPlayField_Private() 
       : parentMW( 0 ), scoreBox( 0 ), opengl( false ), layout( 0 ),
-        gameField( 0 ),
-        gameWid( 0 ), /*game( 0 ),*/ dragging( false ), interndrag( false ),
-        tapkey( 0 ) {}
+        gameField( 0 ), gameWid( 0 ), dragging( false ), interndrag( false ),
+        tapkey( 0 ), pinching( false ), panning( false ), tapping( false ),
+        pinchinitscale( 1. )
+    {}
 
     const QRMainWin	*parentMW;
     QRScoreBox		*scoreBox;
@@ -63,6 +64,10 @@ namespace roll
     int			draglvlorgy;
     bool                interndrag;
     int                 tapkey;
+    bool                pinching;
+    bool                panning;
+    bool                tapping;
+    float               pinchinitscale;
   };
 
 }
@@ -746,7 +751,7 @@ bool QRPlayField::event( QEvent * event )
 #if QT_VERSION >= 0x040600
 #include <qstatusbar.h>
 
-void QRPlayField::tapGesture( QPointF pos )
+bool QRPlayField::tapGesture( QPointF pos )
 {
   int key = Qt::Key_Up;
 
@@ -769,65 +774,154 @@ void QRPlayField::tapGesture( QPointF pos )
   QKeyEvent ke( QEvent::KeyPress, key, 0 );
   keyPressedEvent( &ke );
   d->tapkey = key;
+
+  return true;
 }
 
 
-void QRPlayField::pinchGesture( QPinchGesture * gesture )
+bool QRPlayField::pinchGesture( QPinchGesture * gesture )
 {
   if( gesture->state() == Qt::GestureCanceled
       || gesture->state() == Qt::GestureFinished )
-    return;
+  {
+    d->pinching = false;
+    return false;
+  }
 
-  d->parentMW->statusBar()->showMessage( "PINCH, scale: " + QString::number(
-    gesture->totalScaleFactor() ) );
+  if( d->panning )
+  {
+    d->pinching = false;
+    return false;
+  }
 
-  d->gameField->setScaleFactor( d->gameField->scaleFactor()
-    * gesture->scaleFactor() );
+//   d->parentMW->statusBar()->showMessage( "PINCH, scale: " + QString::number(
+//     gesture->totalScaleFactor() ) );
+
+  if( gesture->state() == Qt::GestureStarted )
+    d->pinchinitscale = d->gameField->scaleFactor();
+
+  float scl = gesture->totalScaleFactor();
+  if( !d->pinching && scl > 0.95 && scl < 1.05 )
+    return true;
+
+  d->pinching = true;
+  d->gameField->setScaleFactor( d->pinchinitscale
+    * gesture->totalScaleFactor() );
+  return true;
 }
 
 
-void QRPlayField::panGesture( QPanGesture * gesture )
+bool QRPlayField::panGesture( QPanGesture * gesture )
 {
-  if( gesture->state() == Qt::GestureCanceled
+  if( d->pinching || gesture->state() == Qt::GestureCanceled
       || gesture->state() == Qt::GestureFinished )
-    return;
+  {
+    d->panning = false;
+    return false;
+  }
 
-  QPointF mov = gesture->delta() / d->gameField->scaleFactor() / 32;
-  int posx = d->gameField->beginX() - int( mov.rx() );
-  if( posx < 0 )
-    posx = 0;
-  int posy = d->gameField->beginY() - int( mov.ry() );
-  if( posy < 0 )
-    posy = 0;
-  d->gameField->setPos( posx, posy );
+  if( d->pinching )
+  {
+    d->panning = false;
+    return false;
+  }
 
-  d->parentMW->statusBar()->showMessage( "PAN" );
+  if( gesture->state() == Qt::GestureStarted )
+  {
+    d->draglvlorgx = (int) d->gameField->posX();
+    d->draglvlorgy = (int) d->gameField->posY();
+  }
+
+  QPointF delta = gesture->offset();
+  if( !d->panning && delta.rx() * delta.rx() + delta.ry() * delta.ry() < 16 )
+    return true;
+
+  d->panning = true;
+
+  QPointF mov = delta / d->gameField->scaleFactor() / 32;
+
+  int   px = d->draglvlorgx - mov.rx(), py = d->draglvlorgy - mov.ry();
+  int   pxm = game.tbct.sizeX() - d->gameField->uWidth();
+  int   pym = game.tbct.sizeY() - d->gameField->uHeight();
+
+  if( px < 0 )
+    px = 0;
+  else if( px > pxm )
+    px = pxm;
+  if( py < 0 )
+    py = 0;
+  else if( py > pym )
+    py = pym;
+  d->gameField->setPos( (unsigned) px, (unsigned) py );
+
+  // d->parentMW->statusBar()->showMessage( "PAN" );
+  return true;
+}
+
+
+QString _statestring( QGesture* g )
+{
+  if( g->state() == Qt::GestureStarted )
+    return "S ";
+  if( g->state() == Qt::GestureUpdated )
+    return "U ";
+  if( g->state() == Qt::GestureCanceled )
+    return "C ";
+  if( g->state() == Qt::GestureFinished )
+    return "F ";
+  return "? ";
 }
 
 
 bool QRPlayField::gestureEvent( QGestureEvent *event )
 {
+  QString msg = "   " + QString::number( event->gestures().size() ) + "  ";
+
+  if( QGesture *tap = event->gesture( Qt::TapGesture ) )
+  {
+    msg += _statestring( static_cast<QTapGesture *>( tap ) ) + "TAP ";
+  }
+  else msg += "      ";
+  if( QGesture *taphold = event->gesture(Qt::TapAndHoldGesture ) )
+  {
+    msg += _statestring( static_cast<QTapAndHoldGesture *>( taphold ) ) + "TAPANDHOLD ";
+  }
+  else msg += "             ";
+  if( QGesture *pan = event->gesture( Qt::PanGesture ) )
+  {
+    msg += _statestring( static_cast<QTapGesture *>( pan ) ) + "PAN ";
+  }
+  else msg += "       ";
+  if( QGesture *pinch = event->gesture(Qt::PinchGesture ) )
+    msg += _statestring( static_cast<QTapGesture *>( pinch ) ) + "PINCH ";
+  else msg += "        ";
+  if( QGesture *swipe = event->gesture( Qt::SwipeGesture ) )
+    msg += _statestring( static_cast<QTapGesture *>( swipe ) ) + "SWIPE ";
+  else
+    msg += "        ";
+  d->parentMW->statusBar()->showMessage( msg, 1000 );
+
+  /*
   if( QGesture *swipe = event->gesture( Qt::SwipeGesture ) )
   {
-    d->parentMW->statusBar()->showMessage( "SWIPE" );
+    // d->parentMW->statusBar()->showMessage( "SWIPE" );
     // swipeTriggered( static_cast<QSwipeGesture *>( swipe ) );
   }
-  else if( QGesture *pan = event->gesture( Qt::PanGesture ) )
-  {
-    panGesture( static_cast<QPanGesture *>( pan ) );
-    return true;
-  }
+  else */
   if( QGesture *pinch = event->gesture(Qt::PinchGesture ) )
   {
-    d->parentMW->statusBar()->showMessage( "PINCH" );
-    pinchGesture( static_cast<QPinchGesture *>( pinch ) );
-    return true;
+    event->setAccepted( pinch, pinchGesture(
+      static_cast<QPinchGesture *>( pinch ) ) );
+  }
+  if( QGesture *pan = event->gesture( Qt::PanGesture ) )
+  {
+    event->setAccepted( pan, panGesture( static_cast<QPanGesture *>( pan ) ) );
   }
 
   // use tap gestures only during game, otherwise panning is preferred
   if( game.running )
   {
-    if( QGesture *taphold = event->gesture(Qt::TapAndHoldGesture ) )
+    /* if( QGesture *taphold = event->gesture(Qt::TapAndHoldGesture ) )
     {
       if( taphold->state() == Qt::GestureCanceled
         || taphold->state() == Qt::GestureFinished )
@@ -843,10 +937,11 @@ bool QRPlayField::gestureEvent( QGestureEvent *event )
       QTapAndHoldGesture *tapg = static_cast<QTapAndHoldGesture*>( taphold );
       tapGesture( tapg->hotSpot() );
     }
-    else if( QGesture *tap = event->gesture( Qt::TapGesture ) )
+    else */
+    if( QGesture *tap = event->gesture( Qt::TapGesture ) )
     {
-      if( tap->state() == Qt::GestureCanceled
-        || tap->state() == Qt::GestureFinished )
+      if( /*tap->state() == Qt::GestureCanceled
+        ||*/ tap->state() == Qt::GestureFinished )
       {
         if( d->tapkey )
         {
@@ -856,8 +951,11 @@ bool QRPlayField::gestureEvent( QGestureEvent *event )
         }
         return true;
       }
-      QTapGesture *tapg = static_cast<QTapGesture *>( tap );
-      tapGesture( tapg->hotSpot() );
+      if( tap->state() == Qt::GestureStarted )
+      {
+        QTapGesture *tapg = static_cast<QTapGesture *>( tap );
+        tapGesture( tapg->hotSpot() );
+      }
     }
   }
 

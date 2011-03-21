@@ -311,6 +311,10 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
   d->stopaction->setEnabled( false );
   d->pauseaction->setEnabled( false );
 
+#ifdef ANDROID
+  _tools->hide();
+#endif
+
   //	Status bar setup
   d->editstat = new QLabel( "  ", statusBar() );
   d->editstat->setPalette( QPalette( QColor( 255, 192, 192 ) ) );

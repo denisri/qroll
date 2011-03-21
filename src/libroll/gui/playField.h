@@ -125,9 +125,9 @@ protected:
   virtual bool event( QEvent *event );
 #if QT_VERSION >= 0x040600
   virtual bool gestureEvent( QGestureEvent * event );
-  virtual void tapGesture( QPointF pos );
-  virtual void pinchGesture( QPinchGesture * gesture );
-  virtual void panGesture( QPanGesture *gesture );
+  virtual bool tapGesture( QPointF pos );
+  virtual bool pinchGesture( QPinchGesture * gesture );
+  virtual bool panGesture( QPanGesture *gesture );
 #endif
 
   ///	Liste des joueurs gérés par cette fenêtre
