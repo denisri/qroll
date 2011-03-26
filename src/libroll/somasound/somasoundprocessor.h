@@ -48,7 +48,11 @@ namespace soma
     /// Play sound number "type"
     virtual void process( int type );
     virtual unsigned inuse( int type )
-      { return( _inuse[type] ); }
+    {
+      if( type >= _inuse.size() )
+        return false;
+      return( _inuse[type] );
+    }
     virtual void processIfNotUsed( int type );
     virtual void stop() {}
     virtual void stop( int type );

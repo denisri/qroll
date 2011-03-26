@@ -32,6 +32,13 @@
 #if QT_VERSION >= 0x040600
 #include <qgesture.h>
 #include <QGestureEvent>
+#ifdef ANDROID
+/* on Android, derive a GestureRecognizer for pan gestures, because the
+   normal pan only works in two-finger mode, and we want it with one finger */
+#include <QGestureRecognizer>
+#include <QTouchEvent>
+#include <math.h>
+#endif
 #endif
 
 using namespace roll;
@@ -41,6 +48,99 @@ using namespace Qt;
 
 namespace roll
 {
+
+#ifdef ANDROID
+/* on Android, derive a GestureRecognizer for pan gestures, because the
+   normal pan only works in two-finger mode, and we want it with one finger */
+
+  class RRPanGestureRecognizer : public QGestureRecognizer
+  {
+  public:
+    virtual ~RRPanGestureRecognizer() {}
+
+    virtual QGesture *create( QObject * target );
+    virtual Result recognize( QGesture * gesture, QObject * watched,
+                              QEvent * event );
+    virtual void reset( QGesture * gesture );
+  };
+
+
+  QGesture *RRPanGestureRecognizer::create( QObject * target )
+  {
+    QPanGesture *gesture = new QPanGesture;
+    reset( gesture );
+    return gesture;
+  }
+
+
+  QGestureRecognizer::Result RRPanGestureRecognizer::recognize(
+    QGesture * gesture, QObject * watched, QEvent * event )
+  {
+    Result res = Ignore;
+
+    if( event->type() == QEvent::TouchBegin )
+    {
+      QTouchEvent *tev = static_cast<QTouchEvent *>( event );
+      if( tev->touchPoints().size() == 1 )
+      {
+        QPanGesture *pan = static_cast<QPanGesture *>( gesture );
+        res = MayBeGesture;
+        const QTouchEvent::TouchPoint & point = tev->touchPoints()[0];
+        gesture->setHotSpot( point.startScenePos() );
+        pan->setProperty( "offset", QPointF( 0, 0 ) );
+        pan->setProperty( "delta", QPointF( 0, 0 ) );
+        pan->setProperty( "lastOffset", QPointF( 0, 0 ) );
+        pan->setProperty( "acceleration", 0.F );
+        pan->setProperty( "state", Qt::GestureStarted );
+      }
+    }
+    else if( event->type() == QEvent::TouchEnd )
+    {
+      QTouchEvent *tev = static_cast<QTouchEvent *>( event );
+      reset( gesture );
+      res = FinishGesture;
+    }
+    else if( event->type() == QEvent::TouchUpdate )
+    {
+      QTouchEvent *tev = static_cast<QTouchEvent *>( event );
+      if( tev->touchPoints().size() == 1 )
+      {
+        QPanGesture *pan = static_cast<QPanGesture *>( gesture );
+        res = MayBeGesture;
+        const QTouchEvent::TouchPoint & point = tev->touchPoints()[0];
+        pan->setHotSpot( point.scenePos() );
+        pan->setProperty( "lastOffset", pan->offset() );
+        QPointF acc = point.scenePos() - pan->offset()
+          - pan->delta();
+        float accf = sqrt( acc.rx() * acc.rx() + acc.ry() * acc.ry() );
+        pan->setProperty( "acceleration", accf );
+        pan->setProperty( "delta", point.scenePos() - pan->offset() );
+        pan->setProperty( "offset", point.scenePos() - point.startScenePos() );
+        pan->setProperty( "state", Qt::GestureUpdated );
+        res = TriggerGesture;
+      }
+      else
+        res = CancelGesture;
+    }
+
+    return res;
+  }
+
+
+  void RRPanGestureRecognizer::reset( QGesture * gesture )
+  {
+    QPanGesture *pan = static_cast<QPanGesture *>( gesture );
+    gesture->setProperty( "state", Qt::GestureFinished );
+    gesture->unsetHotSpot();
+    gesture->setProperty( "delta", QPointF( 0, 0 ) );
+    gesture->setProperty( "acceleration", 0.F );
+    gesture->setProperty( "lastOffset", QPointF( 0, 0 ) );
+    gesture->setProperty( "offset", QPointF( 0, 0 ) );
+    pan->unsetHotSpot();
+  }
+
+#endif
+
 
   struct QRPlayField_Private
   {
@@ -68,6 +168,7 @@ namespace roll
     bool                panning;
     bool                tapping;
     float               pinchinitscale;
+    QPointF             panoffset;
   };
 
 }
@@ -90,6 +191,7 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
   d->layout = lay;
 #ifdef ANDROID // keep max of screen space
   lay->setMargin( 0 );
+  QGestureRecognizer::registerRecognizer( new RRPanGestureRecognizer );
 #else
   lay->setMargin( 2 );
 #endif
@@ -753,27 +855,31 @@ bool QRPlayField::event( QEvent * event )
 
 bool QRPlayField::tapGesture( QPointF pos )
 {
-  int key = Qt::Key_Up;
+  if( !d->tapkey )
+    return true;
 
-  qreal y = pos.ry() - mapToGlobal( QPoint( 0, 0) ).y();
-
-  if( y < height() / 3 )
-    key = Qt::Key_Up;
-  else if( y >= height() * 2 / 3 )
-    key = Qt::Key_Down;
-  else if( pos.rx() < width() / 2 )
-    key = Qt::Key_Left;
-  else
-    key = Qt::Key_Right;
-
-  if( d->tapkey )
-  {
-    QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
-    keyReleasedEvent( &kup );
-  }
-  QKeyEvent ke( QEvent::KeyPress, key, 0 );
-  keyPressedEvent( &ke );
-  d->tapkey = key;
+  
+//   int key = Qt::Key_Up;
+// 
+//   qreal y = pos.ry() - mapToGlobal( QPoint( 0, 0) ).y();
+// 
+//   if( y < height() / 3 )
+//     key = Qt::Key_Up;
+//   else if( y >= height() * 2 / 3 )
+//     key = Qt::Key_Down;
+//   else if( pos.rx() < width() / 2 )
+//     key = Qt::Key_Left;
+//   else
+//     key = Qt::Key_Right;
+// 
+//   if( d->tapkey )
+//   {
+//     QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
+//     keyReleasedEvent( &kup );
+//   }
+//   QKeyEvent ke( QEvent::KeyPress, key, 0 );
+//   keyPressedEvent( &ke );
+//   d->tapkey = key;
 
   return true;
 }
@@ -817,6 +923,11 @@ bool QRPlayField::panGesture( QPanGesture * gesture )
       || gesture->state() == Qt::GestureFinished )
   {
     d->panning = false;
+    if( d->tapkey )
+    {
+      QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
+      keyReleasedEvent( &kup );
+    }
     return false;
   }
 
@@ -826,6 +937,59 @@ bool QRPlayField::panGesture( QPanGesture * gesture )
     return false;
   }
 
+  if( game.running )
+  {
+    if( gesture->state() == Qt::GestureStarted )
+      d->panoffset = QPointF( 0, 0 );
+    QPointF delta = gesture->offset() - gesture->lastOffset();
+    float mindelta1 = 16*16;
+    if( d->tapkey )
+      mindelta1 = 8*8;
+    //float mindelta2 = 32*32;
+    float dist2 = delta.rx() * delta.rx() + delta.ry() * delta.ry();
+    if( dist2 < mindelta1 )
+    {
+/*      if( d->tapkey )
+      {
+        QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
+        keyReleasedEvent( &kup );
+      }*/
+      return true;
+    }
+    d->panning = true;
+    int key = Qt::Key_Up;
+
+    if( delta.ry() < 0 )
+    {
+      if( delta.rx() < delta.ry() )
+        key = Qt::Key_Left;
+      else if( delta.rx() > -delta.ry() )
+        key = Qt::Key_Right;
+      else
+        key = Qt::Key_Up;
+    }
+    else
+    {
+      if( delta.rx() > delta.ry() )
+        key = Qt::Key_Right;
+      else if( delta.rx() < -delta.ry() )
+        key = Qt::Key_Left;
+      else
+        key = Qt::Key_Down;
+    }
+
+    if( d->tapkey && d->tapkey != key )
+    {
+      QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
+      keyReleasedEvent( &kup );
+      d->panoffset = gesture->offset();
+    }
+    QKeyEvent ke( QEvent::KeyPress, key, 0 );
+    keyPressedEvent( &ke );
+    d->tapkey = key;
+    return true;
+  }
+
   if( gesture->state() == Qt::GestureStarted )
   {
     d->draglvlorgx = (int) d->gameField->posX();
@@ -833,7 +997,7 @@ bool QRPlayField::panGesture( QPanGesture * gesture )
   }
 
   QPointF delta = gesture->offset();
-  if( !d->panning && delta.rx() * delta.rx() + delta.ry() * delta.ry() < 16 )
+  if( !d->panning && delta.rx() * delta.rx() + delta.ry() * delta.ry() < 144 )
     return true;
 
   d->panning = true;
@@ -915,7 +1079,9 @@ bool QRPlayField::gestureEvent( QGestureEvent *event )
   }
   if( QGesture *pan = event->gesture( Qt::PanGesture ) )
   {
-    event->setAccepted( pan, panGesture( static_cast<QPanGesture *>( pan ) ) );
+    event->setAccepted( pan,
+                        panGesture( static_cast<QPanGesture *>( pan ) ) );
+    return true;
   }
 
   // use tap gestures only during game, otherwise panning is preferred
@@ -943,12 +1109,14 @@ bool QRPlayField::gestureEvent( QGestureEvent *event )
       if( /*tap->state() == Qt::GestureCanceled
         ||*/ tap->state() == Qt::GestureFinished )
       {
-        if( d->tapkey )
+/*        if( d->tapkey )
         {
           QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
           keyReleasedEvent( &kup );
           d->tapkey = 0;
-        }
+        }*/
+        QKeyEvent kup( QEvent::KeyRelease, Qt::Key_Control, 0 );
+        keyReleasedEvent( &kup );
         return true;
       }
       if( tap->state() == Qt::GestureStarted )
@@ -961,6 +1129,7 @@ bool QRPlayField::gestureEvent( QGestureEvent *event )
 
   return true;
 }
+
 #endif
 
 
