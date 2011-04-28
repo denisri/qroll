@@ -37,6 +37,17 @@ int main( int argc, char** argv )
 
 #ifdef ANDROID
     putenv( "ROLLDIR=/sdcard/share/qroll" );
+    /*
+    ofstream log( "/sdcard/share/qroll/qroll-log.log" );
+    log << "argv0: " << argv[0] << endl;
+
+    char ** e = environ;
+    while( *e )
+    {
+      log << *e << endl;
+      ++e;
+    }
+    */
 #endif
 
   setArgv0( argv[0] );
