@@ -88,8 +88,8 @@ namespace roll
       Q_OBJECT
 
     public:
-      QElemDrawer( int x, QWidget * parent, const char * name=0, 
-                   Qt::WFlags f=0 );
+      QElemDrawer( int x, QWidget * parent, 
+                   Qt::WindowFlags f=0 );
       virtual ~QElemDrawer();
 
     signals:
@@ -110,7 +110,8 @@ namespace roll
 
     public:
       ElementSelector( const std::set<unsigned short> &, QWidget * parent=0, 
-                       const char * name=0, bool modal=FALSE, Qt::WFlags f=0 );
+                       const QString & name = QString(), bool modal=FALSE,
+                       Qt::WindowFlags f=0 );
       virtual ~ElementSelector();
 
       int button;

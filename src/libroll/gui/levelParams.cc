@@ -2,7 +2,7 @@
                           levelParams.cc  -  description
                              -------------------
     begin                : 2001
-    copyright            : (C) 2001 by Denis RiviÃ¯Â¿Â½e
+    copyright            : (C) 2001 by Denis Riviere
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -23,11 +23,7 @@
 #include <qcombobox.h>
 #include <qcolordialog.h>
 #include <qgroupbox.h>
-
-#include <q3groupbox.h>
-#include <q3hbox.h>
-#include <q3grid.h>
-#include <q3buttongroup.h>
+#include <qbuttongroup.h>
 
 #include <roll/game/vars.h>
 #include <roll/struct/series.h>
@@ -39,9 +35,7 @@
 
 using namespace roll;
 using namespace std;
-#if QT_VERSION >= 0x040000
 using namespace Qt;
-#endif
 
 
 namespace roll
@@ -50,18 +44,18 @@ namespace roll
   {
     QLevelParams_Private()
       : editmode( false ), level( 0 ), sizex( 0 ), sizey( 0 ), diams( 0 ), 
-	time( 0 ), perm( 0 ), speed( 0 ), strength( 0 ), genspeed( 0 ), 
-	valid( 0 ), colpanel( 0 ), exppanel( 0 ), blbpanel( 0 ), expl( 0 ), 
+        time( 0 ), perm( 0 ), speed( 0 ), strength( 0 ), genspeed( 0 ),
+        valid( 0 ), colpanel( 0 ), exppanel( 0 ), blbpanel( 0 ), expl( 0 ),
         blobs( 0 ), newexpl( 0 ), delexpl( 0 ), newblob( 0 ), delblob( 0 )
     {
       unsigned	i;
       colors[0] = colors[1] = colors[2] = colors[3] = colors[4] = 0;
       for( i=0; i<9; ++i )
-	{
-	  explab[i] = 0;
-	  blblabb[i] = 0;
-	  blblabf[i] = 0;
-	}
+      {
+        explab[i] = 0;
+        blblabb[i] = 0;
+        blblabf[i] = 0;
+      }
     }
 
     bool	editmode;
@@ -257,57 +251,72 @@ QLevelParams::QLevelParams( QWidget* parent, const char* name, Qt::WFlags f )
   expgd->setFrameStyle( QFrame::Sunken | QFrame::Panel );
   unsigned	i;
   for( i=0; i<9; ++i )
-    {
-      d->explab[i] = new internal::QElemDrawer( i, expgd );
-      expgdl->addWidget( d->explab[i], i / 3, i % 3 );
-      d->explab[i]->setFixedSize( 32, 32 );
-      connect( d->explab[i], SIGNAL( drawn( int, unsigned short ) ), 
-	       this, SLOT( drawExplosion( int, unsigned short ) ) );
-    }
+  {
+    d->explab[i] = new internal::QElemDrawer( i, expgd );
+    expgdl->addWidget( d->explab[i], int( i / 3 ), i % 3 );
+    d->explab[i]->setFixedSize( 32, 32 );
+    connect( d->explab[i], SIGNAL( drawn( int, unsigned short ) ),
+              this, SLOT( drawExplosion( int, unsigned short ) ) );
+  }
   expgd->setFixedSize( expgd->sizeHint() );
   exppl->addStretch();
 
   // blobs panel
 
-  d->blbpanel = new Q3GroupBox( 1, Qt::Horizontal, tr( "Blobs :" ), this );
+  d->blbpanel = new QGroupBox( tr( "Blobs :" ), this );
   mhbl->addWidget( d->blbpanel );
+  QVBoxLayout *blbl = new QVBoxLayout( d->blbpanel );
   d->blbpanel->hide();
   d->blobs = new QComboBox( d->blbpanel );
+  blbl->addWidget( d->blobs );
   d->blobs->setFixedSize( 64, 44 );
-#if QT_VERSION >= 0x040000
   d->blobs->setIconSize( QSize( 32, 32 ) );
-#endif
-  Q3HBox	*bshb = new Q3HBox( d->blbpanel );
-  new QLabel( tr( "Size:" ), bshb );
+  QWidget       *bshb = new QWidget( d->blbpanel );
+  QHBoxLayout   *bshbl = new QHBoxLayout( bshb );
+  blbl->addWidget( bshb );
+  bshbl->addWidget( new QLabel( tr( "Size:" ), bshb ) );
   d->blobspesize = new QSpinBox( bshb );
+  bshbl->addWidget( d->blobspesize );
   QPushButton	*bnew = new QPushButton( tr( "New" ), d->blbpanel );
+  blbl->addWidget( bnew );
   d->newblob = bnew;
   QPushButton	*brmv = new QPushButton( tr( "Remove" ), d->blbpanel );
+  blbl->addWidget( brmv );
   d->delblob = brmv;
   bnew->setEnabled( false );
   brmv->setEnabled( false );
   d->blobspesize->setEnabled( false );
-  new QLabel( tr( "Free :" ), d->blbpanel );
-  Q3Grid	*blbgd = new Q3Grid( 3, d->blbpanel );
+  blbl->addWidget( new QLabel( tr( "Free :" ), d->blbpanel ) );
+  QFrame      *blbgd = new QFrame( d->blbpanel );
+  QGridLayout *blbgdl = new QGridLayout( blbgd );
+  blbgdl->setMargin( 0 );
+  blbgdl->setSpacing( 0 );
+  blbl->addWidget( blbgd );
   blbgd->setFrameStyle( QFrame::Sunken | QFrame::Panel );
   for( i=0; i<9; ++i )
-    {
-      d->blblabf[i] = new internal::QElemDrawer( i, blbgd );
-      d->blblabf[i]->setFixedSize( 32, 32 );
-      connect( d->blblabf[i], SIGNAL( drawn( int, unsigned short ) ), 
-	       this, SLOT( drawBlobFree( int, unsigned short ) ) );
-    }
+  {
+    d->blblabf[i] = new internal::QElemDrawer( i, blbgd );
+    blbgdl->addWidget( d->blblabf[i], int( i / 3 ), i % 3 );
+    d->blblabf[i]->setFixedSize( 32, 32 );
+    connect( d->blblabf[i], SIGNAL( drawn( int, unsigned short ) ),
+              this, SLOT( drawBlobFree( int, unsigned short ) ) );
+  }
   blbgd->setFixedSize( blbgd->sizeHint() );
-  new QLabel( tr( "Blocked :" ), d->blbpanel );
-  blbgd = new Q3Grid( 3, d->blbpanel );
+  blbl->addWidget( new QLabel( tr( "Blocked :" ), d->blbpanel ) );
+  blbgd = new QFrame( d->blbpanel );
+  blbgdl = new QGridLayout( blbgd );
+  blbgdl->setMargin( 0 );
+  blbgdl->setSpacing( 0 );
+  blbl->addWidget( blbgd );
   blbgd->setFrameStyle( QFrame::Sunken | QFrame::Panel );
   for( i=0; i<9; ++i )
-    {
-      d->blblabb[i] = new internal::QElemDrawer( i, blbgd );
-      d->blblabb[i]->setFixedSize( 32, 32 );
-      connect( d->blblabb[i], SIGNAL( drawn( int, unsigned short ) ), 
-	       this, SLOT( drawBlobBlocked( int, unsigned short ) ) );
-    }
+  {
+    d->blblabb[i] = new internal::QElemDrawer( i, blbgd );
+    blbgdl->addWidget( d->blblabb[i], int( i / 3 ), i % 3 );
+    d->blblabb[i]->setFixedSize( 32, 32 );
+    connect( d->blblabb[i], SIGNAL( drawn( int, unsigned short ) ),
+              this, SLOT( drawBlobBlocked( int, unsigned short ) ) );
+  }
   blbgd->setFixedSize( blbgd->sizeHint() );
 
   // signals / slots
@@ -315,34 +324,34 @@ QLevelParams::QLevelParams( QWidget* parent, const char* name, Qt::WFlags f )
   setEditMode( false );
   update( game.tb );
 
-  connect( d->level, SIGNAL( valueChanged( int ) ), this, 
-	   SLOT( changeLevel( int ) ) );
-  connect( edit, SIGNAL( toggled( bool ) ), this, 
-	   SLOT( setEditMode( bool ) ) );
+  connect( d->level, SIGNAL( valueChanged( int ) ), this,
+            SLOT( changeLevel( int ) ) );
+  connect( edit, SIGNAL( toggled( bool ) ), this,
+            SLOT( setEditMode( bool ) ) );
   connect( d->valid, SIGNAL( clicked() ), this, SLOT( validate() ) );
-  connect( colcb, SIGNAL( toggled( bool ) ), this, 
-	   SLOT( showColors( bool ) ) );
-  connect( expcb, SIGNAL( toggled( bool ) ), this, 
-	   SLOT( showExplosions( bool ) ) );
-  connect( blbcb, SIGNAL( toggled( bool ) ), this, 
-	   SLOT( showBlobs( bool ) ) );
+  connect( colcb, SIGNAL( toggled( bool ) ), this,
+            SLOT( showColors( bool ) ) );
+  connect( expcb, SIGNAL( toggled( bool ) ), this,
+            SLOT( showExplosions( bool ) ) );
+  connect( blbcb, SIGNAL( toggled( bool ) ), this,
+            SLOT( showBlobs( bool ) ) );
   connect( d->colors[0], SIGNAL( clicked() ), this, SLOT( editColorRock() ) );
   connect( d->colors[1], SIGNAL( clicked() ), this, SLOT( editColorGrass() ) );
-  connect( d->colors[2], SIGNAL( clicked() ), this, 
-	   SLOT( editColorMonster() ) );
+  connect( d->colors[2], SIGNAL( clicked() ), this,
+            SLOT( editColorMonster() ) );
   connect( d->colors[3], SIGNAL( clicked() ), this, SLOT( editColorRoll() ) );
   connect( d->colors[4], SIGNAL( clicked() ), this, SLOT( editColorDiam() ) );
 
-  connect( d->expl, SIGNAL( activated( int ) ), this, 
-	   SLOT( explosionSelected( int ) ) );
+  connect( d->expl, SIGNAL( activated( int ) ), this,
+            SLOT( explosionSelected( int ) ) );
   connect( enew, SIGNAL( clicked() ), this, SLOT( newExplosion() ) );
   connect( ermv, SIGNAL( clicked() ), this, SLOT( removeExplosion() ) );
-  connect( d->blobs, SIGNAL( activated( int ) ), this, 
-	   SLOT( blobSelected( int ) ) );
+  connect( d->blobs, SIGNAL( activated( int ) ), this,
+            SLOT( blobSelected( int ) ) );
   connect( bnew, SIGNAL( clicked() ), this, SLOT( newBlob() ) );
   connect( brmv, SIGNAL( clicked() ), this, SLOT( removeBlob() ) );
-  connect( d->blobspesize, SIGNAL( valueChanged( int ) ), this, 
-           SLOT( blobSpecialSizeChanged( int ) ) );
+  connect( d->blobspesize, SIGNAL( valueChanged( int ) ), this,
+            SLOT( blobSpecialSizeChanged( int ) ) );
 }
 
 
@@ -359,38 +368,38 @@ void QLevelParams::update( unsigned n )
 
   d->blobspesize->setRange( 0, 65535 );
   if( d->editmode )
-    {
-      d->sizex->setRange( 0, 255 );
-      d->sizey->setRange( 0, 255 );
-      d->diams->setRange( 0, 65535 );
-      d->time->setRange( 0, 65535 );
-      d->perm->setRange( 0, 99 );
-      d->speed->setRange( 0, 99 );
-      d->strength->setRange( 0, 99 );
-      d->genspeed->setRange( 0, 99 );
-      d->blobsize->setRange( 0, 65535 );
-      d->bombdelay->setRange( 0, 65535 );
-    }
+  {
+    d->sizex->setRange( 0, 255 );
+    d->sizey->setRange( 0, 255 );
+    d->diams->setRange( 0, 65535 );
+    d->time->setRange( 0, 65535 );
+    d->perm->setRange( 0, 99 );
+    d->speed->setRange( 0, 99 );
+    d->strength->setRange( 0, 99 );
+    d->genspeed->setRange( 0, 99 );
+    d->blobsize->setRange( 0, 65535 );
+    d->bombdelay->setRange( 0, 65535 );
+  }
   else
-    {
-      d->sizex->setRange( game.tbct.sizeX(), game.tbct.sizeX() );
-      d->sizey->setRange( game.tbct.sizeY(), game.tbct.sizeY() );
-      d->diams->setRange( game.tbct.tab->diams(), game.tbct.tab->diams() );
-      d->time->setRange( game.tbct.tab->time(), game.tbct.tab->time() );
-      d->perm->setRange( game.tbct.tab->permeability(), 
-			 game.tbct.tab->permeability() );
-      d->speed->setRange( game.tbct.tab->speed(), game.tbct.tab->speed() );
-      d->strength->setRange( game.tbct.tab->strength(), 
-			     game.tbct.tab->strength() );
-      d->genspeed->setRange( game.tbct.tab->genSpeed(), 
-			     game.tbct.tab->genSpeed() );
-      d->blobsize->setRange( game.tbct.tab->blobMaxSize(), 
-			     game.tbct.tab->blobMaxSize() );
-      d->bombdelay->setRange( game.tbct.tab->bombDelay(), 
-			      game.tbct.tab->bombDelay() );
-    }
+  {
+    d->sizex->setRange( game.tbct.sizeX(), game.tbct.sizeX() );
+    d->sizey->setRange( game.tbct.sizeY(), game.tbct.sizeY() );
+    d->diams->setRange( game.tbct.tab->diams(), game.tbct.tab->diams() );
+    d->time->setRange( game.tbct.tab->time(), game.tbct.tab->time() );
+    d->perm->setRange( game.tbct.tab->permeability(),
+                        game.tbct.tab->permeability() );
+    d->speed->setRange( game.tbct.tab->speed(), game.tbct.tab->speed() );
+    d->strength->setRange( game.tbct.tab->strength(),
+                            game.tbct.tab->strength() );
+    d->genspeed->setRange( game.tbct.tab->genSpeed(),
+                            game.tbct.tab->genSpeed() );
+    d->blobsize->setRange( game.tbct.tab->blobMaxSize(),
+                            game.tbct.tab->blobMaxSize() );
+    d->bombdelay->setRange( game.tbct.tab->bombDelay(),
+                            game.tbct.tab->bombDelay() );
+  }
 
-  d->level->setMaxValue( ser->numLevels() - 1 );
+  d->level->setMaximum( ser->numLevels() - 1 );
   d->level->setValue( game.tb );
   d->sizex->setValue( game.tbct.sizeX() );
   d->sizey->setValue( game.tbct.sizeY() );
@@ -405,11 +414,11 @@ void QLevelParams::update( unsigned n )
 
   // colors
   const QPixmap	* const * spr = theQRWin->sprites();
-  d->colors[0]->setPixmap( *spr[38] );
-  d->colors[1]->setPixmap( *spr[19] );
-  d->colors[2]->setPixmap( *spr[0] );
-  d->colors[3]->setPixmap( *spr[34] );
-  d->colors[4]->setPixmap( *spr[37] );
+  d->colors[0]->setIcon( *spr[38] );
+  d->colors[1]->setIcon( *spr[19] );
+  d->colors[2]->setIcon( *spr[0] );
+  d->colors[3]->setIcon( *spr[34] );
+  d->colors[4]->setIcon( *spr[37] );
 
   updateExplosions();
   updateBlobs();
@@ -502,18 +511,18 @@ void QLevelParams::editColor( int x )
 
   WorkLevel::RGB	colw( game.tbct.color( (WorkLevel::PartColor) x ) );
   QColor	col = QColorDialog::getColor( QColor( 128 + colw.r / 2, 
-						      128 + colw.g / 2, 
-						      128 + colw.b / 2 ) );
+                                                      128 + colw.g / 2, 
+                                                      128 + colw.b / 2 ) );
   if( col.isValid() )
-    {
-      colw.r = ( (int) col.red() - 128 ) * 2;
-      colw.g = ( (int) col.green() - 128 ) * 2;
-      colw.b = ( (int) col.blue() - 128 ) * 2;
-      game.tbct.setColor( (WorkLevel::PartColor) x, colw );
+  {
+    colw.r = ( (int) col.red() - 128 ) * 2;
+    colw.g = ( (int) col.green() - 128 ) * 2;
+    colw.b = ( (int) col.blue() - 128 ) * 2;
+    game.tbct.setColor( (WorkLevel::PartColor) x, colw );
 
-      game.tbct.setModified( true );
-      emit levelChanged( game.tb );
-    }
+    game.tbct.setModified( true );
+    emit levelChanged( game.tb );
+  }
 }
 
 
@@ -561,30 +570,30 @@ void QLevelParams::updateExplosions()
 
   for( i=0; i<n; ++i )
     if( par[i].first == SimpleLevel::Explosions )
+    {
+      const vector<unsigned short>	& pb = par[i].second;
+      ne = pb[0];
+      ad = 1;
+      for( j=0; j<ne; ++j )
       {
-	const vector<unsigned short>	& pb = par[i].second;
-	ne = pb[0];
-	ad = 1;
-	for( j=0; j<ne; ++j )
-	  {
-	    el = pb[ ad ];
-	    d->expl->insertItem( *spr[ el ] );
-	    d->explnum.push_back( el );
-	    ad += 14;
-	  }
-	if( nn >= 0 )	// several explosion blocks, should not happen!
-	  {		// merge them
-	    cout << "merging multiple explosions definitions\n";
-	    vector<unsigned short>	& pbo = par[nn].second;
-	    pbo[0] += ne;
-	    for( j=0; j<ne * 14; ++j )
-	      pbo.push_back( pb[j+1] );
-	    par.erase( par.begin() + i );
-	    --i;
-	  }
-	else
-	  nn = i;
+        el = pb[ ad ];
+        d->expl->addItem( *spr[ el ], QString() );
+        d->explnum.push_back( el );
+        ad += 14;
       }
+      if( nn >= 0 )	// several explosion blocks, should not happen!
+      { // merge them
+        cout << "merging multiple explosions definitions\n";
+        vector<unsigned short>	& pbo = par[nn].second;
+        pbo[0] += ne;
+        for( j=0; j<ne * 14; ++j )
+          pbo.push_back( pb[j+1] );
+        par.erase( par.begin() + i );
+        --i;
+      }
+      else
+        nn = i;
+    }
   explosionSelected( 0 );
 }
 
@@ -595,30 +604,22 @@ void QLevelParams::explosionSelected( int x )
   const QPixmap	* const * spr = theQRWin->sprites();
 
   if( x >= 0 && x < (int) d->explnum.size() )
-    {
-      unsigned short	el = d->explnum[x];
-      unsigned		ad = explo.a[ el ];
+  {
+    unsigned short	el = d->explnum[x];
+    unsigned		ad = explo.a[ el ];
 
-      for( k=0; k<3; ++k )
-	for( l=0; l<3; ++l )
-#if QT_VERSION >= 0x040000
-          d->explab[k*3+l]->setPixmap( *spr[ explo.d[ad][l][k] ] );
-#else
-	  d->explab[k*3+l]->setBackgroundPixmap( *spr[ explo.d[ad][l][k] ] );
-#endif
-      d->currentExpl = el;
-    }
+    for( k=0; k<3; ++k )
+      for( l=0; l<3; ++l )
+        d->explab[k*3+l]->setPixmap( *spr[ explo.d[ad][l][k] ] );
+    d->currentExpl = el;
+  }
   else
-    {
-      for( k=0; k<3; ++k )
-	for( l=0; l<3; ++l )
-#if QT_VERSION >= 0x040000
-          d->explab[k*3+l]->setPixmap( *spr[ 255 ] );
-#else
-          d->explab[k*3+l]->setBackgroundPixmap( *spr[ 255 ] );
-#endif
-      d->currentExpl = -1;
-    }
+  {
+    for( k=0; k<3; ++k )
+      for( l=0; l<3; ++l )
+        d->explab[k*3+l]->setPixmap( *spr[ 255 ] );
+    d->currentExpl = -1;
+  }
 }
 
 
@@ -636,32 +637,32 @@ void QLevelParams::updateBlobs()
 
   for( i=0; i<n; ++i )
     if( par[i].first == SimpleLevel::Blobs )
+    {
+      const vector<unsigned short>	& pb = par[i].second;
+      ne = pb[0];
+      ad = 1;
+      if( pb.size() != ne * 24 + 1 )
+        cout << "mismatch: pb: " << pb.size() << ", ne : " << ne << endl;
+      for( j=0; j<ne; ++j )
       {
-	const vector<unsigned short>	& pb = par[i].second;
-	ne = pb[0];
-	ad = 1;
-	if( pb.size() != ne * 24 + 1 )
-	  cout << "mismatch: pb: " << pb.size() << ", ne : " << ne << endl;
-	for( j=0; j<ne; ++j )
-	  {
-	    el = pb[ ad ];
-	    d->blobs->insertItem( *spr[ el ] );
-	    d->blobnum.push_back( el );
-	    ad += 24;
-	  }
-	if( nn >= 0 )	// several blob blocks, should not happen!
-	  {		// merge them
-	    cout << "merging multiple blobs definitions\n";
-	    vector<unsigned short>	& pbo = par[nn].second;
-	    pbo[0] += ne;
-	    for( j=0; j<ne * 24; ++j )
-	      pbo.push_back( pb[j+1] );
-	    par.erase( par.begin() + i );
-	    --i;
-	  }
-	else
-	  nn = i;
+        el = pb[ ad ];
+        d->blobs->addItem( *spr[ el ], QString() );
+        d->blobnum.push_back( el );
+        ad += 24;
       }
+      if( nn >= 0 )	// several blob blocks, should not happen!
+      { // merge them
+        cout << "merging multiple blobs definitions\n";
+        vector<unsigned short>	& pbo = par[nn].second;
+        pbo[0] += ne;
+        for( j=0; j<ne * 24; ++j )
+          pbo.push_back( pb[j+1] );
+        par.erase( par.begin() + i );
+        --i;
+      }
+      else
+        nn = i;
+    }
   blobSelected( 0 );
 }
 
@@ -672,44 +673,32 @@ void QLevelParams::blobSelected( int x )
   const QPixmap	* const * spr = theQRWin->sprites();
 
   if( x >= 0 && x < (int) d->blobnum.size() )
-    {
-      unsigned short	el = d->blobnum[x];
-      unsigned		ad = explo.a[ el ];
+  {
+    unsigned short	el = d->blobnum[x];
+    unsigned		ad = explo.a[ el ];
 
-      d->blobspesize->setValue( bebet[ad].tmax );
-      for( k=0; k<3; ++k )
-	for( l=0; l<3; ++l )
-	  {
-#if QT_VERSION >= 0x040000
-	    d->blblabf[k*3+l]->
-	      setPixmap( *spr[ bebet[ad].d1[l][k] ] );
-	    d->blblabb[k*3+l]->
-              setPixmap( *spr[ bebet[ad].d2[l][k] ] );
-#else
-	    d->blblabf[k*3+l]->
-	      setBackgroundPixmap( *spr[ bebet[ad].d1[l][k] ] );
-	    d->blblabb[k*3+l]->
-	      setBackgroundPixmap( *spr[ bebet[ad].d2[l][k] ] );
-#endif
-	  }
-      d->currentBlob = el;
-    }
+    d->blobspesize->setValue( bebet[ad].tmax );
+    for( k=0; k<3; ++k )
+      for( l=0; l<3; ++l )
+      {
+        d->blblabf[k*3+l]->
+          setPixmap( *spr[ bebet[ad].d1[l][k] ] );
+        d->blblabb[k*3+l]->
+          setPixmap( *spr[ bebet[ad].d2[l][k] ] );
+      }
+    d->currentBlob = el;
+  }
   else
-    {
-      d->blobspesize->setValue( 0 );
-      for( k=0; k<3; ++k )
-	for( l=0; l<3; ++l )
-	  {
-#if QT_VERSION >= 0x040000
-	    d->blblabf[k*3+l]->setPixmap( *spr[ 255 ] );
-	    d->blblabb[k*3+l]->setPixmap( *spr[ 255 ] );
-#else
-            d->blblabf[k*3+l]->setBackgroundPixmap( *spr[ 255 ] );
-            d->blblabb[k*3+l]->setBackgroundPixmap( *spr[ 255 ] );
-#endif
-          }
-      d->currentBlob = -1;
-    }
+  {
+    d->blobspesize->setValue( 0 );
+    for( k=0; k<3; ++k )
+      for( l=0; l<3; ++l )
+      {
+        d->blblabf[k*3+l]->setPixmap( *spr[ 255 ] );
+        d->blblabb[k*3+l]->setPixmap( *spr[ 255 ] );
+      }
+    d->currentBlob = -1;
+  }
 }
 
 
@@ -722,33 +711,29 @@ void QLevelParams::drawExplosion( int x, unsigned short elem )
   unsigned				p, n = par.size(), ne, i, ad;
   for( p=0; p<n; ++p )
     if( par[p].first == LevelParam::Explosions )
+    {
+      vector<unsigned short>	&pb = par[p].second;
+      ne = pb[0];
+      ad = 1;
+      for( i=0; i<ne; ++i )
       {
-	vector<unsigned short>	&pb = par[p].second;
-	ne = pb[0];
-	ad = 1;
-	for( i=0; i<ne; ++i )
-	  {
-	    if( pb[ad] == d->currentExpl )
-	      {
-		ad += 5; // skip element num and sizes
-		if( pb[ ad + x ] != elem )
-		  {
-		    game.tbct.setModified( true );
-		    pb[ ad + x ] = elem;
-#if QT_VERSION >= 0x040000
-		    d->explab[x]->setPixmap( *spr[ elem ] );
-#else
-		    d->explab[x]->setBackgroundPixmap( *spr[ elem ] );
-#endif
-		    unsigned	rc = explo.a[ d->currentExpl ];
-		    explo.d[rc][x%3][x/3] = elem;
-		  }
-		break;
-	      }
-	    ad += 14;
-	  }
-	break;
+        if( pb[ad] == d->currentExpl )
+        {
+          ad += 5; // skip element num and sizes
+          if( pb[ ad + x ] != elem )
+          {
+            game.tbct.setModified( true );
+            pb[ ad + x ] = elem;
+            d->explab[x]->setPixmap( *spr[ elem ] );
+            unsigned	rc = explo.a[ d->currentExpl ];
+            explo.d[rc][x%3][x/3] = elem;
+          }
+          break;
+        }
+        ad += 14;
       }
+      break;
+    }
 }
 
 
@@ -762,33 +747,29 @@ void QLevelParams::drawBlobBlocked( int x, unsigned short elem )
   unsigned				p, n = par.size(), ne, i, ad;
   for( p=0; p<n; ++p )
     if( par[p].first == LevelParam::Blobs )
+    {
+      vector<unsigned short>	&pb = par[p].second;
+      ne = pb[0];
+      ad = 1;
+      for( i=0; i<ne; ++i )
       {
-	vector<unsigned short>	&pb = par[p].second;
-	ne = pb[0];
-	ad = 1;
-	for( i=0; i<ne; ++i )
-	  {
-	    if( pb[ad] == d->currentBlob )
-	      {
-		ad += 15;
-		if( pb[ ad + x ] != elem )
-		  {
-		    game.tbct.setModified( true );
-		    pb[ ad + x ] = elem;
-#if QT_VERSION >= 0x040000
-		    d->blblabb[x]->setPixmap( *spr[ elem ] );
-#else
-		    d->blblabb[x]->setBackgroundPixmap( *spr[ elem ] );
-#endif
-		    unsigned	rc = explo.a[ d->currentBlob ];
-		    bebet[rc].d1[x%3][x/3] = elem;
-		  }
-		break;
-	      }
-	    ad += 24;
-	  }
-	break;
+        if( pb[ad] == d->currentBlob )
+        {
+          ad += 15;
+          if( pb[ ad + x ] != elem )
+          {
+            game.tbct.setModified( true );
+            pb[ ad + x ] = elem;
+            d->blblabb[x]->setPixmap( *spr[ elem ] );
+            unsigned	rc = explo.a[ d->currentBlob ];
+            bebet[rc].d1[x%3][x/3] = elem;
+          }
+          break;
+        }
+        ad += 24;
       }
+      break;
+    }
 }
 
 
@@ -802,33 +783,29 @@ void QLevelParams::drawBlobFree( int x, unsigned short elem )
   unsigned				p, n = par.size(), ne, i, ad;
   for( p=0; p<n; ++p )
     if( par[p].first == LevelParam::Blobs )
+    {
+      vector<unsigned short>	&pb = par[p].second;
+      ne = pb[0];
+      ad = 1;
+      for( i=0; i<ne; ++i )
       {
-	vector<unsigned short>	&pb = par[p].second;
-	ne = pb[0];
-	ad = 1;
-	for( i=0; i<ne; ++i )
-	  {
-	    if( pb[ad] == d->currentBlob )
-	      {
-		ad += 4;
-		if( pb[ ad + x ] != elem )
-		  {
-		    game.tbct.setModified( true );
-		    pb[ ad + x ] = elem;
-#if QT_VERSION >= 0x040000
-		    d->blblabf[x]->setPixmap( *spr[ elem ] );
-#else
-		    d->blblabf[x]->setBackgroundPixmap( *spr[ elem ] );
-#endif
-		    unsigned	rc = explo.a[ d->currentBlob ];
-		    bebet[rc].d2[x%3][x/3] = elem;
-		  }
-		break;
-	      }
-	    ad += 24;
-	  }
-	break;
+        if( pb[ad] == d->currentBlob )
+        {
+          ad += 4;
+          if( pb[ ad + x ] != elem )
+          {
+            game.tbct.setModified( true );
+            pb[ ad + x ] = elem;
+            d->blblabf[x]->setPixmap( *spr[ elem ] );
+            unsigned	rc = explo.a[ d->currentBlob ];
+            bebet[rc].d2[x%3][x/3] = elem;
+          }
+          break;
+        }
+        ad += 24;
       }
+      break;
+    }
 }
 
 
@@ -843,51 +820,51 @@ void QLevelParams::newExplosion()
 
   for( i=0; i<512; ++i )
     if( expli.a[i] && addresses.find( expli.a[i] ) == notused )
+    {
+      GElem	*elem = elFactory.createElem( i );
+      if( elem && elem->isExplosive() )
       {
-	GElem	*elem = elFactory.createElem( i );
-	if( elem && elem->isExplosive() )
-	  {
-	    elist.insert( i );
-	    addresses.insert( expli.a[i] );
-	  }
-	delete elem;
+        elist.insert( i );
+        addresses.insert( expli.a[i] );
       }
+      delete elem;
+    }
   for( i=0, n=d->explnum.size(); i<n; ++i )
     elist.erase( d->explnum[i] );
 
   internal::ElementSelector	esel( elist, 0, tr( "Edit explosion" ), true );
   if( esel.exec() )
+  {
+    unsigned short	elem = (unsigned short) esel.button;
+    vector<LevelParam::ParamBlock>	& par = game.tbct.params;
+    unsigned				p, n = par.size(), i, j, ad;
+    ad = expli.a[elem];
+    for( p=0; p<n; ++p )
+      if( par[p].first == LevelParam::Explosions )
+        break;
+    if( p == par.size() )
     {
-      unsigned short	elem = (unsigned short) esel.button;
-      vector<LevelParam::ParamBlock>	& par = game.tbct.params;
-      unsigned				p, n = par.size(), i, j, ad;
-      ad = expli.a[elem];
-      for( p=0; p<n; ++p )
-	if( par[p].first == LevelParam::Explosions )
-	  break;
-      if( p == par.size() )
-	{
-	  par.push_back( LevelParam::ParamBlock( LevelParam::Explosions, 
-						 vector<unsigned short>() ) );
-	  par[p].second.push_back( 0 );
-	}
-
-      vector<unsigned short>	&pb = par[p].second;
-      ++pb[0];
-      pb.push_back( elem );
-      pb.push_back( 3 ); // size x
-      pb.push_back( 3 ); // size y
-      pb.push_back( 1 ); // center x
-      pb.push_back( 1 ); // center y
-      for( j=0; j<3; ++j )
-	for( i=0; i<3; ++i )
-	  pb.push_back( expli.d[ad][i][j] );
-
-      game.tbct.setModified( true );
-      emit levelChanged( game.tb );
-      //d->expl->setCurrentItem( p );
-      //explosionSelected( p );
+      par.push_back( LevelParam::ParamBlock( LevelParam::Explosions,
+                                              vector<unsigned short>() ) );
+      par[p].second.push_back( 0 );
     }
+
+    vector<unsigned short>	&pb = par[p].second;
+    ++pb[0];
+    pb.push_back( elem );
+    pb.push_back( 3 ); // size x
+    pb.push_back( 3 ); // size y
+    pb.push_back( 1 ); // center x
+    pb.push_back( 1 ); // center y
+    for( j=0; j<3; ++j )
+      for( i=0; i<3; ++i )
+        pb.push_back( expli.d[ad][i][j] );
+
+    game.tbct.setModified( true );
+    emit levelChanged( game.tb );
+    //d->expl->setCurrentItem( p );
+    //explosionSelected( p );
+  }
 }
 
 
@@ -899,29 +876,29 @@ void QLevelParams::removeExplosion()
   unsigned				p, n = par.size(), ne, i, ad;
   for( p=0; p<n; ++p )
     if( par[p].first == LevelParam::Explosions )
+    {
+      vector<unsigned short>	&pb = par[p].second;
+      ne = pb[0];
+      ad = 1;
+      for( i=0; i<ne; ++i )
       {
-	vector<unsigned short>	&pb = par[p].second;
-	ne = pb[0];
-	ad = 1;
-	for( i=0; i<ne; ++i )
-	  {
-	    if( pb[ad] == d->currentExpl )
-	      {
-		if( ne == 1 )
-		  par.erase( par.begin() + p );
-		else
-		  {
-		    pb.erase( pb.begin() + ad, pb.begin() + ad + 14 );
-		    --pb[0];
-		  }
-		game.tbct.setModified( true );
-		emit levelChanged( game.tb );
-		break;
-	      }
-	    ad += 14;
-	  }
-	break;
+        if( pb[ad] == d->currentExpl )
+        {
+          if( ne == 1 )
+            par.erase( par.begin() + p );
+          else
+          {
+            pb.erase( pb.begin() + ad, pb.begin() + ad + 14 );
+            --pb[0];
+          }
+          game.tbct.setModified( true );
+          emit levelChanged( game.tb );
+          break;
+        }
+        ad += 14;
       }
+      break;
+    }
 }
 
 
@@ -936,55 +913,55 @@ void QLevelParams::newBlob()
 
   for( i=0; i<512; ++i )
     if( expli.a[i] && addresses.find( expli.a[i] ) == notused )
+    {
+      GElem	*elem = elFactory.createElem( i );
+      if( elem && elem->isBlob() )
       {
-	GElem	*elem = elFactory.createElem( i );
-	if( elem && elem->isBlob() )
-	  {
-	    elist.insert( i );
-	    addresses.insert( expli.a[i] );
-	  }
-	delete elem;
+        elist.insert( i );
+        addresses.insert( expli.a[i] );
       }
+      delete elem;
+    }
   for( i=0, n=d->blobnum.size(); i<n; ++i )
     elist.erase( d->blobnum[i] );
 
   internal::ElementSelector	esel( elist, 0, tr( "Edit Blob" ), true );
   if( esel.exec() )
+  {
+    unsigned short	elem = (unsigned short) esel.button;
+    vector<LevelParam::ParamBlock>	& par = game.tbct.params;
+    unsigned				p, n = par.size(), i, j, ad;
+    ad = expli.a[elem];
+    for( p=0; p<n; ++p )
+      if( par[p].first == LevelParam::Blobs )
+        break;
+    if( p == par.size() )
     {
-      unsigned short	elem = (unsigned short) esel.button;
-      vector<LevelParam::ParamBlock>	& par = game.tbct.params;
-      unsigned				p, n = par.size(), i, j, ad;
-      ad = expli.a[elem];
-      for( p=0; p<n; ++p )
-	if( par[p].first == LevelParam::Blobs )
-	  break;
-      if( p == par.size() )
-	{
-	  par.push_back( LevelParam::ParamBlock( LevelParam::Blobs, 
-						 vector<unsigned short>() ) );
-	  par[p].second.push_back( 0 );
-	}
-
-      vector<unsigned short>	&pb = par[p].second;
-      ++pb[0];
-      pb.push_back( elem );
-      pb.push_back( 256 );	// size
-      pb.push_back( 3 );        // pattern size x
-      pb.push_back( 3 );        // pattern size y
-      for( j=0; j<3; ++j )
-	for( i=0; i<3; ++i )
-	  pb.push_back( bebi[ad].d1[i][j] );
-      pb.push_back( 3 );        // pattern size x
-      pb.push_back( 3 );        // pattern size y
-      for( j=0; j<3; ++j )
-	for( i=0; i<3; ++i )
-	  pb.push_back( bebi[ad].d2[i][j] );
-
-      game.tbct.setModified( true );
-      emit levelChanged( game.tb );
-      //d->blobs->setCurrentItem( p );
-      //blobSelected( p );
+      par.push_back( LevelParam::ParamBlock( LevelParam::Blobs,
+                                              vector<unsigned short>() ) );
+      par[p].second.push_back( 0 );
     }
+
+    vector<unsigned short>	&pb = par[p].second;
+    ++pb[0];
+    pb.push_back( elem );
+    pb.push_back( 256 );	// size
+    pb.push_back( 3 );        // pattern size x
+    pb.push_back( 3 );        // pattern size y
+    for( j=0; j<3; ++j )
+      for( i=0; i<3; ++i )
+        pb.push_back( bebi[ad].d1[i][j] );
+    pb.push_back( 3 );        // pattern size x
+    pb.push_back( 3 );        // pattern size y
+    for( j=0; j<3; ++j )
+      for( i=0; i<3; ++i )
+        pb.push_back( bebi[ad].d2[i][j] );
+
+    game.tbct.setModified( true );
+    emit levelChanged( game.tb );
+    //d->blobs->setCurrentItem( p );
+    //blobSelected( p );
+  }
 }
 
 
@@ -996,29 +973,29 @@ void QLevelParams::removeBlob()
   unsigned				p, n = par.size(), ne, i, ad;
   for( p=0; p<n; ++p )
     if( par[p].first == LevelParam::Blobs )
+    {
+      vector<unsigned short>	&pb = par[p].second;
+      ne = pb[0];
+      ad = 1;
+      for( i=0; i<ne; ++i )
       {
-	vector<unsigned short>	&pb = par[p].second;
-	ne = pb[0];
-	ad = 1;
-	for( i=0; i<ne; ++i )
-	  {
-	    if( pb[ad] == d->currentBlob )
-	      {
-		if( ne == 1 )
-		  par.erase( par.begin() + p );
-		else
-		  {
-		    pb.erase( pb.begin() + ad, pb.begin() + ad + 24 );
-		    --pb[0];
-		  }
-		game.tbct.setModified( true );
-		emit levelChanged( game.tb );
-		break;
-	      }
-	    ad += 24;
-	  }
-	break;
+        if( pb[ad] == d->currentBlob )
+        {
+          if( ne == 1 )
+            par.erase( par.begin() + p );
+          else
+          {
+            pb.erase( pb.begin() + ad, pb.begin() + ad + 24 );
+            --pb[0];
+          }
+          game.tbct.setModified( true );
+          emit levelChanged( game.tb );
+          break;
+        }
+        ad += 24;
       }
+      break;
+    }
 }
 
 
@@ -1055,8 +1032,8 @@ void QLevelParams::blobSpecialSizeChanged( int x )
 
 
 internal::QElemDrawer::QElemDrawer( int x, QWidget * parent, 
-                                    const char * name, Qt::WFlags f )
-  : QLabel( parent, name, f ), _x( x )
+                                    Qt::WindowFlags f )
+  : QLabel( parent, f ), _x( x )
 {
 }
 
@@ -1083,44 +1060,49 @@ void internal::QElemDrawer::drawElement( QMouseEvent* )
   QREditPalette	*ep = theQRWin->editPalette();
   if( !ep )
     return;
+#ifndef ANDROID
   emit drawn( _x, ep->selectedSprite() );
+#endif
 }
 
 
 internal::ElementSelector::ElementSelector( const set<unsigned short> 
 					    & choice, QWidget* parent, 
-					    const char* name, 
-                                            bool modal, Qt::WFlags f )
-  : QDialog( parent, name, modal, f ), button( -1 )
+					    const QString & name,
+                                            bool modal, Qt::WindowFlags f )
+  : QDialog( parent, f ), button( -1 )
 {
-  setCaption( name );
+  setWindowTitle( name );
+  setModal( modal );
   QVBoxLayout	*lay = new QVBoxLayout( this );
   lay->setMargin( 10 );
   lay->setSpacing( 10 );
-  Q3ButtonGroup	*grd
-      = new Q3ButtonGroup( (int) sqrt( (double) choice.size() ),
-                            Horizontal, name, this );
-#if QT_VERSION >= 0x040000
-  grd->setExclusive( true );
-#endif
+  QGroupBox *grd = new QGroupBox( name, this );
+  QGridLayout *gl = new QGridLayout( grd );
+  QButtonGroup	*grdb = new QButtonGroup(grd );
+  grdb->setExclusive( true );
   const QPixmap	* const * spr = theQRWin->sprites();
   QPushButton	*btn;
+  int i=0, n = (int) sqrt( (double) choice.size() );
 
   lay->addWidget( grd );
   set<unsigned short>::const_iterator	ic, ec = choice.end();
-  for( ic=choice.begin(); ic!=ec; ++ic )
-    {
-      _choice.push_back( *ic );
-      btn = new QPushButton( grd );
-      btn->setPixmap( *spr[ *ic ] );
-      btn->setFixedSize( btn->sizeHint() );
-    }
+  for( ic=choice.begin(); ic!=ec; ++ic, ++i )
+  {
+    _choice.push_back( *ic );
+    btn = new QPushButton( grd );
+    gl->addWidget( btn, int( i / n ), i % n, Qt::AlignHCenter );
+    grdb->addButton( btn, i );
+    btn->setIcon( *spr[ *ic ] );
+    btn->setFixedSize( btn->sizeHint() );
+  }
 
   QPushButton	*can = new QPushButton( QLevelParams::tr( "Cancel" ), this );
   can->setFixedSize( can->sizeHint() );
   lay->addWidget( can );
   connect( can, SIGNAL( clicked() ), this, SLOT( reject() ) );
-  connect( grd, SIGNAL( clicked( int ) ), this, SLOT( selectElement( int ) ) );
+  connect( grdb, SIGNAL( buttonClicked( int ) ), this,
+           SLOT( selectElement( int ) ) );
 }
 
 
@@ -1131,6 +1113,7 @@ internal::ElementSelector::~ElementSelector()
 
 void internal::ElementSelector::selectElement( int x )
 {
+  cout << "selectElement " << x << endl;
   button = _choice[x];
   accept();
 }

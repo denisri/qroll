@@ -21,13 +21,11 @@
 #include <roll/game/random.h>
 #include <roll/socket/qPlayerServer.h>
 #include <roll/gui/configWin.h>
-#ifdef ANDROID
-class QLevelParams;
-#else
+#ifndef ANDROID
 #include <roll/gui/qAbout.h>
 #include <roll/gui/editPalette.h>
-#include <roll/gui/levelParams.h>
 #endif
+#include <roll/gui/levelParams.h>
 #include <roll/struct/series.h>
 #include <roll/struct/seriesManager.h>
 #include <roll/struct/simpleLevel.h>
@@ -1454,19 +1452,17 @@ QREditPalette* QRMainWin::editPalette()
 
 void QRMainWin::levelParams()
 {
-#ifndef ANDROID
   if( !d->levelparams )
-    {
-      d->levelparams = new QLevelParams;
-      connect( d->levelparams, SIGNAL( destroyed() ), this, 
-	       SLOT( levelParamsClosed() ) );
-      connect( this, SIGNAL( stageChanged( unsigned ) ), d->levelparams, 
-	       SLOT( update( unsigned ) ) );
-      connect( d->levelparams, SIGNAL( levelChanged( unsigned ) ), this, 
-	       SIGNAL( stageChanged( unsigned ) ) );
-    }
+  {
+    d->levelparams = new QLevelParams;
+    connect( d->levelparams, SIGNAL( destroyed() ), this,
+              SLOT( levelParamsClosed() ) );
+    connect( this, SIGNAL( stageChanged( unsigned ) ), d->levelparams,
+              SLOT( update( unsigned ) ) );
+    connect( d->levelparams, SIGNAL( levelChanged( unsigned ) ), this,
+              SIGNAL( stageChanged( unsigned ) ) );
+  }
   d->levelparams->show();
-#endif
 }
 
 
