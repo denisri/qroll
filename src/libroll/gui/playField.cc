@@ -810,7 +810,7 @@ void QRPlayField::mousePress( QMouseEvent* e )
       posFromMouse( e->pos(), d->draglvlorgx, d->draglvlorgy );
       d->interndrag = false;
       if( theQRWin->editMode() )
-	paint( e->pos() );
+        paint( e->pos() );
       break;
     case RightButton:	// drag image
       d->interndrag = true;
@@ -845,39 +845,44 @@ void QRPlayField::mouseRelease( QMouseEvent* e )
 void QRPlayField::mouseMove( QMouseEvent* e )
 {
   if( d->dragging )
+  {
+    if( d->interndrag )
     {
-      if( d->interndrag )
-	{
-	  QPoint	p = ( e->pos() - d->dragorg ) / 16;
-	  if( d->gameField->scalingEnabled() )
-	    p /= d->gameField->scaleFactor();
+      QPoint	p = ( e->pos() - d->dragorg ) / 16;
+      if( d->gameField->scalingEnabled() )
+        p /= d->gameField->scaleFactor();
 
-	  int	px = d->draglvlorgx - p.x(), py = d->draglvlorgy - p.y();
-	  int	pxm = game.tbct.sizeX() - d->gameField->uWidth();
-	  int	pym = game.tbct.sizeY() - d->gameField->uHeight();
+      int	px = d->draglvlorgx - p.x(), py = d->draglvlorgy - p.y();
+      int	pxm = game.tbct.sizeX() - d->gameField->uWidth();
+      int	pym = game.tbct.sizeY() - d->gameField->uHeight();
 
-	  if( px < 0 )
-	    px = 0;
-	  else if( px > pxm )
-	    px = pxm;
-	  if( py < 0 )
-	    py = 0;
-	  else if( py > pym )
-	    py = pym;
-	  d->gameField->setPos( (unsigned) px, (unsigned) py );
-	}
-      else if( theQRWin->editMode() )
-	{
-	  int x, y;
-	  bool ok = posFromMouse( e->pos(), x, y );
-	  if( x != d->draglvlorgx || y != d->draglvlorgy )
-	    {
-	      d->draglvlorgx = x;
-	      d->draglvlorgy = y;
-	      emit paintMove( x, y, ok, this );
-	    }
-	}
+      if( pxm < 0 )
+        pxm = 0;
+      if( pym < 0 )
+        pym = 0;
+
+      if( px < 0 )
+        px = 0;
+      else if( px > pxm )
+        px = pxm;
+      if( py < 0 )
+        py = 0;
+      else if( py > pym )
+        py = pym;
+      d->gameField->setPos( (unsigned) px, (unsigned) py );
     }
+    else if( theQRWin->editMode() )
+    {
+      int x, y;
+      bool ok = posFromMouse( e->pos(), x, y );
+      if( x != d->draglvlorgx || y != d->draglvlorgy )
+      {
+        d->draglvlorgx = x;
+        d->draglvlorgy = y;
+        emit paintMove( x, y, ok, this );
+      }
+    }
+  }
 }
 
 
@@ -1110,6 +1115,11 @@ bool QRPlayField::panGesture( QPanGesture * gesture )
   int   px = d->draglvlorgx - mov.rx(), py = d->draglvlorgy - mov.ry();
   int   pxm = game.tbct.sizeX() - d->gameField->uWidth();
   int   pym = game.tbct.sizeY() - d->gameField->uHeight();
+
+  if( pxm < 0 )
+    pxm = 0;
+  if( pym < 0 )
+    pym = 0;
 
   if( px < 0 )
     px = 0;

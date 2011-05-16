@@ -2,7 +2,7 @@
                           gameField.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis RiviÃ¨re
+    copyright            : (C) 2000 by Denis Rivière
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -105,7 +105,7 @@ void RGameField::reset()
 
 unsigned RGameField::uWidth() const
 {
-  if( _scale || (_w << 5) == (unsigned) width() )
+  if( _w == 0 || _scale || (_w << 5) == (unsigned) width() )
     return( _w );
   return( _w - 1 );
 }
@@ -113,7 +113,7 @@ unsigned RGameField::uWidth() const
 
 unsigned RGameField::uHeight() const
 {
-  if( _scale || (_h << 5) == (unsigned) height() )
+  if( _h == 0 || _scale || (_h << 5) == (unsigned) height() )
     return( _h );
   return( _h - 1 );
 }
@@ -208,15 +208,23 @@ void RGameField::displayHalf()
     cp = (*game.tbct.players)[ _player ].pos;
   else
     cp = Coord( 0, 0 );
+  int wborder = 5, hborder = 4;
+  if( w < 10 )
+    wborder = w / 2;
+  if( h < 8 )
+    hborder = h / 2;
 
-  if( (int)_xx < (int)cp.x-w+6 && _xx + w < game.tbct.sizeX() )
+  if( (int)_xx < (int)cp.x-w+wborder+1 && _xx + w < game.tbct.sizeX() )
     ++_xx;
-  else if( (int)_xx > (int)cp.x-5 && _xx>0 )
+  if( (int)_xx > (int)cp.x-wborder && _xx>0 )
     --_xx;
-  else if( (int)_yy < (int)cp.y-h+5 && _yy + h < game.tbct.sizeY() )
-    ++_yy;
-  else if( (int)_yy > (int)cp.y-4 && _yy>0 )
-    --_yy;
+  if( _xx == xx_old )
+  {
+    if( (int)_yy < (int)cp.y-h+hborder+1 && _yy + h < game.tbct.sizeY() )
+      ++_yy;
+    if( (int)_yy > (int)cp.y-hborder && _yy>0 )
+      --_yy;
+  }
 
   //	Calcul de l'offset
 
@@ -256,7 +264,7 @@ void RGameField::displayHalf()
 	copySprite( spr, i*32+dx, j*32+dy );
       }
 
-  //	plus la peine de dÃ©passer du tableau
+  //	no need to go out of the level
 
   if( w+_xx > game.tbct.sizeX() )
     w = game.tbct.sizeX() - _xx;

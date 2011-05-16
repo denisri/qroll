@@ -40,7 +40,7 @@ namespace roll
 }
 
 
-/**	Widget central des fenêtres QRoll
+/**	Central widget of QRoll windows
  */
 class QRPlayField : public QWidget
 {

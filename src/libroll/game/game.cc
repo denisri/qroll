@@ -2,7 +2,7 @@
                           game.cc  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2001 by Denis RiviÃ¨re
+    copyright            : (C) 2000-2001 by Denis Rivière
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -41,7 +41,7 @@ Game::~Game()
 
 void Game::init( unsigned tab )
 {
-  //	arrÃªter tous les sons en cours
+  //	stop all playing sounds
   RRSoundProcessor::processor().stop();
 
   if( tab>=ser->numLevels() )
@@ -86,19 +86,19 @@ void Game::step()
   PlayerServer::iterator	ip, fp=tbct.players->end();
 
 
-  //	Vie gagnÃ©e au coup d'avant
+  //	life earned at previous step
   if( lifeGained != 0 )
     lifeGained = 0;
 
   timeChanged = false;
 
-  //	Comptages
+  //	counts
 
   for( ip=tbct.players->begin(); ip!=fp; ++ip )
     {
       mor[(*ip).first] = (*ip).second.dead;
-      //	par dÃ©faut les gens sont morts, jusqu'Ã  ce qu'on les trouve 
-      //	en balayant le tableau
+      // by default all players are dead, until they are found when
+      // parsing the level
       (*ip).second.dead = true;
     }
 
@@ -111,7 +111,7 @@ void Game::step()
     --tbct.explodeDyna;
 
   //	Boucle du tableau
-  //	(elle a une tete un peu plus simple que dans la version 
+  //	(elle a une tete un peu plus simple que dans la version
   //	 Assembleur 68000 pour Atari...)
 
   unsigned	x, y;
@@ -120,7 +120,7 @@ void Game::step()
     for( x=0; x<tbct.sizeX(); x++ )
       tbct.d[x][y]->process( x, y );
 
-  //	Gestion des bÃ©bettes
+  // blobs handling
 
   for( nob=0; nob<24; ++nob )
     if( bebet[nob].cpt != 0 )
@@ -138,7 +138,7 @@ void Game::step()
 	  bebet[nob].flg = 2;
       }
 
-  //	Tests gagnÃ© / perdu
+  //	Tests won / lost
 
   bool	win =false;
   bool	nowin = false;
@@ -150,7 +150,7 @@ void Game::step()
 	nowin = true;	// au moins 1 non-gagnant encore en jeu
     }
   if( win && ( !allRollsMustExit || !nowin ) )
-    {		//	gagnÃ©
+    {	// won
       ++twon;
       if( twon == 10 )
 	{
@@ -180,7 +180,7 @@ void Game::step()
 	lost = false;
 
   if( lost )
-    {		//	perdu
+    {	// lost
       ++twon;
       if( twon == 30 )
 	{

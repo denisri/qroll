@@ -25,8 +25,13 @@ using namespace roll;
 using namespace std;
 
 
+#ifdef QROLL_OLD
 LevelsDrag::LevelsDrag( QWidget * dragSource, const char * name )
   : QIconDrag( dragSource, name )
+#else
+LevelsDrag::LevelsDrag( QWidget * dragSource, const char * name )
+  : QMimeData( /*dragSource, name*/ )
+#endif
 {
 }
 
@@ -150,6 +155,7 @@ QByteArray LevelsDrag::encodedData( const char* mime ) const
 // -------------
 
 
+#ifdef QROLL_OLD
 SeriesIconView::SeriesIconView( QWidget * parent, const char * name,
                                 Qt::WFlags f )
   : QIconView( parent, name, f )
@@ -157,6 +163,18 @@ SeriesIconView::SeriesIconView( QWidget * parent, const char * name,
   setAcceptDrops( true );
   //connect( this, SIGNAL( moved() ), SLOT( levelsMoved() ) );
 }
+
+#else
+
+SeriesIconView::SeriesIconView( QWidget * parent )
+  : QListWidget( parent )
+{
+  setAcceptDrops( true );
+  //connect( this, SIGNAL( moved() ), SLOT( levelsMoved() ) );
+  setViewMode( IconMode );
+  setSortingEnabled( false );
+}
+#endif
 
 
 SeriesIconView::~SeriesIconView()
@@ -178,9 +196,15 @@ QDragObject * SeriesIconView::copySelection( QWidget* source )
   unsigned	i = 0;
 
   if( currentItem() )
+#ifdef QROLL_OLD
     ld->setPixmap( *currentItem()->pixmap(),
-		   QPoint( currentItem()->pixmapRect().width() / 2, 
-			   currentItem()->pixmapRect().height() / 2 ) );
+                   QPoint( currentItem()->pixmapRect().width() / 2,
+                          currentItem()->pixmapRect().height() / 2 ) );
+#else
+    ld->setIcon( *currentItem()->icon(),
+                  QPoint( currentItem()->pixmapRect().width() / 2, 
+                          currentItem()->pixmapRect().height() / 2 ) );
+#endif
 
   QPoint 
     orig = viewportToContents( viewport()->mapFromGlobal( QCursor::pos() ) );
@@ -252,23 +276,41 @@ void SeriesIconView::levelsDropped( int, QDropEvent* e,
 // --------------------
 
 
-SeriesIconViewItem::SeriesIconViewItem( SeriesIconView* parent, 
-					const QString & text, 
-					const QPixmap & icon )
+SeriesIconViewItem::SeriesIconViewItem( SeriesIconView* parent,
+                                        const QString & text,
+                                        const QPixmap & icon )
+#ifdef QROLL_OLD
   : QIconViewItem( parent, text, icon ), _parent( parent )
+#else
+  : QListWidgetItem( icon, text, parent ), _parent( parent )
+#endif
 {
   setDropEnabled( true );
 }
 
 
-SeriesIconViewItem::SeriesIconViewItem( SeriesIconView* parent, 
-					QIconViewItem* after, 
-					const QString & text, 
-					const QPixmap & icon )
+#ifdef QROLL_OLD
+SeriesIconViewItem::SeriesIconViewItem( SeriesIconView* parent,
+                                        QIconViewItem* after,
+                                        const QString & text,
+                                        const QPixmap & icon )
   : QIconViewItem( parent, after, text, icon ), _parent( parent )
 {
   setDropEnabled( true );
 }
+
+#else
+
+SeriesIconViewItem::SeriesIconViewItem( SeriesIconView* parent,
+                                        QIconViewItem* after,
+                                        const QString & text,
+                                        const QPixmap & icon )
+  : QIconViewItem( icon, text, 0 ), _parent( parent )
+{
+  parent->insertItem( parent->row( after ), this );
+  setDropEnabled( true );
+}
+#endif
 
 
 SeriesIconViewItem::~SeriesIconViewItem()

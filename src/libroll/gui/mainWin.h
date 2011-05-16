@@ -2,7 +2,7 @@
                           mainWin.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis Riviï¿½e
+    copyright            : (C) 2000 by Denis Rivière
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -41,7 +41,7 @@ namespace roll
 }
 
 /* Uncomment the following line if you use windows 9x and have problems with 
-   many pixmaps. This bug is documened id Qt documentation, in the QPixmap 
+   many pixmaps. This bug is documened in Qt documentation, in the QPixmap
    class doc. 
    If you define the WIN32_AVOID_PIXMAPS macro, we use QImage for the 
    orgiginal sprites (not recolored), this will slow down the edition palette 
@@ -156,13 +156,13 @@ public slots:
   void paintStop( int x, int y, bool inlevel, QRPlayField* );
 
 signals:
-  ///	Arrï¿½ du jeu
+  ///	game stops
   void gameStopped();
-  ///	Ordre de remettre ï¿½jour le tableau
+  ///	order to update the level
   void stageChanged( unsigned );
-  ///	Affichage du tableau
+  ///	Level display
   void displayFull();
-  ///	Affichage du demi-scroll
+  ///	half-scrolling display
   void displayHalf();
   ///	Emitted after each 'step' to say that the score may have changed
   void scoreChanged();
@@ -186,14 +186,14 @@ protected:
 
   ///	Initialise les sprites (graphique)
   void initPixmaps();
-  ///	Convertit image -> donnï¿½s sprite niv. gris + type de couleur
+  ///	Converts image -> sprite data, grey level + color type
   void convertSprite( const QImage & img, unsigned x, unsigned y, unsigned w, 
 		      unsigned h, unsigned char* gbuf, unsigned char* cbuf );
   ///	Convertit les couleurs d'un sprite
   void fillImage( QImage & img, unsigned num );
   ///	Conversion des couleurs des sprites
   void genPixmaps();
-  ///	Choses ï¿½faire au demi-scroll
+  ///	things to do at half-scrolling time
   void stepHalf();
 
   bool		_paused;
@@ -226,7 +226,7 @@ private:
 
   ///	Timer cadence du jeu
   QTimer			*_timer;
-  ///	Frï¿½uence d'exï¿½ution du jeu (ms/balayage)
+  ///	Game execution frequency (ms/step)
   unsigned			_tempo;
   ///	Flag 1/2 timer pour le 1/2 scroll
   bool				_tick;

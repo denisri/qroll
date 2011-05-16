@@ -20,7 +20,9 @@
 #define QROLL_GUI_SERIESICONVIEW_H
 
 #include <qglobal.h>
-#if QT_VERSION >= 0x040000
+#include <QListWidget>
+#include <QListWidgetItem>
+
 #include <q3iconview.h>
 #include <Q3IconDrag>
 #include <Q3IconDragItem>
@@ -31,13 +33,13 @@ typedef Q3IconDrag QIconDrag;
 typedef Q3IconDragItem QIconDragItem;
 typedef Q3ValueList<QIconDragItem> QValueList_QIconDragItem;
 typedef Q3DragObject QDragObject;
-#else
-#include <qiconview.h>
-typedef QValueList<QIconDragItem> QValueList_QIconDragItem;
-#endif
 #include <roll/struct/simpleLevel.h>
 #include <set>
 #include <map>
+
+#ifndef QROLL_OLD
+#define QROLL_OLD
+#endif
 
 
 class SeriesIconView;
@@ -45,7 +47,11 @@ class SeriesIconView;
 namespace roll
 {
 
+#ifdef QROLL_OLD
   class LevelsDrag : public QIconDrag
+#else
+  class LevelsDrag : public QMimeData
+#endif
   {
   public:
     LevelsDrag( QWidget * dragSource = 0, const char * name = 0 );
@@ -62,13 +68,25 @@ namespace roll
     std::map<unsigned, SimpleLevel>	_levels;
   };
 
+
+#ifdef QROLL_OLD
   class SeriesIconViewItem : public QIconViewItem
+#else
+  class SeriesIconViewItem : public QListWidgetItem
+#endif
   {
   public:
-    SeriesIconViewItem( SeriesIconView* parent, const QString & text, 
-			const QPixmap & icon );
+#ifdef QROLL_OLD
+    SeriesIconViewItem( SeriesIconView* parent, const QString & text,
+                        const QPixmap & icon );
     SeriesIconViewItem( SeriesIconView* parent, QIconViewItem* after,
-			const QString & text, const QPixmap & icon );
+                        const QString & text, const QPixmap & icon );
+#else
+    SeriesIconViewItem( SeriesIconView* parent, const QString & text,
+                        const QIcon & icon );
+    SeriesIconViewItem( SeriesIconView* parent, QIconViewItem* after,
+                        const QString & text, const QIcon & icon );
+#endif
     virtual ~SeriesIconViewItem();
 
     virtual bool acceptDrop( const QMimeSource * mime ) const;
@@ -84,7 +102,11 @@ namespace roll
 }
 
 
+#ifdef QROLL_OLD
 class SeriesIconView : public QIconView
+#else
+class SeriesIconView : public QListWidget
+#endif
 {
   Q_OBJECT
 
@@ -92,8 +114,12 @@ class SeriesIconView : public QIconView
   friend class roll::SeriesIconViewItem;
 
 public:
+#ifdef QROLL_OLD
   SeriesIconView( QWidget * parent = 0, const char * name = 0,
                   Qt::WFlags f = 0 );
+#else
+  SeriesIconView( QWidget * parent = 0 );
+#endif
   virtual ~SeriesIconView();
   void levelsMoved( unsigned, const std::set<unsigned> & );
   void levelsDropped( int index, QDropEvent* e, 

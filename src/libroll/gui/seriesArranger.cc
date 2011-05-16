@@ -26,11 +26,9 @@
 #include <qmenubar.h>
 #include <qapplication.h>
 #include <qclipboard.h>
-#if QT_VERSION >= 0x040000
 #include <q3popupmenu.h>
 #include <QDropEvent>
 typedef Q3PopupMenu QPopupMenu;
-#endif
 #ifdef _WIN32
 #include <wtypes.h>
 #include <windef.h>
