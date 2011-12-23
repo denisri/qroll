@@ -96,6 +96,7 @@ HEADERS = \
 	somasound/somasoundalsa.h \
 	somasound/somasoundoss.h \
 	somasound/somasoundprocessor.h \
+        somasound/somasoundqtphonon.h \
 	somasound/soundbank.h \
 	somasound/sounditerator.h \
 	somasound/soundslot.h \
@@ -191,6 +192,7 @@ SOURCES = \
 	somasound/somasoundalsa.cc \
 	somasound/somasoundoss.cc \
 	somasound/somasoundprocessor.cc \
+        somasound/somasoundqtphonon.cc \
 	somasound/soundbank.cc \
 	somasound/sounditerator.cc \
 	somasound/wavheader.cc \

@@ -12,6 +12,7 @@
 #include "../libroll/somasound/somasoundoss.h"
 #include "../libroll/somasound/somasoundalsa.h"
 #include "../libroll/somasound/somaqsound.h"
+#include "../libroll/somasound/somasoundqtphonon.h"
 #include <qtranslator.h>
 #ifdef __APPLE__
 #include <unistd.h>
@@ -54,24 +55,31 @@ int main( int argc, char** argv )
 
   // QApplication::setColorSpec( QApplication::ManyColor );
   new QApplication( argc, argv );
+  qApp->setApplicationName( "QRoll" );
 #ifdef _WIN32
   QPixmap::setDefaultOptimization( QPixmap::MemoryOptim );
 #endif
 
   init( argc, argv );		// initialise le jeu, charge les données
+#ifndef SOMA_NO_SOUND
+#ifdef QT_PHONON_LIB
+//   new SomaSoundQtPhonon;
+#endif
 #ifdef SOMA_SOUND_ALSA
   new SomaSoundAlsa;
 #endif
 #ifdef SOMA_SOUND_OSS
   new SomaSoundOSS;
 #endif
-#ifndef SOMA_NO_SOUND
+#ifndef SOMA_NO_QSOUND
   new SomaQSound;
+#endif
 #endif
 
   SomaSoundProcessor::processor().setSoundBank( new RollSoundBank );
   SomaSoundProcessor::processor().soundBank().init();
   SomaSoundProcessor::processor().soundBank().loadSounds();
+  cout << "sounds loaded\n";
 
   //	translator
   string	path = RR_path + "/po/";

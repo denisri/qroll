@@ -258,11 +258,11 @@ void SomaSoundOSS::process( int type )
   unsigned	n = _inuse[ type ];
   if( n >= MaxSameSample )
     stopOld( type );   // too many sounds at the same time: stop one of them
-    if( n > 0 )  // this one already plays : setup a little delay
-    {
-      int	r = rand() & 0x7ff;	 // up to about 0.1 s
-      jobs.push_back( (SndReq) { type, -r } );
-    }
+  if( n > 0 )  // this one already plays : setup a little delay
+  {
+    int	r = rand() & 0x7ff;	 // up to about 0.1 s
+    jobs.push_back( (SndReq) { type, -r } );
+  }
   else
     jobs.push_back( (SndReq) { type, 0 } );
   ++_inuse[ type ];

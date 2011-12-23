@@ -57,7 +57,7 @@ void WavHeader::read( istream & file, const string & fname )
   file.read( (char *) &c4, 1 );
   size_t	len = (((size_t) c4) << 24 ) | (((size_t) c3) << 16 ) 
     | (((size_t) c2) << 8 ) | c1;
-  cout << "len (bytes): " << len << endl;
+  // cout << "len (bytes): " << len << endl;
   file.read( buf, 8 );
   buf[8] = '\0';
   if( string( "WAVEfmt " ) != buf )
@@ -80,7 +80,7 @@ void WavHeader::read( istream & file, const string & fname )
   file.read( (char *) &c2, 1 );
   x = (((unsigned short) c2) << 8 ) | c1;
   channels = x;
-  cout << "channels: " << channels << endl;
+  // cout << "channels: " << channels << endl;
   file.read( (char *) &c1, 1 );
   file.read( (char *) &c2, 1 );
   file.read( (char *) &c3, 1 );
@@ -88,22 +88,22 @@ void WavHeader::read( istream & file, const string & fname )
   len = (((size_t) c4) << 24 ) | (((size_t) c3) << 16 ) 
     | (((size_t) c2) << 8 ) | c1;
   rate = len;
-  cout << "rate: " << rate << endl;
+  // cout << "rate: " << rate << endl;
   file.read( (char *) &c1, 1 );
   file.read( (char *) &c2, 1 );
   file.read( (char *) &c3, 1 );
   file.read( (char *) &c4, 1 );
   len = (((size_t) c4) << 24 ) | (((size_t) c3) << 16 ) 
     | (((size_t) c2) << 8 ) | c1;
-  cout << "bytes/sec: " << len << endl;
+  // cout << "bytes/sec: " << len << endl;
   file.read( (char *) &c1, 1 );
   file.read( (char *) &c2, 1 );
   x = (((unsigned short) c2) << 8 ) | c1;
-  cout << "bytes/sample: " << x << endl;
+  // cout << "bytes/sample: " << x << endl;
   file.read( (char *) &c1, 1 );
   file.read( (char *) &c2, 1 );
   x = (((unsigned short) c2) << 8 ) | c1;
-  cout << "bits/channel: " << x << endl;
+  // cout << "bits/channel: " << x << endl;
   sampleSize = x/8;
   file.read( buf, 4 );
   buf[4] = '\0';
@@ -116,7 +116,7 @@ void WavHeader::read( istream & file, const string & fname )
   len = (((size_t) c4) << 24 ) | (((size_t) c3) << 16 ) 
     | (((size_t) c2) << 8 ) | c1;
   len /= sampleSize * channels;
-  cout << "len in samples: " << len << endl;
+  // cout << "len in samples: " << len << endl;
   size = len;
 }
 

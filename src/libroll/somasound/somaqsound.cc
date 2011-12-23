@@ -94,7 +94,7 @@ void SomaQSound::stop()
 
 void SomaQSound::stop( int type )
 {
-  if( !isOK() || d->sounds.size() <= type )
+  if( !isOK() || d->sounds.size() <= type || _inuse.size() <= type )
     return;
 
   d->sounds[ type ]->stop();
@@ -127,6 +127,8 @@ void SomaQSound::init()
     delete d->sounds[i];
   d->sounds.clear();
   loadSounds();
+  if( d->sounds.empty() )
+    d->initialized = false;
 }
 
 
@@ -139,7 +141,7 @@ void SomaQSound::loadSounds()
   for( i=0; i<n; ++i )
   {
     filename = soundBank().sound( i ).filename;
-    if( d->sounds.size() < i )
+    if( d->sounds.size() <= i )
       d->sounds.push_back( new QSound( filename.c_str() ) );
     else if( !d->sounds[i] )
       d->sounds[i] = new QSound( filename.c_str() );
