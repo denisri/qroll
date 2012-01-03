@@ -21,7 +21,7 @@
 #include "somasoundqtphonon.h"
 #include "soundbank.h"
 #include "soundslot.h"
-#include <phonon/MediaObject>
+#include <phonon/mediaobject.h>
 #include <QBuffer>
 #include <vector>
 #include <map>
