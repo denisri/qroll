@@ -40,6 +40,7 @@
 #include <GL/gl.h>
 #endif
 #endif
+#include <GL/glu.h>
 #include <iostream>
 #include <math.h>
 
