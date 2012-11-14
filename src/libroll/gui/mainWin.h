@@ -85,6 +85,7 @@ public:
   static roll::WorkLevel::PartColor gameColor( QRgb rgb );
   static void setLanguage( const std::string & l );
   static std::string language();
+  void enableGuiTimer( bool );
 
 public slots:
   ///	Full step routine: draws the level
@@ -126,13 +127,13 @@ public slots:
   void addPlayer();
   void removePlayer();
   void closePlayField( QRPlayField * win );
-  ///	Rï¿½git ï¿½un ordre de dï¿½enregistrement d'un joueur
+  ///	React to a player disconnect notification
   void playerRemoved( unsigned num );
   ///	Callback du timer temps de jeu
   void clockTick();
-  ///	Callback rï¿½eau
+  ///	Network callback
   void playerAdded( unsigned );
-  ///	Callback rï¿½eau
+  ///	Network callback
   void playersRenumed( const roll::RenumList & play );
   void about();
   void soundOnOff();

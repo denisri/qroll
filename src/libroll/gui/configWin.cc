@@ -31,6 +31,9 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#ifdef ANDROID
+# include <GLES/gl.h>
+#endif
 
 using namespace roll;
 using namespace std;
@@ -106,11 +109,15 @@ QRConfigWin::QRConfigWin( QWidget* parent, const char* name, Qt::WFlags f )
   optl->addWidget( r );
   d->glopt->addButton( r );
   d->glopt->setId( r, 0 );
+#ifdef GL_VERSION_ES_CM_1_0
+  // no glDrawPixels in GLES, so this mode is disabled
+  r->setEnabled( false );
+#endif
   r->setToolTip( tr( " This options makes R&R draw graphics via OpenGL \n"
                      " 2D operations. This can improve especially scaled\n" 
                      " images if your OpenGL implementation can\n"
                      " accelerate it, but it may depend on the driver." ) );
-  r = new QRadioButton( tr( "Textures & 3D operations" ), optb );
+  r = new QRadioButton( tr( "Textures and 3D operations" ), optb );
   optl->addWidget( r );
   d->glopt->addButton( r );
   r->setToolTip( tr( " This option makes R&R render graphics as 3D\n"

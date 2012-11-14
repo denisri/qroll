@@ -33,14 +33,15 @@
    needed to "think different"... (even Windows is more standard !)
 */
 # include <OpenGL/gl.h>
+# include <GL/glu.h>
 #else
 #ifdef ANDROID
-#include <GLES/gl.h>
+# include <GLES/gl.h>
 #else
-#include <GL/gl.h>
+# include <GL/gl.h>
+# include <GL/glu.h>
 #endif
 #endif
-#include <GL/glu.h>
 #include <iostream>
 #include <math.h>
 
@@ -48,7 +49,11 @@ using namespace roll;
 using namespace std;
 
 
+#ifdef ANDROID
+QRGLGameField::GLMode	QRGLGameField::_glmode = QRGLGameField::Texture;
+#else
 QRGLGameField::GLMode	QRGLGameField::_glmode = QRGLGameField::DrawPixels;
+#endif
 
 static map<unsigned short, QImage>	glsprites;
 static GLuint				*gltexmap = 0, *gltexmap2 = 0;
@@ -348,7 +353,9 @@ void QRGLGameField::initializeGL()
 void QRGLGameField::makeTextures()
 {
   unsigned	i;
+#ifndef GL_VERSION_ES_CM_1_0
   GLenum	status;
+#endif
 
   if( !gltexmap )
   {

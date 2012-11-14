@@ -255,6 +255,7 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
   d->removeaction = ac;
   ac->setEnabled( false );
 
+#ifndef ANDROID
   _soundM = menuBar()->addMenu( tr( "Sound" ) );
   ac = _soundM->addAction( tr( "Sound on/off" ), this,
                        SLOT( soundOnOff() ) );
@@ -263,6 +264,7 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
     ac->setEnabled( false );
   else
     ac->setChecked( true );
+#endif
 
   _viewM = menuBar()->addMenu( tr( "View" ) );
   d->zoomaction = _viewM->addAction( tr( "Allow zoom" ),
@@ -1331,10 +1333,22 @@ void QRMainWin::turnEnds()
 }
 
 
+void QRMainWin::enableGuiTimer( bool x )
+{
+  if( x )
+    _timer->start();
+  else
+    _timer->stop();
+}
+
+
 void QRMainWin::configure()
 {
   if( !d->config )
     {
+#ifdef ANDROID
+      _timer->stop();
+#endif
       d->config = new QRConfigWin;
       connect( d->config, SIGNAL( closed() ), this, SLOT( configClosed() ) );
       d->config->show();
@@ -1345,6 +1359,9 @@ void QRMainWin::configure()
 void QRMainWin::configClosed()
 {
   d->config = 0;
+#ifdef ANDROID
+  _timer->start();
+#endif
 }
 
 
