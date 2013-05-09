@@ -132,14 +132,14 @@ QRScoreBox::QRScoreBox( QWidget *parent, const char *name )
       _bombsT[i*2]->setFrameStyle( PanelStyle );
       _bombsT[i*2]->setGeometry( 12, 293+25*i, 16, 16 );
       _bombs[i*2] = new QLCDNumber( this );
-      _bombs[i*2]->setNumDigits( 2 );
+      _bombs[i*2]->setDigitCount( 2 );
       _bombs[i*2]->setGeometry( 32, 290+25*i, 30, 20 );
 
       _bombsT[i*2+1] = new QFrame( this );
       _bombsT[i*2+1]->setFrameStyle( PanelStyle );
       _bombsT[i*2+1]->setGeometry( 68, 293+25*i, 16, 16 );
       _bombs[i*2+1] = new QLCDNumber( this );
-      _bombs[i*2+1]->setNumDigits( 2 );
+      _bombs[i*2+1]->setDigitCount( 2 );
       _bombs[i*2+1]->setGeometry( 88, 290+25*i, 30, 20 );
     }
 

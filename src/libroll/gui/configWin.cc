@@ -56,7 +56,8 @@ namespace roll
 }
 
 
-QRConfigWin::QRConfigWin( QWidget* parent, const char* name, Qt::WFlags f )
+QRConfigWin::QRConfigWin( QWidget* parent, const char* name, 
+                          Qt::WindowFlags f )
   : QWidget( parent, f ), d( new QRConfigWin_Private )
 {
   setObjectName( name );
@@ -130,7 +131,7 @@ QRConfigWin::QRConfigWin( QWidget* parent, const char* name, Qt::WFlags f )
   //d->glopt->setEnabled( theQRWin->usesOpenGL() );
 #ifdef RR_NO_OPENGL
   gl->setEnabled( false );
-  d->glopt->setEnabled( false );
+  optb->setEnabled( false );
 #else
   d->glopt->buttons()[ gc.glMode() ]->setChecked( true );
 #endif

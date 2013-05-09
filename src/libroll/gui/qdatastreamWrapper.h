@@ -30,7 +30,7 @@ namespace roll
   bool istream_traits<QDataStream>::operator ! () const
   {
     return( /*_stream.atEnd() ||*/ !_stream.device()->isOpen() 
-	    || _stream.device()->status() != (int) IO_Ok );
+	    || _stream.status() != QDataStream::Ok );
   }
 
   template<> /*template<>*/ inline 
@@ -47,18 +47,18 @@ namespace roll
   template<> inline 
   void istream_traits<QDataStream>::read( char* buf, unsigned len )
   {
-    _stream.readRawBytes( buf, len );
+    _stream.readRawData( buf, len );
   }
 
   template<> inline void istream_traits<QDataStream>::seekg( int pos )
   {
-    _stream.device()->at( _stream.device()->at() + pos );
+    _stream.device()->seek( _stream.device()->at() + pos );
   }
 
   template<> inline 
   void ostream_traits<QDataStream>::write( const char* buf, unsigned len )
   {
-    _stream.writeRawBytes( buf, len );
+    _stream.writeRawData( buf, len );
   }
 
   template<> inline

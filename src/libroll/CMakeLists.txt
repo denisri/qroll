@@ -232,7 +232,9 @@ else()
     socket/netMessages.h
   )
 
-  BRAINVISA_ADD_MOC_FILES( _sources ${_headers} )
+  if( NOT DESIRED_QT_VERSION EQUAL 5 )
+    BRAINVISA_ADD_MOC_FILES( _sources ${_headers} )
+  endif()
 
   unset( headersTarget )
   foreach( _file ${_headers} )
@@ -252,4 +254,7 @@ else()
   set_property( TARGET roll PROPERTY VERSION ${${PROJECT_NAME}_VERSION} )
   target_link_libraries( roll ${QROLL_LIBRARIES} )
 
+  if( NOT DESIRED_QT_VERSION EQUAL 5 )
+    qt5_use_modules( roll Widgets )
+  endif()
 endif()

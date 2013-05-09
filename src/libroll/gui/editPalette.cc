@@ -81,10 +81,12 @@ struct QREditPalette::Private
 float QREditPalette::Private::scale = 2;
 
 
-QREditPalette::QREditPalette( QWidget* parent, const char* name, WFlags f )
-  : QMainWindow( parent, name, f ), d( new Private )
+QREditPalette::QREditPalette( QWidget* parent, const char* name, 
+                              WindowFlags f )
+  : QMainWindow( parent, f ), d( new Private )
 {
   setCaption( tr( "Rock'n'Roll Edition tools" ) );
+  setObjectName( name );
   QVBox	*lay = new QVBox( this );
   setCentralWidget( lay );
   const QPixmap * const * spr = theQRWin->sprites();

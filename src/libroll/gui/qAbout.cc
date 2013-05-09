@@ -37,7 +37,9 @@
 #include <qpushbutton.h>
 #include <qtimer.h>
 #include <qpainter.h>
+#if QT_VERSION < 0x050000
 #include <qsound.h>
+#endif
 #include <qnamespace.h>
 #include <qevent.h>
 #include <unistd.h>
@@ -123,7 +125,8 @@ namespace
     {
       QPainter	paint( this );
       paint.setClipRect( 0, 0, width(), height() );
-      paint.fillRect( 0, 0, width(), height(), QBrush( backgroundColor() ) );
+      paint.fillRect( 0, 0, width(), height(), 
+                      QBrush( palette().brush( QPalette::Background ) ) );
       mustfill = false;
     }
     else if( text && nextline )
@@ -179,7 +182,7 @@ namespace
       }
       paint.setFont( fnt );
       QFontInfo	finf( fnt );	// I can't retreive the exact font height in
-      h = int( fnt.pointSizeFloat() ) + 7;	// pixels !!
+      h = int( fnt.pointSizeF() ) + 7;	// pixels !!
       //cout << "font size: " << h << endl;
       y = height()-h;
 
@@ -193,7 +196,7 @@ namespace
 
       paint.setClipRect( x, y, w, h );
       paint.fillRect( x, height()-n, w, n,
-                      QBrush( backgroundColor() ) );
+                      palette().brush( QPalette::Background ) );
       paint.drawText( x, height()+offset, w, h,
                       Qt::AlignHCenter | Qt::AlignBottom, line );
       delete[] line;
@@ -236,7 +239,9 @@ struct QAbout::Private
   pthread_t		musThrd;
 #endif
   bool			threadRunning;
+#if QT_VERSION < 0x050000
   QSound		*qsound;
+#endif
   bool			diffcoded;
   string		musicfile;
   string		tempfile;
@@ -253,7 +258,11 @@ struct QAbout::Private
 
 
 QAbout::Private::Private()
-  : qsound( 0 ), diffcoded( false ), useAlsa( false ), useOSS( false ),
+  : 
+#if QT_VERSION < 0x050000
+  qsound( 0 ), 
+#endif
+  diffcoded( false ), useAlsa( false ), useOSS( false ),
   soundBufferSize( 0 )
 #ifdef SOMA_SOUND_ALSA
   , alsaHandle( 0 )
@@ -266,23 +275,30 @@ QAbout::Private::Private()
 
 
 QAbout::QAbout( QWidget* parent, const char* name ) 
-  : QDialog( parent, name, true ), d( new Private )
+  : QDialog( parent ), d( new Private )
 {
-  setCaption( tr( "About Anatomist" ) );
+  setWindowTitle( tr( "About Anatomist" ) );
+  setObjectName( name );
 
-  QVBoxLayout	*lay1 = new QVBoxLayout( this, 10, -1, "lay1" );
+  setModal( true );
+
+  QVBoxLayout	*lay1 = new QVBoxLayout( this );
+  lay1->setMargin( 10 );
+  lay1->setSpacing( -1 );
+  lay1->setObjectName( "lay1" );
   d->edit = new QScrollingLabel( this, "edit" );
   d->edit->setLineWidth( 2 );
   d->edit->setMidLineWidth( 2 );
   d->edit->setFrameStyle( QFrame::Sunken | QFrame::Panel );
   d->edit->setMinimumSize( 350, 250 );
-  d->edit->setBackgroundColor( Qt::white );
-#if QT_VERSION >= 0x040000
+  QPalette palette;
+  palette.setColor( d->edit->backgroundRole(), Qt::white );
+  d->edit->setPalette( palette );
   d->edit->setAutoFillBackground( false );
   d->edit->setAttribute( Qt::WA_OpaquePaintEvent );
-#endif
 
-  QPushButton	*bok = new QPushButton( tr( "OK" ), this, "okbtn" );
+  QPushButton	*bok = new QPushButton( tr( "OK" ), this );
+  bok->setObjectName( "okbtn" );
 
   bok->setDefault( true );
   connect( bok, SIGNAL( clicked() ), this, SLOT( accept() ) );
@@ -296,7 +312,7 @@ QAbout::QAbout( QWidget* parent, const char* name )
   resize( 400, 400 );
 
   struct stat	buf;
-  string tname = scrollingMessageFileName().utf8().data();
+  string tname = scrollingMessageFileName().toUtf8().data();
   int		sres = stat( tname.c_str(), &buf );
   FILE	*	f = 0;
 
@@ -304,40 +320,53 @@ QAbout::QAbout( QWidget* parent, const char* name )
     f = fopen( tname.c_str(), "r" );
 
   if( !sres && f )
+  {
+    d->edit->text = new char[ buf.st_size + 1 ];
+    if( fread( d->edit->text, 1, buf.st_size, f ) == buf.st_size )
     {
-      d->edit->text = new char[ buf.st_size + 1 ];
-      fread( d->edit->text, 1, buf.st_size, f );
       d->edit->text[ buf.st_size - 1 ] = '\0';
       fclose( f );
       d->edit->current = d->edit->text;
 
-      QTimer	*tim = new QTimer( this, "timer" );
+      QTimer	*tim = new QTimer( this );
+      tim->setObjectName( "timer" );
       connect( tim, SIGNAL( timeout() ), this, SLOT( nextLine() ) );
       tim->start( 25 );
     }
+    else
+    {
+      fclose( f );
+      d->edit->setText( errorMessage() );
+    }
+  }
   else
     {
       QString	text = errorMessage();
       d->edit->setText( text );
     }
 
-  d->musicfile = musicFileName().utf8().data();
+  d->musicfile = musicFileName().toUtf8().data();
   if( d->musicfile.substr( d->musicfile.length() - 4, 4 ) == ".adc" )
     d->diffcoded = true;
-  d->tempfile = temporaryMusicFileName().utf8().data();
+  d->tempfile = temporaryMusicFileName().toUtf8().data();
   cout << "musicFile:" << d->musicfile << endl;
 
-#if defined( linux ) || defined( ABOUT_NO_SOUND )
+#if defined( linux ) || defined( ABOUT_NO_SOUND ) || QT_VERSION >= 0x050000
   bool enableQSound = false;
 #else
   bool enableQSound = true;
 #endif
-  if( enableQSound && !QSound::isAvailable() )
+  if( enableQSound
+#if QT_VERSION < 0x050000
+    && !QSound::isAvailable() 
+#endif
+  )
     enableQSound = false;
 
   if( enableQSound )
     {
       d->threadRunning = false;
+#if QT_VERSION < 0x050000
       string	file = d->musicfile;
       if( d->diffcoded )
         {
@@ -346,6 +375,7 @@ QAbout::QAbout( QWidget* parent, const char* name )
         }
       d->qsound = new QSound( file.c_str(), this );
       d->qsound->play();
+#endif
     }
   else
     {
@@ -389,11 +419,14 @@ QAbout::~QAbout()
 #endif
 #endif // ABOUT_NO_SOUND
 
+#if QT_VERSION < 0x050000
   if( d->qsound )
     {
       d->qsound->stop();
       delete d->qsound;
     }
+#endif
+
   if( !d->tempfile.empty() )
     unlink( d->tempfile.c_str() );
 
@@ -837,12 +870,12 @@ void QAbout::music()
 
 void QAbout::keyPressEvent( QKeyEvent* kev )
 {
-  if( kev->ascii() == '+' )
+  if( kev->text() == "+" )
     {
       ++d->edit->speed;
       kev->accept();
     }
-  else if( kev->ascii() == '-' )
+  else if( kev->text() == "-" )
     {
       if( d->edit->speed > 1 )
         --d->edit->speed;
@@ -850,7 +883,7 @@ void QAbout::keyPressEvent( QKeyEvent* kev )
     }
   else if( kev->key() == Qt::Key_Enter || kev->key() == Qt::Key_Return )
     accept();
-  else if( kev->ascii() == ' ' )
+  else if( kev->text() == " " )
     {
       if( d->threadRunning )
 	{

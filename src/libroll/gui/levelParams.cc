@@ -95,7 +95,8 @@ namespace roll
 }
 
 
-QLevelParams::QLevelParams( QWidget* parent, const char* name, Qt::WFlags f )
+QLevelParams::QLevelParams( QWidget* parent, const char* name, 
+                            Qt::WindowFlags f )
   : QWidget( parent, f ), d( new QLevelParams_Private )
 {
   setAttribute( Qt::WA_DeleteOnClose );

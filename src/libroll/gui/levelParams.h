@@ -36,7 +36,7 @@ class QLevelParams : public QWidget
 
 public:
   QLevelParams( QWidget* parent = 0, const char* name = 0, 
-                Qt::WFlags f = 0 );
+                Qt::WindowFlags f = 0 );
   virtual ~QLevelParams();
 
 public slots:
@@ -110,7 +110,7 @@ namespace roll
 
     public:
       ElementSelector( const std::set<unsigned short> &, QWidget * parent=0, 
-                       const QString & name = QString(), bool modal=FALSE,
+                       const QString & name = QString(), bool modal=false,
                        Qt::WindowFlags f=0 );
       virtual ~ElementSelector();
 
