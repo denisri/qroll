@@ -20,25 +20,9 @@
 #define QROLL_GUI_SERIESARRANGER_H
 
 #include <qmainwindow.h>
-#if QT_VERSION >= 0x040000
-#include <q3valuelist.h>
-#include <Q3IconDragItem>
-#include <Q3IconViewItem>
-typedef Q3IconDragItem QIconDragItem;
-typedef Q3IconViewItem QIconViewItem;
-typedef Q3ValueList<QIconDragItem> QValueList_QIconDragItem;
-#else
-#include <qvaluelist.h>
-class QIconDragItem;
-class QIconViewItem;
-typedef QValueList<QIconDragItem> QValueList_QIconDragItem;
-// these types are just to trick MOC
-typedef QIconDragItem Q3IconDragItem;
-typedef QIconViewItem Q3IconViewItem;
-template <typename T> class Q3ValueList : public QValueList<T>
-{
-};
-#endif
+#include <QLinkedList>
+#include <QMimeData>
+#include <QListWidgetItem>
 #include <map>
 
 
@@ -56,7 +40,7 @@ public:
   struct SeriesArranger_Private;
 
   SeriesArranger( QWidget * parent = 0, const char * name = 0, 
-                  Qt::WFlags f = Qt::WType_TopLevel | Qt::WDestructiveClose );
+                  Qt::WindowFlags f = Qt::Window );
   virtual ~SeriesArranger();
 
   QPixmap levelPixmap( const roll::SimpleLevel & sl );
@@ -78,18 +62,13 @@ public slots:
   void zoomLess();
 
 private slots:
-#if QT_VERSION >= 0x040000
-  void changeLevel( Q3IconViewItem* );
-  void levelsDropped( QDropEvent*, const Q3ValueList<Q3IconDragItem> & );
-#else
-  void changeLevel( QIconViewItem* );
-  void levelsDropped( QDropEvent*, const QValueList<QIconDragItem> & );
-#endif
+  void changeLevel( QListWidgetItem* );
+  void levelsDropped( QDropEvent* );
 
 private:
   void insertLevels( unsigned pos, 
 		     const std::map<unsigned, roll::SimpleLevel> & levels, 
-		     QIconViewItem* before );
+		     QListWidgetItem* before );
 
   static SeriesArranger		*_theSeriesArranger;
   SeriesArranger_Private	*d;

@@ -41,6 +41,7 @@
 #include <qsound.h>
 #endif
 #include <qnamespace.h>
+#include <QX11Info>
 #include <qevent.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -730,7 +731,7 @@ void QAbout::music()
   /*    ensure program and display are on the same machine
         (to avoid sound being heard on a remote machine)
   */
-  char	*display = DisplayString( x11Display() );
+  char	*display = DisplayString( QX11Info::display() );
   if( !display )
     return;	// can't get display name: no sound
 

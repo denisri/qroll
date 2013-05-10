@@ -20,18 +20,15 @@
 #include <roll/game/vars.h>
 #include <roll/struct/series.h>
 #include <qcursor.h>
+#include <QMouseEvent>
+#include <QApplication>
 
 using namespace roll;
 using namespace std;
 
 
-#ifdef QROLL_OLD
-LevelsDrag::LevelsDrag( QWidget * dragSource, const char * name )
-  : QIconDrag( dragSource, name )
-#else
 LevelsDrag::LevelsDrag( QWidget * dragSource, const char * name )
   : QMimeData( /*dragSource, name*/ )
-#endif
 {
 }
 
@@ -46,52 +43,48 @@ LevelsDrag::~LevelsDrag()
 }
 
 
-const char* LevelsDrag::format ( int i ) const
-{
-  if( i == 0 )
-    return( "application/x-qiconlist" );
-  else if( i == 1 )
-    return( "Rock'n'Roll/levels-list" );
-  else
-    return( 0 );
-}
+// const char* LevelsDrag::format ( int i ) const
+// {
+//   if( i == 0 )
+//     return( "application/x-qiconlist" );
+//   else if( i == 1 )
+//     return( "Rock'n'Roll/levels-list" );
+//   else
+//     return( 0 );
+// }
+// 
+// 
+// bool LevelsDrag::canDecode( QMimeSource* ms )
+// {
+//   return( ms->provides( "application/x-qiconlist" ) ||
+// 	  ms->provides( "Rock'n'Roll/levels-list" ) );
+// }
 
 
-bool LevelsDrag::canDecode( QMimeSource* ms )
-{
-  return( ms->provides( "application/x-qiconlist" ) ||
-	  ms->provides( "Rock'n'Roll/levels-list" ) );
-}
-
-
-bool LevelsDrag::decode( QMimeSource* ms, 
+bool LevelsDrag::decode( const QMimeData* ms, 
 			 map<unsigned, SimpleLevel> & levels )
 {
-  if( !canDecode( ms ) )
-    return( false );
+//   if( !canDecode( ms ) )
+//     return( false );
 
   try	// Microsoft VC++ throws an exception if a dynamic_cast fails
+  {
+    const LevelsDrag	*ld = dynamic_cast<const LevelsDrag*>( ms );
+    if( ld )
     {
-      LevelsDrag	*ld = dynamic_cast<LevelsDrag*>( ms );
-      if( ld )
-	{
-	  levels = ld->_levels;
-	  //out << "levels decoded via direct LevelsDrag\n";
-	  return( true );
-	}
+      levels = ld->_levels;
+      //out << "levels decoded via direct LevelsDrag\n";
+      return( true );
     }
+  }
   catch( exception & )
-    {
-    }
+  {
+  }
 
-  QByteArray	ba( ms->encodedData( "Rock'n'Roll/levels-list" ) );
+  QByteArray	ba( ms->data( "Rock'n'Roll/levels-list" ) );
 
   unsigned	inum;
-#if QT_VERSION >= 0x040000
   QDataStream	bstr( &ba, IO_ReadOnly );
-#else
-  QDataStream	bstr( ba, IO_ReadOnly );
-#endif
 
   while( !bstr.atEnd() && bstr.device()->state() == IO_Open 
 	 && bstr.device()->status() == IO_Ok 
@@ -117,12 +110,14 @@ bool LevelsDrag::decode( QMimeSource* ms,
 }
 
 
-void LevelsDrag::append( const QIconDragItem &item, unsigned n,
-			 SimpleLevel* sl, const QRect & r1, const QRect & r2 )
+void LevelsDrag::append( const QIcon &icon, unsigned n,
+			 SimpleLevel* sl )
 {
-  //cout << "append level " << sl << " in clipboard\n";
+  cout << "append level " << sl << " in clipboard\n";
   _levels[ n ] = *sl;
-  QIconDrag::append( item, r1, r2 );
+  setImageData( icon );
+  setData( "Rock'n'Roll/levels-list", 
+           encodedData( "Rock'n'Roll/levels-list" ) );
 }
 
 
@@ -132,11 +127,7 @@ QByteArray LevelsDrag::encodedData( const char* mime ) const
     {
       //cout << "encodedData recognized\n";
       QByteArray	ba;
-#if QT_VERSION >= 0x040000
       QDataStream	bstr( &ba, IO_WriteOnly );
-#else
-      QDataStream	bstr( ba, IO_WriteOnly );
-#endif
       map<unsigned, SimpleLevel>::const_iterator	il, el = _levels.end();
 
       for( il=_levels.begin(); il!=el; ++il )
@@ -148,23 +139,11 @@ QByteArray LevelsDrag::encodedData( const char* mime ) const
       return( ba );
     }
   else
-    return( QIconDrag::encodedData( mime ) );
+    return( QMimeData::data( mime ) );
 }
 
 
 // -------------
-
-
-#ifdef QROLL_OLD
-SeriesIconView::SeriesIconView( QWidget * parent, const char * name,
-                                Qt::WFlags f )
-  : QIconView( parent, name, f )
-{
-  setAcceptDrops( true );
-  //connect( this, SIGNAL( moved() ), SLOT( levelsMoved() ) );
-}
-
-#else
 
 SeriesIconView::SeriesIconView( QWidget * parent )
   : QListWidget( parent )
@@ -174,7 +153,6 @@ SeriesIconView::SeriesIconView( QWidget * parent )
   setViewMode( IconMode );
   setSortingEnabled( false );
 }
-#endif
 
 
 SeriesIconView::~SeriesIconView()
@@ -182,49 +160,60 @@ SeriesIconView::~SeriesIconView()
 }
 
 
-QDragObject * SeriesIconView::dragObject()
+QMimeData * SeriesIconView::dragObject()
 {
-  return( copySelection( this ) );
+  return copySelection( this );
 }
 
 
-QDragObject * SeriesIconView::copySelection( QWidget* source )
+QMimeData * SeriesIconView::copySelection( QWidget* source )
 {
   //cout << "SeriesIconView::copySelection( " << source << " )\n";
   vector<unsigned>	lvls;
   LevelsDrag	*ld = new LevelsDrag( source, "levelsDrag" );
-  unsigned	i = 0;
 
   if( currentItem() )
-#ifdef QROLL_OLD
-    ld->setPixmap( *currentItem()->pixmap(),
-                   QPoint( currentItem()->pixmapRect().width() / 2,
-                          currentItem()->pixmapRect().height() / 2 ) );
-#else
-    ld->setIcon( *currentItem()->icon(),
-                  QPoint( currentItem()->pixmapRect().width() / 2, 
-                          currentItem()->pixmapRect().height() / 2 ) );
-#endif
+    ld->setImageData( currentItem()->icon() );
 
-  QPoint 
-    orig = viewportToContents( viewport()->mapFromGlobal( QCursor::pos() ) );
-
-  for( QIconViewItem *ii = firstItem(); ii; ii=ii->nextItem(), ++i )
+  int i, n = count();
+  for( i=0; i<n; ++i )
+  {
+    QListWidgetItem *ii = item( i );
     if( ii->isSelected() )
-      {
-	SimpleLevel		*sl = new SimpleLevel;
-	ser->unpack( i, *sl );
-	QRect	r1( ii->pixmapRect( false ).x() - orig.x(),
-		    ii->pixmapRect( false ).y() - orig.y(),
-		    ii->pixmapRect().width(), ii->pixmapRect().height() );
-	QRect	r2( ii->textRect( false ).x() - orig.x(),
-		    ii->textRect( false ).y() - orig.y(),
-		    ii->textRect().width(), ii->textRect().height() );
-	QIconDragItem id;
-	ld->append( id, i, sl, r1, r2 );
-      }
+    {
+      SimpleLevel		*sl = new SimpleLevel;
+      ser->unpack( i, *sl );
+      ld->append( ii->icon(), i, sl );
+    }
+  }
 
-  return( ld );
+  return ld;
+}
+
+
+void SeriesIconView::mousePressEvent( QMouseEvent* event )
+{
+  if( event->button() == Qt::LeftButton )
+    _dragStart = event->pos();
+  QListWidget::mousePressEvent( event );
+}
+
+
+void SeriesIconView::mouseMoveEvent( QMouseEvent* event )
+{
+  if( !( event->buttons() & Qt::LeftButton ) )
+    return;
+  if( ( event->pos() - _dragStart ).manhattanLength()
+      < QApplication::startDragDistance() )
+    return;
+
+  QDrag *drag = new QDrag(this);
+  QMimeData *mimeData = dragObject();
+
+  drag->setMimeData(mimeData);
+
+  Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);
+  cout << "dropAction: " << dropAction << endl;
 }
 
 
@@ -234,7 +223,7 @@ void SeriesIconView::levelsMoved( unsigned insertedpos,
   //cout << "SeriesIconView::levelsMoved - delete selection\n";
   unsigned			n = lvls.size(), x, i = count() - 1;
   set<unsigned>::const_reverse_iterator	il, el = lvls.rend();
-  QIconViewItem			*item = lastItem(), *item2;
+  QListWidgetItem		*item1, *item2;
   bool				levelchanged = false;
 
   for( il=lvls.rbegin(); il!=el; ++il )
@@ -252,65 +241,73 @@ void SeriesIconView::levelsMoved( unsigned insertedpos,
 	  levelchanged = true;
 	}
       ser->deleteLevel( x );
-      for( ; i>x; --i )
-	item = item->prevItem();
-      item2 = item;
+      item1 = item( x );
+      item2 = item1;
       --i;
-      item = item->prevItem();
+      item1 = item( x-1 );
       delete item2;
     }
-  for( i=0, item=firstItem(); item; ++i, item=item->nextItem() )
-    item->setText( tr( "Level " ) + QString::number( i ) );
+
+  unsigned cnt = count();
+  for( i=0; i<cnt; ++i )
+  {
+    item1 = item( i );
+    item1->setText( tr( "Level " ) + QString::number( i ) );
+  }
   if( levelchanged )
     theQRWin->changeLevel( game.tb );
 }
 
 
-void SeriesIconView::levelsDropped( int, QDropEvent* e, 
-				    const QValueList_QIconDragItem & lst )
+void SeriesIconView::levelsDropped( QListWidgetItem *, QDropEvent* e )
 {
-  emit dropped( e, lst );
+  emit dropped( e );
 }
 
+
+void SeriesIconView::dragEnterEvent( QDragEnterEvent* event )
+{
+  cout << "SeriesIconView::dragEnterEvent\n";
+  cout << "donc: " << event->mimeData()->hasFormat( "Rock'n'Roll/levels-list" ) << endl;
+  if( event->mimeData()->hasFormat( "Rock'n'Roll/levels-list" ) )
+  {
+    cout << "accept.\n";
+    event->acceptProposedAction();
+    event->accept();
+  }
+  else
+    event->ignore();
+}
+
+
+void SeriesIconView::dropEvent( QDropEvent* e )
+{
+  cout << "SeriesIconView::dropEvent\n";
+  levelsDropped( itemAt( e->pos() ), e );
+  e->acceptProposedAction();
+}
 
 // --------------------
 
 
 SeriesIconViewItem::SeriesIconViewItem( SeriesIconView* parent,
                                         const QString & text,
-                                        const QPixmap & icon )
-#ifdef QROLL_OLD
-  : QIconViewItem( parent, text, icon ), _parent( parent )
-#else
+                                        const QIcon & icon )
   : QListWidgetItem( icon, text, parent ), _parent( parent )
-#endif
 {
-  setDropEnabled( true );
+  setFlags( flags() | Qt::ItemIsDropEnabled );
 }
 
 
-#ifdef QROLL_OLD
 SeriesIconViewItem::SeriesIconViewItem( SeriesIconView* parent,
-                                        QIconViewItem* after,
+                                        QListWidgetItem* after,
                                         const QString & text,
-                                        const QPixmap & icon )
-  : QIconViewItem( parent, after, text, icon ), _parent( parent )
-{
-  setDropEnabled( true );
-}
-
-#else
-
-SeriesIconViewItem::SeriesIconViewItem( SeriesIconView* parent,
-                                        QIconViewItem* after,
-                                        const QString & text,
-                                        const QPixmap & icon )
-  : QIconViewItem( icon, text, 0 ), _parent( parent )
+                                        const QIcon & icon )
+  : QListWidgetItem( icon, text, 0 ), _parent( parent )
 {
   parent->insertItem( parent->row( after ), this );
-  setDropEnabled( true );
+  setFlags( flags() | Qt::ItemIsDropEnabled );
 }
-#endif
 
 
 SeriesIconViewItem::~SeriesIconViewItem()
@@ -318,18 +315,17 @@ SeriesIconViewItem::~SeriesIconViewItem()
 }
 
 
-bool SeriesIconViewItem::acceptDrop( const QMimeSource * mime ) const
+void SeriesIconViewItem::dragEnterEvent( QDragEnterEvent* event )
 {
-  if( mime->provides( "Rock'n'Roll/levels-list" ) && dropEnabled() )
-    return( true );
-  return( false );
+  if( event->mimeData()->hasFormat( "Rock'n'Roll/levels-list" ) )
+    event->acceptProposedAction();
 }
 
 
-void SeriesIconViewItem::dropped( QDropEvent* e, 
-				  const QValueList_QIconDragItem & lst )
+void SeriesIconViewItem::dropEvent( QDropEvent* e )
 {
-  _parent->levelsDropped( index(), e, lst );
+  _parent->levelsDropped( this, e );
 }
+
 
 

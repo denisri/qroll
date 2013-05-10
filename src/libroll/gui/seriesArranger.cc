@@ -26,9 +26,7 @@
 #include <qmenubar.h>
 #include <qapplication.h>
 #include <qclipboard.h>
-#include <q3popupmenu.h>
 #include <QDropEvent>
-typedef Q3PopupMenu QPopupMenu;
 #ifdef _WIN32
 #include <wtypes.h>
 #include <windef.h>
@@ -39,9 +37,7 @@ typedef Q3PopupMenu QPopupMenu;
 
 using namespace std;
 using namespace roll;
-#if QT_VERSION >= 0x040000
 using namespace Qt;
-#endif
 
 SeriesArranger	*SeriesArranger::_theSeriesArranger = 0;
 
@@ -54,48 +50,37 @@ struct SeriesArranger::SeriesArranger_Private
 };
 
 
-SeriesArranger::SeriesArranger( QWidget *parent, const char *name, WFlags f )
+SeriesArranger::SeriesArranger( QWidget *parent, const char *name, 
+                                WindowFlags f )
   : QMainWindow( parent, name, f ), d( new SeriesArranger_Private )
 {
+  setAttribute( WA_DeleteOnClose, true );
   if( _theSeriesArranger )
     cerr << "Warning, creating a non-unique instance of SeriesArranger\n";
   _theSeriesArranger = this;
   setCaption( tr( "Rock'n'Roll series arranger" ) );
   d->iconv = new SeriesIconView( this );
   setCentralWidget( d->iconv );
-  d->iconv->setSelectionMode( QIconView::Extended );
-  d->iconv->setArrangement( QIconView::LeftToRight );
-  d->iconv->setResizeMode( QIconView::Adjust );
+  d->iconv->setSelectionMode( QListWidget::ExtendedSelection );
+//   d->iconv->setArrangement( QListWidget::LeftToRight );
+  d->iconv->setResizeMode( QListWidget::Adjust );
 
   QMenuBar	*menu = menuBar();
-  QPopupMenu	*pop = new QPopupMenu;
-  pop->insertItem( tr( "Copy" ), this, SLOT( copy() ), CTRL + Key_C );
-  pop->insertItem( tr( "Cut" ), this, SLOT( cut() ), CTRL + Key_X );
-  pop->insertItem( tr( "Paste" ), this, SLOT( paste() ), CTRL + Key_V );
-  pop->insertItem( tr( "Delete" ), this, SLOT( deleteSelection() ), 
+  QMenu	*pop = new QMenu( tr( "Edit" ) );
+  pop->addAction( tr( "Copy" ), this, SLOT( copy() ), CTRL + Key_C );
+  pop->addAction( tr( "Cut" ), this, SLOT( cut() ), CTRL + Key_X );
+  pop->addAction( tr( "Paste" ), this, SLOT( paste() ), CTRL + Key_V );
+  pop->addAction( tr( "Delete" ), this, SLOT( deleteSelection() ), 
 		   Key_Delete );
-  menu->insertItem( tr( "Edit" ), pop );
+  menu->addMenu( pop );
 
-  pop = new QPopupMenu;
-  pop->insertItem( tr( "Zoom +" ), this, SLOT( zoomMore() ) );
-  pop->insertItem( tr( "Zoom -" ), this, SLOT( zoomLess() ) );
-  menu->insertItem( tr( "View" ), pop );
+  pop = new QMenu( tr( "View" ) );
+  pop->addAction( tr( "Zoom +" ), this, SLOT( zoomMore() ) );
+  pop->addAction( tr( "Zoom -" ), this, SLOT( zoomLess() ) );
+  menu->addMenu( pop );
 
-#if QT_VERSION >= 0x040000
-  connect( d->iconv, SIGNAL( dropped( QDropEvent*, 
-           const Q3ValueList<Q3IconDragItem> & ) ),
-           this, SLOT( levelsDropped( QDropEvent*,
-                       const Q3ValueList<Q3IconDragItem> & ) ) );
-  connect( d->iconv, SIGNAL( doubleClicked( Q3IconViewItem* ) ), 
-           this, SLOT( changeLevel( Q3IconViewItem* ) ) );
-#else
-  connect( d->iconv, SIGNAL( dropped( QDropEvent*, 
-				      const QValueList<QIconDragItem> & ) ), 
-	   this, SLOT( levelsDropped( QDropEvent*, 
-				      const QValueList<QIconDragItem> & ) ) );
-  connect( d->iconv, SIGNAL( doubleClicked( QIconViewItem* ) ), 
-           this, SLOT( changeLevel( QIconViewItem* ) ) );
-#endif
+  connect( d->iconv, SIGNAL( doubleClicked( QListWidgetItem* ) ), 
+           this, SLOT( changeLevel( QListWidgetItem* ) ) );
 
   updateView();
 }
@@ -118,7 +103,7 @@ void SeriesArranger::updateView()
   // make icons for each level
   unsigned		i, nl = ser->numLevels();
   SimpleLevel		sl;
-  QIconViewItem		*item;
+  SeriesIconViewItem    *item;
 
   for( i=0; i<nl; ++i )
     {
@@ -267,34 +252,36 @@ QPixmap SeriesArranger::levelPixmap( const SimpleLevel & sl )
 }
 
 
-void SeriesArranger::levelsDropped( QDropEvent* e, 
-				    const QValueList_QIconDragItem & )
+void SeriesArranger::levelsDropped( QDropEvent* event )
 {
+//   QByteArray ba = event->mimeData()->data( "Rock'n'Roll/levels-list" );
+
   //cout << "levels dropped\n";
   map<unsigned, SimpleLevel>		sl;
-  if( !LevelsDrag::decode( e, sl ) )
+  if( !LevelsDrag::decode( event->mimeData(), sl ) )
     {
       //cout << "(can't be decoded)\n";
-      e->acceptAction( false );
+      event->ignore();
       return;
     }
 
-  unsigned					i;
   set<unsigned>					levels;
   map<unsigned, SimpleLevel>::const_iterator	isl, esl = sl.end();
 
   for( isl=sl.begin(); isl!=esl; ++isl )
     levels.insert( isl->first );
 
-  QPoint	pos = d->iconv->mapFromParent( e->pos() );
+  QPoint	pos = d->iconv->mapFromParent( event->pos() );
   //cout << "pos: " << pos.x() << ", " << pos.y() << endl;
-  QIconViewItem	*item;
+  QListWidgetItem	*item;
   QRect	rect, rect0;
   bool	first = true;
+  int i, nitem = d->iconv->count();
 
-  for( item=d->iconv->firstItem(), i=0; item; item=item->nextItem(), ++i )
+  for( i=0; i<nitem; ++i )
     {
-      rect = item->rect();
+      item = d->iconv->item( i );
+      rect = d->iconv->itemWidget( item )->rect();
       /*cout << rect.left() << "x" << rect.top() << "-" << rect.right() 
 	<< "x" << rect.bottom() << ", ";*/
       if( first )
@@ -330,28 +317,29 @@ void SeriesArranger::levelsDropped( QDropEvent* e,
   //cout << "insert before item " << i << endl;
   insertLevels( i, sl, item );
 
-  QDropEvent::Action	action = e->action();
-  e->acceptAction();
+  QDropEvent::Action	action = event->action();
+  event->acceptProposedAction();
+  event->accept();
   if( action == QDropEvent::Move )
     {
       SeriesIconView	*ivw = 0;
       try	// Microsoft VC++ throws an exception if dynamic_cast fails
 	{
-	  ivw = dynamic_cast<SeriesIconView *>( e->source() );
+	  ivw = dynamic_cast<SeriesIconView *>( event->source() );
 	}
       catch( exception & )
 	{
 	}
 
-      /*out << "dropevent source: " << e->source() << endl;
-	if( e->source() )
-	out << "type: " << e->source()->className() << endl;
+      /*out << "dropevent source: " << event->source() << endl;
+	if( event->source() )
+	out << "type: " << event->source()->className() << endl;
 	else
 	out << "(no source)" << endl;*/
-      if( !ivw && e->source() 
-	  && e->source()->className() == d->iconv->className() )
+      if( !ivw && event->source() 
+	  && event->source()->className() == d->iconv->className() )
 	// (if not compiled with RTTI support)
-	ivw = (SeriesIconView *) e->source();
+	ivw = (SeriesIconView *) event->source();
 
       if( ivw )
 	{
@@ -366,7 +354,7 @@ void SeriesArranger::levelsDropped( QDropEvent* e,
 void SeriesArranger::copy()
 {
   //cout << "copy\n";
-  QApplication::clipboard()->setData( d->iconv->copySelection() );
+  QApplication::clipboard()->setMimeData( d->iconv->copySelection() );
 }
 
 
@@ -381,15 +369,16 @@ void SeriesArranger::cut()
 void SeriesArranger::deleteSelection()
 {
   //cout << "delete\n";
-  QIconViewItem	*item = d->iconv->firstItem(), *item2;
-  unsigned	i = 0;
+  QListWidgetItem *item, *item2;
+  unsigned	i = 0, nitem = d->iconv->count();
   bool		levelchanged = false;
 
-  while( item )
+  while( i < nitem )
+  {
+    item = d->iconv->item( i );
     if( item->isSelected() )
       {
 	item2 = item;
-	item = item->nextItem();
 	if( ser->numLevels() > 0 )
 	  {
 	    delete item2;
@@ -401,13 +390,12 @@ void SeriesArranger::deleteSelection()
 		levelchanged = true;
 	      }
 	    ser->deleteLevel( i );
+            --nitem;
 	  }
       }
     else
-      {
-	++i;
-	item=item->nextItem();
-      }
+      ++i;
+  }
   if( levelchanged )
     emit levelChanged( game.tb );
 }
@@ -417,12 +405,12 @@ void SeriesArranger::paste()
 {
   //cout << "paste\n";
   map<unsigned, SimpleLevel>	sl;
-  if( !LevelsDrag::decode( QApplication::clipboard()->data(), sl ) )
+  if( !LevelsDrag::decode( QApplication::clipboard()->mimeData(), sl ) )
     return;
   //cout << "paste " << sl.size() << " levels\n";
-  QIconViewItem	*item = d->iconv->currentItem();
+  QListWidgetItem	*item = d->iconv->currentItem();
   if( item )
-    insertLevels( item->index(), sl, item );
+    insertLevels( d->iconv->currentRow(), sl, item );
   else
     insertLevels( ser->numLevels(), sl, 0 );
 }
@@ -430,7 +418,7 @@ void SeriesArranger::paste()
 
 void SeriesArranger::insertLevels( unsigned insertpos, 
 				   const map<unsigned, SimpleLevel> & sl, 
-				   QIconViewItem* item )
+				   QListWidgetItem* item )
 {
   if( insertpos <= (unsigned) game.tb )
     theQRWin->storeLevel();
@@ -438,23 +426,26 @@ void SeriesArranger::insertLevels( unsigned insertpos,
   bool	totop = false;
   if( item )
     {
-      item = item->prevItem();
+      int row = d->iconv->row( item );
+      if( row != 0 )
+        item = d->iconv->item( row - 1 );
       if( !item )
-	{
-	  totop = true;
-	  item = d->iconv->firstItem();
-	}
+      {
+        totop = true;
+        item = d->iconv->item( 0 );
+      }
     }
   else
-    item = d->iconv->lastItem();
+    item = d->iconv->item( d->iconv->count() - 1 );
 
-  vector<QIconViewItem *>			items;
+  vector<QListWidgetItem*>			items;
   unsigned					j, inum, n = sl.size();
   map<unsigned, SimpleLevel>::const_iterator	isl, esl = sl.end();
-  QIconViewItem					*item2;
+  QListWidgetItem				*item2;
   unsigned ipos = insertpos;
 
-  item2 = d->iconv->firstItem();
+  item2 = d->iconv->item( 0 );
+  int item2pos = 0;
 
   for( j=0, isl=sl.begin(); isl!=esl; ++isl )
     {
@@ -467,38 +458,39 @@ void SeriesArranger::insertLevels( unsigned insertpos,
 	}
       ++ipos;
       //	copy icon
-      for( ; j<inum; ++j )
-	item2 = item2->nextItem();
+      item2pos += inum;
+      item2 = d->iconv->item( item2pos );
       //cout << "copy " << item2 << endl;
       items.push_back( item2 );
     }
 
-  QIconViewItem	*itemtodel = 0;
+  QListWidgetItem *itemtodel = 0;
   for( isl=sl.begin(); isl!=esl; ++isl )
-      {
-	item = new SeriesIconViewItem( d->iconv, item, "", 
-				       levelPixmap( isl->second ) );
-	item->setDropEnabled( true );
-	if( totop )
-	  {	// workaround a bug in Qt (can't insert at beginning !)
-	    itemtodel = d->iconv->firstItem();
-	    new SeriesIconViewItem( d->iconv, item, "", *itemtodel->pixmap() );
-	    totop = false;
-	  }
-      }
+  {
+    item = new SeriesIconViewItem( d->iconv, item, "", 
+                                   levelPixmap( isl->second ) );
+    item->setFlags( item->flags() | Qt::ItemIsDropEnabled );
+    if( totop )
+    {	// workaround a bug in Qt (can't insert at beginning !)
+      itemtodel = d->iconv->item( 0 );
+      new SeriesIconViewItem( d->iconv, item, "", itemtodel->icon() );
+      totop = false;
+    }
+  }
   delete itemtodel;
 
   // renum items texts
-  for( j=0, item=d->iconv->firstItem(); item; ++j, item=item->nextItem() )
-    item->setText( tr( "Level " ) + QString::number( j ) );
+  int c = d->iconv->count();
+  for( j=0; j<c; ++j )
+    d->iconv->item( j )->setText( tr( "Level " ) + QString::number( j ) );
 
   if( insertpos <= (unsigned) game.tb )
     emit levelChanged( game.tb + n );
 }
 
-void SeriesArranger::changeLevel( QIconViewItem* item )
+void SeriesArranger::changeLevel( QListWidgetItem* item )
 {
-  emit levelChanged( item->index() );
+  emit levelChanged( d->iconv->row( item ) );
 }
 
 

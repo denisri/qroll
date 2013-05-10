@@ -281,9 +281,10 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
   d->editdelaction = d->editM->addAction( tr( "Delete current level" ), this,
                         SLOT( deleteLevel() ) );
   d->editM->addSeparator();
-  ac = d->editM->addAction( tr( "Series arrangement" ), this,
-                        SLOT( arrangeSeries() ) );
+  ac = d->editM->addAction( tr( "Series arrangement" ), this , 
+                            SLOT( arrangeSeries() ) );
   d->editarrangeaction = ac;
+  ac->setCheckable( true );
   ac->setChecked( false );
 
   menuBar()->addSeparator();
@@ -1558,7 +1559,7 @@ void QRMainWin::arrangeSeries()
       connect( this, SIGNAL( seriesChanged() ), sa, SLOT( updateView() ) );
       connect( sa, SIGNAL( levelChanged( unsigned ) ), this, 
 	       SIGNAL( stageChanged( unsigned ) ) );
-      d->editM->setItemChecked( 6, true );
+      d->editarrangeaction->setChecked( true );
     }
 #endif
 }

@@ -254,7 +254,7 @@ else()
   set_property( TARGET roll PROPERTY VERSION ${${PROJECT_NAME}_VERSION} )
   target_link_libraries( roll ${QROLL_LIBRARIES} )
 
-  if( NOT DESIRED_QT_VERSION EQUAL 5 )
+  if( DESIRED_QT_VERSION EQUAL 5 )
     qt5_use_modules( roll Widgets )
   endif()
 endif()
