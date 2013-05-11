@@ -89,10 +89,13 @@ signals:
 protected:
   virtual QMimeData* dragObject();
   virtual QMimeData* copySelection( QWidget* source = 0 );
-  virtual void mousePressEvent( QMouseEvent* event );
-  virtual void mouseMoveEvent( QMouseEvent* event );
-  virtual void dragEnterEvent( QDragEnterEvent* e );
-  virtual void dropEvent( QDropEvent* e );
+//   virtual void mousePressEvent( QMouseEvent* event );
+//   virtual void mouseMoveEvent( QMouseEvent* event );
+//   virtual void dragEnterEvent( QDragEnterEvent* e );
+// //   virtual void dropEvent( QDropEvent* e );
+  virtual bool dropMimeData( int index, const QMimeData* data, 
+                             Qt::DropAction action );
+//   virtual Qt::DropActions supportedDropActions() const;
 
 private:
   QPoint _dragStart;

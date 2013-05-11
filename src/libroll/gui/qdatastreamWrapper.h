@@ -52,7 +52,7 @@ namespace roll
 
   template<> inline void istream_traits<QDataStream>::seekg( int pos )
   {
-    _stream.device()->seek( _stream.device()->at() + pos );
+    _stream.device()->seek( _stream.device()->pos() + pos );
   }
 
   template<> inline 

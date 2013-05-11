@@ -84,17 +84,17 @@ bool LevelsDrag::decode( const QMimeData* ms,
   QByteArray	ba( ms->data( "Rock'n'Roll/levels-list" ) );
 
   unsigned	inum;
-  QDataStream	bstr( &ba, IO_ReadOnly );
+  QDataStream	bstr( &ba, QIODevice::ReadOnly );
 
-  while( !bstr.atEnd() && bstr.device()->state() == IO_Open 
-	 && bstr.device()->status() == IO_Ok 
-	 && ba.size() - bstr.device()->at() > 50 )
+  while( !bstr.atEnd() && bstr.device()->isOpen()
+	 && bstr.status() == QDataStream::Ok 
+	 && ba.size() - bstr.device()->pos() > 50 )
     {	// under windows, QDataStream end dfoesn't seem correct
       /*out << "qdatastream: at " << bstr.device()->at() << " / " << ba.size() 
 	<< endl;*/
       bstr >> inum;
-      if( bstr.atEnd() ||  bstr.device()->state() != IO_Open 
-	  || bstr.device()->status() != IO_Ok)
+      if( bstr.atEnd() ||  !bstr.device()->isOpen()
+	  || bstr.status() != QDataStream::Ok )
 	break;	// unser windows atEnd() is not detected earlier
       //out << "decode level " << inum << "..." << endl;
 
@@ -127,7 +127,7 @@ QByteArray LevelsDrag::encodedData( const char* mime ) const
     {
       //cout << "encodedData recognized\n";
       QByteArray	ba;
-      QDataStream	bstr( &ba, IO_WriteOnly );
+      QDataStream	bstr( &ba, QIODevice::WriteOnly );
       map<unsigned, SimpleLevel>::const_iterator	il, el = _levels.end();
 
       for( il=_levels.begin(); il!=el; ++il )
@@ -148,10 +148,19 @@ QByteArray LevelsDrag::encodedData( const char* mime ) const
 SeriesIconView::SeriesIconView( QWidget * parent )
   : QListWidget( parent )
 {
-  setAcceptDrops( true );
   //connect( this, SIGNAL( moved() ), SLOT( levelsMoved() ) );
   setViewMode( IconMode );
   setSortingEnabled( false );
+  setMovement( Static );
+//   setMovement( Free );
+//   setResizeMode( Fixed );
+  setDragDropMode( DragDrop );
+  setAcceptDrops( true );
+  setDragEnabled( true );
+  setDefaultDropAction( Qt::MoveAction );
+  setIconSize( QSize( 300, 300 ) );
+  setDropIndicatorShown( true );
+  setDragDropOverwriteMode( false );
 }
 
 
@@ -191,30 +200,30 @@ QMimeData * SeriesIconView::copySelection( QWidget* source )
 }
 
 
-void SeriesIconView::mousePressEvent( QMouseEvent* event )
-{
-  if( event->button() == Qt::LeftButton )
-    _dragStart = event->pos();
-  QListWidget::mousePressEvent( event );
-}
-
-
-void SeriesIconView::mouseMoveEvent( QMouseEvent* event )
-{
-  if( !( event->buttons() & Qt::LeftButton ) )
-    return;
-  if( ( event->pos() - _dragStart ).manhattanLength()
-      < QApplication::startDragDistance() )
-    return;
-
-  QDrag *drag = new QDrag(this);
-  QMimeData *mimeData = dragObject();
-
-  drag->setMimeData(mimeData);
-
-  Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);
-  cout << "dropAction: " << dropAction << endl;
-}
+// void SeriesIconView::mousePressEvent( QMouseEvent* event )
+// {
+//   if( event->button() == Qt::LeftButton )
+//     _dragStart = event->pos();
+//   QListWidget::mousePressEvent( event );
+// }
+// 
+// 
+// void SeriesIconView::mouseMoveEvent( QMouseEvent* event )
+// {
+//   if( !( event->buttons() & Qt::LeftButton ) )
+//     return;
+//   if( ( event->pos() - _dragStart ).manhattanLength()
+//       < QApplication::startDragDistance() )
+//     return;
+// 
+//   QDrag *drag = new QDrag(this);
+//   QMimeData *mimeData = dragObject();
+// 
+//   drag->setMimeData(mimeData);
+// 
+//   Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);
+//   cout << "dropAction: " << dropAction << endl;
+// }
 
 
 void SeriesIconView::levelsMoved( unsigned insertedpos, 
@@ -265,27 +274,43 @@ void SeriesIconView::levelsDropped( QListWidgetItem *, QDropEvent* e )
 }
 
 
-void SeriesIconView::dragEnterEvent( QDragEnterEvent* event )
+// void SeriesIconView::dragEnterEvent( QDragEnterEvent* event )
+// {
+//   cout << "SeriesIconView::dragEnterEvent\n";
+//   cout << "donc: " << event->mimeData()->hasFormat( "Rock'n'Roll/levels-list" ) << endl;
+//   if( event->mimeData()->hasFormat( "Rock'n'Roll/levels-list" ) )
+//   {
+//     cout << "accept.\n";
+//     event->acceptProposedAction();
+//     event->accept();
+//   }
+//   else
+//     event->ignore();
+// }
+// 
+// 
+// /*
+// void SeriesIconView::dropEvent( QDropEvent* e )
+// {
+//   cout << "SeriesIconView::dropEvent\n";
+//   levelsDropped( itemAt( e->pos() ), e );
+//   e->acceptProposedAction();
+// }
+// */
+// 
+bool SeriesIconView::dropMimeData( int index, const QMimeData* data, 
+                                  Qt::DropAction action )
 {
-  cout << "SeriesIconView::dragEnterEvent\n";
-  cout << "donc: " << event->mimeData()->hasFormat( "Rock'n'Roll/levels-list" ) << endl;
-  if( event->mimeData()->hasFormat( "Rock'n'Roll/levels-list" ) )
-  {
-    cout << "accept.\n";
-    event->acceptProposedAction();
-    event->accept();
-  }
-  else
-    event->ignore();
+  cout << "dropMimeData\n";
+  return QListWidget::dropMimeData( index, data, action );
 }
+// 
+// 
+// Qt::DropActions SeriesIconView::supportedDropActions() const
+// {
+//   return Qt::CopyAction | Qt::MoveAction;
+// }
 
-
-void SeriesIconView::dropEvent( QDropEvent* e )
-{
-  cout << "SeriesIconView::dropEvent\n";
-  levelsDropped( itemAt( e->pos() ), e );
-  e->acceptProposedAction();
-}
 
 // --------------------
 
@@ -295,7 +320,7 @@ SeriesIconViewItem::SeriesIconViewItem( SeriesIconView* parent,
                                         const QIcon & icon )
   : QListWidgetItem( icon, text, parent ), _parent( parent )
 {
-  setFlags( flags() | Qt::ItemIsDropEnabled );
+//   setFlags( flags() | Qt::ItemIsDropEnabled );
 }
 
 
@@ -306,7 +331,7 @@ SeriesIconViewItem::SeriesIconViewItem( SeriesIconView* parent,
   : QListWidgetItem( icon, text, 0 ), _parent( parent )
 {
   parent->insertItem( parent->row( after ), this );
-  setFlags( flags() | Qt::ItemIsDropEnabled );
+//   setFlags( flags() | Qt::ItemIsDropEnabled );
 }
 
 

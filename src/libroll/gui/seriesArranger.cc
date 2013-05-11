@@ -52,13 +52,14 @@ struct SeriesArranger::SeriesArranger_Private
 
 SeriesArranger::SeriesArranger( QWidget *parent, const char *name, 
                                 WindowFlags f )
-  : QMainWindow( parent, name, f ), d( new SeriesArranger_Private )
+  : QMainWindow( parent, f ), d( new SeriesArranger_Private )
 {
   setAttribute( WA_DeleteOnClose, true );
+  setObjectName( name );
   if( _theSeriesArranger )
     cerr << "Warning, creating a non-unique instance of SeriesArranger\n";
   _theSeriesArranger = this;
-  setCaption( tr( "Rock'n'Roll series arranger" ) );
+  setWindowTitle( tr( "Rock'n'Roll series arranger" ) );
   d->iconv = new SeriesIconView( this );
   setCentralWidget( d->iconv );
   d->iconv->setSelectionMode( QListWidget::ExtendedSelection );
@@ -79,9 +80,10 @@ SeriesArranger::SeriesArranger( QWidget *parent, const char *name,
   pop->addAction( tr( "Zoom -" ), this, SLOT( zoomLess() ) );
   menu->addMenu( pop );
 
-  connect( d->iconv, SIGNAL( doubleClicked( QListWidgetItem* ) ), 
+  connect( d->iconv, SIGNAL( itemDoubleClicked( QListWidgetItem* ) ), 
            this, SLOT( changeLevel( QListWidgetItem* ) ) );
 
+  resize( 800, 600 );
   updateView();
 }
 
@@ -141,66 +143,43 @@ QPixmap SeriesArranger::levelPixmap( const SimpleLevel & sl )
   data = sl.foreground();
   px = unsigned( nx * d->scale );
   py = unsigned( ny * d->scale );
-#if QT_VERSION >= 0x040000
   QImage        pix( px, py, QImage::Format_RGB32 );
-#else
-  QPixmap	pix( px, py );
-#endif
   unsigned short smax = 0, sp;
   for( y = 0; y<ny; ++y )
     for( x=0; x<nx; ++x )
       if( data[ x+y*nx ] >= smax )
         smax = data[ x+y*nx ];
-#if QT_VERSION >= 0x040000
   vector<QImage> imgs( smax+1 );
-#else
-  vector<QPixmap> imgs( smax+1 );
-#endif
 
   QPainter  paint2;
-  paint.begin( &pix, d->iconv );
+  paint.begin( &pix );
+  paint.initFrom( d->iconv );
 
-#if QT_VERSION >= 0x040000
   // set fastest, poorest quality
   paint.setRenderHint( QPainter::Antialiasing, false );
   paint.setRenderHint( QPainter::SmoothPixmapTransform, false );
-#endif
   for( y = 0; y<ny; ++y )
     for( x=0; x<nx; ++x )
     {
       sp = data[ x+y*nx ];
       if( imgs[sp].isNull() )
-#if QT_VERSION >= 0x040000
       {
         imgs[sp] = QImage( (int) d->scale, (int) d->scale, QImage::Format_RGB32 );
-        paint2.begin( &imgs[sp], d->iconv );
+        paint2.begin( &imgs[sp] );
+        paint2.initFrom( d->iconv );
         paint2.scale( d->scale / 32, d->scale / 32 );
         paint2.setRenderHint( QPainter::Antialiasing, false );
         paint2.setRenderHint( QPainter::SmoothPixmapTransform, false );
-        paint2.drawImage( 0, 0, theQRWin->originalSprite( sp ).convertToImage() );
-        paint2.end();
-      }
-      paint.drawImage( int( x*d->scale ), int( y*d->scale ), imgs[ sp ] );
-#else
-      {
-        imgs[sp] = QPixmap( (int) d->scale, (int) d->scale );
-        paint2.begin( &imgs[sp], d->iconv );
-        paint2.scale( d->scale / 32, d->scale / 32 );
         paint2.drawPixmap( 0, 0, theQRWin->originalSprite( sp ) );
         paint2.end();
       }
-      paint.drawPixmap( int( x*d->scale ), int( y*d->scale ), imgs[ sp ] );
-#endif
+      paint.drawImage( int( x*d->scale ), int( y*d->scale ), imgs[ sp ] );
     }
   paint.end();
   // cout << "pixmap time: " << timefl() - tme << endl;
 
   //	recolor
-#if QT_VERSION >= 0x040000
   QImage                & im = pix;
-#else
-  QImage		im = pix.convertToImage();
-#endif
   QRgb			col;
   unsigned char 	gray;
   WorkLevel::RGB	colors[6], modif;
@@ -237,18 +216,10 @@ QPixmap SeriesArranger::levelPixmap( const SimpleLevel & sl )
 
   // cout << "recolor: " << timefl() - tme << endl;
 
-#if QT_VERSION >= 0x040000
   /* QPixmap pix2( QPixmap::fromImage( pix ) );
   cout << "convertFromImage: " << timefl() - tme << endl;
   return pix2; */
   return QPixmap::fromImage( pix );
-#else
-  pix.convertFromImage( im );
-
-  // cout << "convertFromImage: " << timefl() - tme << endl;
-
-  return pix;
-#endif
 }
 
 
@@ -317,10 +288,10 @@ void SeriesArranger::levelsDropped( QDropEvent* event )
   //cout << "insert before item " << i << endl;
   insertLevels( i, sl, item );
 
-  QDropEvent::Action	action = event->action();
+  Qt::DropAction	action = event->dropAction();
   event->acceptProposedAction();
   event->accept();
-  if( action == QDropEvent::Move )
+  if( action == Qt::MoveAction )
     {
       SeriesIconView	*ivw = 0;
       try	// Microsoft VC++ throws an exception if dynamic_cast fails
@@ -337,7 +308,8 @@ void SeriesArranger::levelsDropped( QDropEvent* event )
 	else
 	out << "(no source)" << endl;*/
       if( !ivw && event->source() 
-	  && event->source()->className() == d->iconv->className() )
+	  && event->source()->metaObject()->className() 
+            == d->iconv->metaObject()->className() )
 	// (if not compiled with RTTI support)
 	ivw = (SeriesIconView *) event->source();
 
@@ -409,7 +381,7 @@ void SeriesArranger::paste()
     return;
   //cout << "paste " << sl.size() << " levels\n";
   QListWidgetItem	*item = d->iconv->currentItem();
-  if( item )
+  if( item && item->isSelected() )
     insertLevels( d->iconv->currentRow(), sl, item );
   else
     insertLevels( ser->numLevels(), sl, 0 );
@@ -418,66 +390,31 @@ void SeriesArranger::paste()
 
 void SeriesArranger::insertLevels( unsigned insertpos, 
 				   const map<unsigned, SimpleLevel> & sl, 
-				   QListWidgetItem* item )
+				   QListWidgetItem* )
 {
   if( insertpos <= (unsigned) game.tb )
     theQRWin->storeLevel();
 
-  bool	totop = false;
-  if( item )
-    {
-      int row = d->iconv->row( item );
-      if( row != 0 )
-        item = d->iconv->item( row - 1 );
-      if( !item )
-      {
-        totop = true;
-        item = d->iconv->item( 0 );
-      }
-    }
-  else
-    item = d->iconv->item( d->iconv->count() - 1 );
-
   vector<QListWidgetItem*>			items;
   unsigned					j, inum, n = sl.size();
   map<unsigned, SimpleLevel>::const_iterator	isl, esl = sl.end();
-  QListWidgetItem				*item2;
+  QListWidgetItem				*item;
   unsigned ipos = insertpos;
 
-  item2 = d->iconv->item( 0 );
-  int item2pos = 0;
-
   for( j=0, isl=sl.begin(); isl!=esl; ++isl )
-    {
-      inum = isl->first;
-      if( ser->insertLevel( ipos, isl->second ) < 0 )
-	{
-	  ipos = ser->numLevels();
-	  insertpos = ipos;
-	  ser->appendLevel( isl->second );
-	}
-      ++ipos;
-      //	copy icon
-      item2pos += inum;
-      item2 = d->iconv->item( item2pos );
-      //cout << "copy " << item2 << endl;
-      items.push_back( item2 );
-    }
-
-  QListWidgetItem *itemtodel = 0;
-  for( isl=sl.begin(); isl!=esl; ++isl )
   {
-    item = new SeriesIconViewItem( d->iconv, item, "", 
-                                   levelPixmap( isl->second ) );
-    item->setFlags( item->flags() | Qt::ItemIsDropEnabled );
-    if( totop )
-    {	// workaround a bug in Qt (can't insert at beginning !)
-      itemtodel = d->iconv->item( 0 );
-      new SeriesIconViewItem( d->iconv, item, "", itemtodel->icon() );
-      totop = false;
+    inum = isl->first;
+    if( ser->insertLevel( ipos, isl->second ) < 0 )
+    {
+      ipos = ser->numLevels();
+      insertpos = ipos;
+      ser->appendLevel( isl->second );
     }
+    item = new SeriesIconViewItem( 0, "", levelPixmap( isl->second ) );
+    d->iconv->insertItem( ipos, item );
+    item->setFlags( item->flags() | Qt::ItemIsDropEnabled );
+    ++ipos;
   }
-  delete itemtodel;
 
   // renum items texts
   int c = d->iconv->count();
@@ -497,6 +434,7 @@ void SeriesArranger::changeLevel( QListWidgetItem* item )
 void SeriesArranger::zoomMore()
 {
   d->scale *= 2;
+  d->iconv->setIconSize( QSize( d->scale * 75, d->scale * 75 ) );
   updateView();
 }
 
@@ -506,6 +444,7 @@ void SeriesArranger::zoomLess()
   if( d->scale >= 2 )
   {
     d->scale /= 2;
+    d->iconv->setIconSize( QSize( d->scale * 75, d->scale * 75 ) );
     updateView();
   }
 }
