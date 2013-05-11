@@ -516,7 +516,7 @@ void SomaSoundAlsa::update()
       while( done < (int) sz )
       {
         frames = snd_pcm_writei( d->handle, buffer + done, sz - done );  // play
-        cout << "frames: " << frames << " / " << sz - done << endl;
+        // cout << "frames: " << frames << " / " << sz - done << endl;
         if( frames < 0 )
         {
           cerr << "snd_pcm_writei <0: " << snd_strerror(frames) << endl;

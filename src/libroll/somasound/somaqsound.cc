@@ -114,6 +114,8 @@ bool SomaQSound::isOK() const
 #if QT_VERSION >= 0x050000
   return d->initialized;
 #else
+  cout << "QSound::isAvailable(): " << QSound::isAvailable() << endl;
+  cout << "SomaQSound initialized: " << d->initialized << endl;
   return QSound::isAvailable() && d->initialized;
 #endif
 }
@@ -136,8 +138,9 @@ void SomaQSound::init()
     delete d->sounds[i];
   d->sounds.clear();
   loadSounds();
-  if( d->sounds.empty() )
-    d->initialized = false;
+//   if( d->sounds.empty() )
+//     d->initialized = false;
+  cout << "initialized: " << d->initialized << endl;
 }
 
 
@@ -147,6 +150,7 @@ void SomaQSound::loadSounds()
   string	filename;
 
 
+  cout << "loadSounds: " << n << " to load\n";
   for( i=0; i<n; ++i )
   {
     filename = soundBank().sound( i ).filename;
