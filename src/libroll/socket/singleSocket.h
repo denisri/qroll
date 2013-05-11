@@ -19,12 +19,7 @@
 #define ROLL_SOCKET_SINGLESOCKET_H
 
 #include <qglobal.h>
-#if QT_VERSION >= 0x040000
-#include <q3socket.h>
-typedef Q3Socket QSocket;
-#else
-#include <qsocket.h>
-#endif
+#include <QTcpSocket>
 
 
 namespace roll
@@ -33,7 +28,7 @@ namespace roll
   struct SockDescr;
 
   /// Private class, should not be used directly
-  class SingleSocket : public QSocket
+  class SingleSocket : public QTcpSocket
   {
     Q_OBJECT
 
@@ -47,17 +42,17 @@ namespace roll
 
   signals:
     void connectionClosed( SingleSocket* );
-    void delayedCloseFinished( SingleSocket* );
+    // void delayedCloseFinished( SingleSocket* );
     void error( SingleSocket*, int );
     void readyRead( SingleSocket* );
     void bytesWritten( SingleSocket*, int nbytes );
 
   protected slots:
     void sendConnectionClosed();
-    void sendDelayedCloseFinished();
-    void sendError( int );
+    // void sendDelayedCloseFinished();
+    void sendError( QAbstractSocket::SocketError );
     void sendReadyRead();
-    void sendBytesWritten( int );
+    void sendBytesWritten( qint64 );
 
   protected:
 

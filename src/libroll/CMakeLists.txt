@@ -37,100 +37,103 @@ else()
     endforeach()
   endmacro()
 
-  set( _sources struct/workLevel.cc
-                struct/series.cc
-                struct/seriesAtari.cc
-                struct/seriesRaw.cc
-                struct/level.cc
-                struct/levelAtari.cc
-                struct/levelRaw.cc
-                struct/simpleLevel.cc
-                struct/explosions.cc
-                struct/blobDescr.cc
-                struct/seriesManager.cc
-                game/dynamite.cc
-                game/detonator.cc
-                game/conveyLever.cc
-                game/button.cc
-                game/ball.cc
-                game/portcullis.cc
-                game/openPortcullis.cc
-                game/player.cc
-                game/playerServer.cc
-                game/spring.cc
-                game/lift.cc
-                game/conveyorBelt.cc
-                game/miscEatable.cc
-                game/foregroundElem.cc
-                game/telepWall.cc
-                game/keyGen.cc
-                game/bomb.cc
-                game/burningBomb.cc
-                game/generator.cc
-                game/rockGen.cc
-                game/diamMonster.cc
-                game/rockMonster.cc
-                game/grassMonster.cc
-                game/hungryMonster.cc
-                game/lock.cc
-                game/key.cc
-                game/fallingEatable.cc
-                game/diam.cc
-                game/eatable.cc
-                game/holeWall.cc
-                game/permeabWall.cc
-                game/transformWall.cc
-                game/passingWall.cc
-                game/blob.cc
-                game/rightMonster.cc
-                game/leftMonster.cc
-                game/closeDoor.cc
-                game/door.cc
-                game/rock.cc
-                game/backFactory.cc
-                game/back.cc
-                game/elemFactory.cc
-                game/roll.cc
-                game/init.cc
-                game/game.cc
-                game/vars.cc
-                game/gElem.cc
-                game/random.cc
-                gui/qGameField.cc
-                gui/gameField.cc
-                gui/qglGameField.cc
-                gui/qAbout.cc
-                gui/qAboutMessages.cc
-                gui/qRollAbout.cc
-                gui/clientDialog.cc
-                gui/scoreBox.cc
-                gui/playField.cc
-                gui/mainWin.cc
-                gui/configWin.cc
-                gui/gameConfig.cc
-                gui/glcontext.cc
-                gui/editPalette.cc
-                gui/levelParams.cc
-                gui/painter.cc
-                gui/seriesArranger.cc
-                gui/seriesIconView.cc
-                gui/simpleLevelIO.cc
-                somasound/diffcode.cc
-                somasound/somaqsound.cc
-                somasound/somasoundalsa.cc
-                somasound/somasoundoss.cc
-                somasound/somasoundprocessor.cc
-                somasound/somasoundqtphonon.cc
-                somasound/soundbank.cc
-                somasound/sounditerator.cc
-                somasound/wavheader.cc
-                sound/rollsoundbank.cc
-                socket/qPlayerServer.cc
-                socket/playerServerSocket.cc
-                socket/netMessages.cc
+  set( _sources 
+    struct/workLevel.cc
+    struct/series.cc
+    struct/seriesAtari.cc
+    struct/seriesRaw.cc
+    struct/level.cc
+    struct/levelAtari.cc
+    struct/levelRaw.cc
+    struct/simpleLevel.cc
+    struct/explosions.cc
+    struct/blobDescr.cc
+    struct/seriesManager.cc
+    game/dynamite.cc
+    game/detonator.cc
+    game/conveyLever.cc
+    game/button.cc
+    game/ball.cc
+    game/portcullis.cc
+    game/openPortcullis.cc
+    game/player.cc
+    game/playerServer.cc
+    game/spring.cc
+    game/lift.cc
+    game/conveyorBelt.cc
+    game/miscEatable.cc
+    game/foregroundElem.cc
+    game/telepWall.cc
+    game/keyGen.cc
+    game/bomb.cc
+    game/burningBomb.cc
+    game/generator.cc
+    game/rockGen.cc
+    game/diamMonster.cc
+    game/rockMonster.cc
+    game/grassMonster.cc
+    game/hungryMonster.cc
+    game/lock.cc
+    game/key.cc
+    game/fallingEatable.cc
+    game/diam.cc
+    game/eatable.cc
+    game/holeWall.cc
+    game/permeabWall.cc
+    game/transformWall.cc
+    game/passingWall.cc
+    game/blob.cc
+    game/rightMonster.cc
+    game/leftMonster.cc
+    game/closeDoor.cc
+    game/door.cc
+    game/rock.cc
+    game/backFactory.cc
+    game/back.cc
+    game/elemFactory.cc
+    game/roll.cc
+    game/init.cc
+    game/game.cc
+    game/vars.cc
+    game/gElem.cc
+    game/random.cc
+    gui/qGameField.cc
+    gui/gameField.cc
+    gui/qglGameField.cc
+    gui/qAbout.cc
+    gui/qAboutMessages.cc
+    gui/qRollAbout.cc
+    gui/clientDialog.cc
+    gui/scoreBox.cc
+    gui/playField.cc
+    gui/mainWin.cc
+    gui/configWin.cc
+    gui/gameConfig.cc
+    gui/glcontext.cc
+    gui/editPalette.cc
+    gui/levelParams.cc
+    gui/painter.cc
+    gui/seriesArranger.cc
+    gui/seriesIconView.cc
+    gui/simpleLevelIO.cc
+    somasound/diffcode.cc
+    somasound/somaqsound.cc
+    somasound/somasoundalsa.cc
+    somasound/somasoundoss.cc
+    somasound/somasoundprocessor.cc
+    somasound/somasoundqtphonon.cc
+    somasound/soundbank.cc
+    somasound/sounditerator.cc
+    somasound/wavheader.cc
+    socket/netMessages.cc
+    socket/playerServerSocket.cc
+    socket/qPlayerServer.cc
+    sound/rollsoundbank.cc
+    socket/singleSocket.cc
   )
 
-  set( _headers "struct/atariFormat.h"
+  set( _headers 
+    "struct/atariFormat.h"
     "struct/blobDescr.h"
     "struct/explosions.h"
     "struct/general.h"
@@ -255,6 +258,6 @@ else()
   target_link_libraries( roll ${QROLL_LIBRARIES} )
 
   if( DESIRED_QT_VERSION EQUAL 5 )
-    qt5_use_modules( roll Widgets )
+    qt5_use_modules( roll Widgets Network Multimedia OpenGL )
   endif()
 endif()

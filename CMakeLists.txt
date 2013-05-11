@@ -29,14 +29,17 @@ if( NOT DESIRED_QT_VERSION )
   find_package( Qt REQUIRED )
 endif()
 if( DESIRED_QT_VERSION EQUAL 4 )
-  find_package( Qt4 COMPONENTS QtCore QtGui QtOpenGL Qt3Support REQUIRED )
+  find_package( Qt4 COMPONENTS QtCore QtGui QtOpenGL QtNetwork REQUIRED )
   # Qt3Support removed
   find_package( Qt4 COMPONENTS phonon )
 #   find_package( QtVersion )
   find_package( OpenGL )
 elseif( DESIRED_QT_VERSION EQUAL 5 )
-    message( "Qt5 selected." )
-    find_package(Qt5Widgets)
+  find_package( Qt5Widgets REQUIRED )
+  find_package( Qt5Network REQUIRED )
+  find_package( Qt5Multimedia REQUIRED )
+  find_package( OpenGL REQUIRED )
+  find_package( Qt5OpenGL REQUIRED )
 else()
   # Qt3
   message( FATAL_ERROR "Qt3 is not supported any longer" )
@@ -86,14 +89,20 @@ if( DESIRED_QT_VERSION EQUAL 3 )
   set( QROLL_LIBRARIES ${QROLL_LIBRARIES} ${QT_LIBRARIES} )
 elseif( DESIRED_QT_VERSION EQUAL 4 )
   include( "${QT_USE_FILE}" )
-  set( QROLL_LIBRARIES ${QROLL_LIBRARIES} ${QT_QT3SUPPORT_LIBRARY} ${QT_QTOPENGL_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTCORE_LIBRARY} )
+  set( QROLL_LIBRARIES ${QROLL_LIBRARIES} # ${QT_QT3SUPPORT_LIBRARY} 
+    ${QT_QTOPENGL_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTCORE_LIBRARY} 
+    ${QT_QTNETWORK_LIBRARY} 
+  )
 else()
   # Qt 5
   set(CMAKE_AUTOMOC ON)
   set( QROLL_LIBRARIES ${QROLL_LIBRARIES} )
-  add_definitions(${Qt5Widgets_DEFINITIONS})  
-  include_directories(${Qt5Widgets_INCLUDE_DIRS})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+  add_definitions( ${Qt5Widgets_DEFINITIONS} ${Qt5Network_DEFINITIONS} 
+    ${Qt5Multimedia_DEFINITIONS} ${Qt5OpenGL_DEFINITIONS} )
+  include_directories( ${Qt5Widgets_INCLUDE_DIRS} ${Qt5Network_INCLUDE_DIRS}
+    ${Qt5Multimedia_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC" )
+#   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 endif()
 
 add_subdirectory( src )

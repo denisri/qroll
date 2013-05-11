@@ -10,29 +10,30 @@ Eh oui, le vrai, l'authentique
 
 /bRock ' n ' Roll
 
-Le vrai de vrai, que j'ai enfin porté sur Unix
-plus de dix ans après qu'il ait (entre)vu le jour
+Le vrai de vrai, que j'ai enfin portÃ© sur Unix
+plus de dix ans aprÃ¨s qu'il ait (entre)vu le jour
 sur Atari ST (ah!, soupir nostalgique)
+/i- c'Ã©tait en 1987... -
 
 
 
 
 
-/iRock'n'Roll a été conçu et réalisé par :
+/iRock'n'Roll a Ã©tÃ© conÃ§u et rÃ©alisÃ© par :
 
 
 
 
-/bIdée d'origine, instigateurs
+/bIdÃ©e d'origine, instigateurs
 
-/i(bref, ceux qui m'ont un peu poussé
-/iau cul au début pour que je commence
+/i(bref, ceux qui m'ont un peu poussÃ©
+/iau cul au dÃ©but pour que je commence
 /ile programme) :
 
 
 
 
-Fredéric Relaix
+FredÃ©ric Relaix
 Antoine Germain
 
 
@@ -46,7 +47,7 @@ Antoine Germain
 
 
 
-Denis Rivière
+Denis RiviÃ¨re
 
 
 
@@ -70,16 +71,16 @@ Fred Relaix
 
 Fred Relaix
 
-Denis Rivière (un tout petit peu)
+Denis RiviÃ¨re (un tout petit peu)
 Antoine Germain (un chouilla aussi)
 
 
 
 
 
-/bIdées nouvelles,
+/bIdÃ©es nouvelles,
 
-/iconcepts et nouveaux éléments :
+/iconcepts et nouveaux Ã©lÃ©ments :
 
 
 
@@ -103,7 +104,7 @@ Fred Relaix, principalement
 /iun peu aussi (mais moins):
 
 Antoine Germain
-Denis Rivière
+Denis RiviÃ¨re
 Christophe Relaix
 
 
@@ -131,8 +132,8 @@ depuis, plus rien
 
 
 Pour les bug reports, les suggestions, les dons
-(francs, euros, pétrodollars acceptés), 
-adressez-vous à :
+(francs, euros, pÃ©trodollars acceptÃ©s), 
+adressez-vous Ã  :
 
 
 
@@ -143,9 +144,9 @@ adressez-vous à :
 
 1 seul contact, de toute facon c'est moi
 qui ai fait tout le programme, et je suis
-le seul et dernier être humain qui s'intéresse
-encore un peu à ce jeu, les autres n'en ont 
-plus grand chose à cirer, ou en tout cas
+le seul et dernier Ãªtre humain qui s'intÃ©resse
+encore un peu Ã  ce jeu, les autres n'en ont 
+plus grand chose Ã  cirer, ou en tout cas
 n'assurenront certainement pas le support
 
 
@@ -154,15 +155,15 @@ n'assurenront certainement pas le support
 
 
 
-/iVous avez remarqué ?
+/iVous avez remarquÃ© ?
 
 
 
 Pour les auteurs, avec 3 noms, on peut remplir 
-plein de cases, plein de fonctions et de rôles,
-comme ça, ça a l'air "pro", on dirait qu'il y a
-eu des dizaines de gens à bosser à plein temps
-sur le programme, ça fait plus sérieux...
+plein de cases, plein de fonctions et de rÃ´les,
+comme Ã§a, Ã§a a l'air "pro", on dirait qu'il y a
+eu des dizaines de gens Ã  bosser Ã  plein temps
+sur le programme, Ã§a fait plus sÃ©rieux...
 
 
 

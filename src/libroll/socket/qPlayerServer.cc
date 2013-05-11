@@ -109,16 +109,18 @@ void QPlayerServer::makeServer( unsigned short port )
   delete _socket;
   ServerSocket	*sk = new ServerSocket( this, port, 0, "serverSocket" );
   _socket = sk;
-  if( !sk->ok() )
+  if( !sk->isListening() )
     {
-      cout << "server couldn't launch !\n";
+      cout << "server couldn't launch! " << sk->errorString().toUtf8().data() 
+        << endl;
       makeLocal();
-      emit netError( Q3Socket::ErrConnectionRefused );
+      emit netError( sk->serverError() );
       return;
     }
   PlayerServer::makeServer( port );
   cout << "seems OK, waiting for incoming connections\n";
-  connect( sk, SIGNAL( error( int ) ), this, SLOT( socketError( int ) ) );
+//   connect( sk, SIGNAL( error( int ) ), 
+//            this, SLOT( socketError( int ) ) );
   connect( sk, SIGNAL( messageReceived( unsigned, const NetMessage & ) ), 
 	   this, SLOT( messageFromClient( unsigned, const NetMessage & ) ) );
   connect( sk, SIGNAL( clientConnected( int ) ), this, 
@@ -157,7 +159,8 @@ void QPlayerServer::makeClient( const string & address, unsigned short port )
   setPort( port );
   connect( sk, SIGNAL( hostFound() ), this, SLOT( hostFound() ) );
   connect( sk, SIGNAL( connected() ), this, SLOT( clientConnected() ) );
-  connect( sk, SIGNAL( error( int ) ), this, SLOT( socketError( int ) ) );
+  connect( sk, SIGNAL( error( QAbstractSocket::SocketError ) ), 
+           this, SLOT( socketError( QAbstractSocket::SocketError ) ) );
   //cout <<  "connectToHost " << hent->h_name << endl;
   sk->connectToHost( hent->h_name, port );
   connect( sk, SIGNAL( messageReceived( const NetMessage & ) ), this, 
@@ -200,11 +203,11 @@ void QPlayerServer::clientConnected()
 }
 
 
-void QPlayerServer::socketError( int err )
+void QPlayerServer::socketError( QAbstractSocket::SocketError err )
 {
   cout << "QPlayerServer: socket error " << err << " - returning to local\n";
   makeLocal();
-  emit netError( err );
+  emit netError( (int) err );
 }
 
 // message handling

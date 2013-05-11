@@ -387,7 +387,7 @@ QRMainWin::~QRMainWin()
 void QRMainWin::load()
 {
   QFileDialog	*fd = d->fileDialog();
-  fd->setFilters( QStringList( d->filesfilter ) );
+  fd->setNameFilters( QStringList( d->filesfilter ) );
   fd->setFileMode( QFileDialog::ExistingFile );
   fd->setWindowTitle( tr( "Load Rock'n'Roll levels" ) );
   if( fd->exec() )
@@ -408,7 +408,7 @@ void QRMainWin::load()
 void QRMainWin::mergeSeries()
 {
   QFileDialog	*fd = d->fileDialog();
-  fd->setFilters( QStringList( d->filesfilter ) );
+  fd->setNameFilters( QStringList( d->filesfilter ) );
   fd->setFileMode( QFileDialog::ExistingFile );
   fd->setWindowTitle( tr( "Append Rock'n'Roll levels" ) );
   if( fd->exec() )
@@ -461,7 +461,7 @@ void QRMainWin::save()
 void QRMainWin::saveAs()
 {
   QFileDialog	*fd = d->fileDialog();
-  fd->setFilters( QStringList( d->filesfilter ) );
+  fd->setNameFilters( QStringList( d->filesfilter ) );
   fd->setFileMode( QFileDialog::ExistingFile );
   fd->setWindowTitle( tr( "Save Rock'n'Roll levels" ) );
   if( fd->exec() )

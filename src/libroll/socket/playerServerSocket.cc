@@ -18,6 +18,7 @@
 
 #include <roll/socket/playerServerSocket.h>
 #ifndef ANDROID
+#include <roll/socket/qPlayerServer.h>
 #include <roll/socket/singleSocket.h>
 #endif
 #include <roll/socket/netMessages.h>
@@ -68,7 +69,7 @@ const QPlayerServer* PlayerServerSocket::playerServer() const
 
 
 #ifndef ANDROID
-NetMessage* PlayerServerSocket::readMessage( Q3Socket* s ) const
+NetMessage* PlayerServerSocket::readMessage( QTcpSocket* s ) const
 {
   NetMessage::MsgHdr	& hdr = d->pendingmsg;
 
@@ -79,7 +80,7 @@ NetMessage* PlayerServerSocket::readMessage( Q3Socket* s ) const
 
       if( n >= hs )
 	{
-	  s->readBlock( (char *) &hdr, hs );
+	  s->read( (char *) &hdr, hs );
 	  hdr.msgLen = native( hdr.msgLen );
 
 	  /*cout << "Message, code : " << (int) hdr.code << ", len : " 
@@ -113,7 +114,7 @@ NetMessage* PlayerServerSocket::readMessage( Q3Socket* s ) const
   char	*buf = new char[ n + 1 ];
   buf[ n ] = '\0';	// protect strings
 
-  s->readBlock( buf, n );
+  s->read( buf, n );
   if( !msg->read( buf, n ) )
     {
       cerr << "Error reading message\n";
@@ -131,14 +132,14 @@ NetMessage* PlayerServerSocket::readMessage( Q3Socket* s ) const
 }
 
 
-void PlayerServerSocket::writeMessage( Q3Socket* s, const NetMessage & msg )
+void PlayerServerSocket::writeMessage( QTcpSocket* s, const NetMessage & msg )
 {
   //cout << "PlayerServerSocket::writeMessage: to QSocket : " << s << endl;
   unsigned long		len = msg.size();
   NetMessage::MsgHdr	hdr( msg.code(), little_endian( len ) );
-  s->writeBlock( (const char *) &hdr, sizeof( hdr ) );
+  s->write( (const char *) &hdr, sizeof( hdr ) );
   char	*wm = msg.write();
-  s->writeBlock( wm, len );
+  s->write( wm, len );
 }
 #endif
 
@@ -146,61 +147,6 @@ void PlayerServerSocket::writeMessage( Q3Socket* s, const NetMessage & msg )
 void PlayerServerSocket::writeMessage( const NetMessage & )
 {
 }
-
-
-// -------------- single socket -------------
-
-
-#ifndef ANDROID
-SingleSocket::SingleSocket( ServerSocket* parent, const char* name ) 
-  : Q3Socket( parent, name ), _serv( parent ), _sd( 0 )
-{
-  // redirect signals to variants telling who I am
-  connect( this, SIGNAL( connectionClosed() ), 
-	   SLOT( sendConnectionClosed() ) );
-  connect( this, SIGNAL( delayedCloseFinished() ), 
-	   SLOT( sendDelayedCloseFinished() ) );
-  connect( this, SIGNAL( error( int ) ), SLOT( sendError( int ) ) );
-  connect( this, SIGNAL( readyRead() ), SLOT( sendReadyRead() ) );
-  connect( this, SIGNAL( bytesWritten( int ) ), 
-	   SLOT( sendBytesWritten( int ) ) );
-}
-
-
-SingleSocket::~SingleSocket()
-{
-}
-
-
-void SingleSocket::sendConnectionClosed()
-{
-  emit connectionClosed( this );
-}
-
-
-void SingleSocket::sendDelayedCloseFinished()
-{
-  emit delayedCloseFinished( this );
-}
-
-
-void SingleSocket::sendError( int e )
-{
-  emit error( this, e );
-}
-
-
-void SingleSocket::sendReadyRead()
-{
-  emit readyRead( this );
-}
-
-
-void SingleSocket::sendBytesWritten( int nbytes )
-{
-  emit bytesWritten( this, nbytes );
-}
-#endif
 
 
 // ----------------- server -----------------
@@ -272,12 +218,15 @@ unsigned ServerSocket_Private::freeNum() const
 // **
 
 
-ServerSocket::ServerSocket( QPlayerServer * parent, Q_UINT16 port, 
+ServerSocket::ServerSocket( QPlayerServer * parent, quint16 port, 
 			    int backlog, const char * name )
-  : Q3ServerSocket( port, backlog, (QObject *) parent, name ), 
-  PlayerServerSocket( parent )
+  : QTcpServer( parent ), PlayerServerSocket( parent )
 {
   d = new ServerSocket_Private( this );
+  setObjectName( name );
+  connect( this, SIGNAL( newConnection() ), 
+           this, SLOT( newConnectionOpens() ) );
+  listen( QHostAddress::Any, port );
 }
 
 
@@ -288,14 +237,15 @@ ServerSocket::~ServerSocket()
 }
 
 
-void ServerSocket::newConnection( int socket )
+void ServerSocket::newConnectionOpens()
 {
+  QTcpSocket * socket = nextPendingConnection();
   //cout << "new connection, socket " << socket << endl;
   SingleSocket	*s = new SingleSocket( this, "singleSocket" );
   unsigned	n = d->freeNum();
   //cout << "-> client " << n << endl;
   d->sockets.insert( new SockDescr( s, n ) );
-  s->setSocket( socket );
+  s->setSocketDescriptor( socket->socketDescriptor() );
   connect( s, SIGNAL( connectionClosed( SingleSocket * ) ), this, 
 	   SLOT( clientClosed( SingleSocket * ) ) );
   connect( s, SIGNAL( error( SingleSocket *, int ) ), this, 
@@ -397,8 +347,9 @@ set<unsigned> ServerSocket::connections() const
 
 
 ClientSocket::ClientSocket( QPlayerServer * parent, const char * name )
-  : Q3Socket( (QObject* ) parent, name ), PlayerServerSocket( parent )
+  : QTcpSocket( parent ), PlayerServerSocket( parent )
 {
+  setObjectName( name );
   connect( this, SIGNAL( readyRead() ), SLOT( read() ) );
 }
 

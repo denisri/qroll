@@ -21,8 +21,8 @@
 
 #include <qglobal.h>
 #ifndef ANDROID
-#include <q3socket.h>
-#include <q3serversocket.h>
+#include <QTcpSocket>
+#include <QTcpServer>
 #endif
 #include <set>
 
@@ -43,8 +43,8 @@ namespace roll
     virtual ~PlayerServerSocket();
 
 #ifndef ANDROID
-    virtual NetMessage* readMessage( Q3Socket* s ) const;
-    virtual void writeMessage( Q3Socket* s, const NetMessage & msg );
+    virtual NetMessage* readMessage( QTcpSocket* s ) const;
+    virtual void writeMessage( QTcpSocket* s, const NetMessage & msg );
 #endif
     virtual void writeMessage( const NetMessage & msg );
     QPlayerServer* playerServer();
@@ -56,12 +56,12 @@ namespace roll
 
 
 #ifndef ANDROID
-  class ServerSocket : public Q3ServerSocket, public PlayerServerSocket
+  class ServerSocket : public QTcpServer, public PlayerServerSocket
   {
     Q_OBJECT
 
   public:
-    ServerSocket( QPlayerServer * parent, Q_UINT16 port, int backlog = 0, 
+    ServerSocket( QPlayerServer * parent, quint16 port, int backlog = 0, 
 		  const char * name = 0 );
     virtual ~ServerSocket();
 
@@ -83,16 +83,14 @@ namespace roll
     void clientClosed( SingleSocket* );
     void clientError( SingleSocket*, int );
     void clientReadyRead( SingleSocket* );
-
-  protected:
-    virtual void newConnection( int socket );
+    void newConnectionOpens();
 
   private:
     ServerSocket_Private	*d;
   };
 
 
-  class ClientSocket : public Q3Socket, public PlayerServerSocket
+  class ClientSocket : public QTcpSocket, public PlayerServerSocket
   {
     Q_OBJECT
 

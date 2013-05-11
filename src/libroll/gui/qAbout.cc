@@ -37,11 +37,11 @@
 #include <qpushbutton.h>
 #include <qtimer.h>
 #include <qpainter.h>
-#if QT_VERSION < 0x050000
 #include <qsound.h>
+#if QT_VERSION < 0x050000
+#include <QX11Info>
 #endif
 #include <qnamespace.h>
-#include <QX11Info>
 #include <qevent.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -199,7 +199,8 @@ namespace
       paint.fillRect( x, height()-n, w, n,
                       palette().brush( QPalette::Background ) );
       paint.drawText( x, height()+offset, w, h,
-                      Qt::AlignHCenter | Qt::AlignBottom, line );
+                      Qt::AlignHCenter | Qt::AlignBottom, 
+                      QString::fromUtf8( line ) );
       delete[] line;
       paint.end();
 
@@ -240,9 +241,7 @@ struct QAbout::Private
   pthread_t		musThrd;
 #endif
   bool			threadRunning;
-#if QT_VERSION < 0x050000
   QSound		*qsound;
-#endif
   bool			diffcoded;
   string		musicfile;
   string		tempfile;
@@ -260,9 +259,7 @@ struct QAbout::Private
 
 QAbout::Private::Private()
   : 
-#if QT_VERSION < 0x050000
   qsound( 0 ), 
-#endif
   diffcoded( false ), useAlsa( false ), useOSS( false ),
   soundBufferSize( 0 )
 #ifdef SOMA_SOUND_ALSA
@@ -352,7 +349,7 @@ QAbout::QAbout( QWidget* parent, const char* name )
   d->tempfile = temporaryMusicFileName().toUtf8().data();
   cout << "musicFile:" << d->musicfile << endl;
 
-#if defined( linux ) || defined( ABOUT_NO_SOUND ) || QT_VERSION >= 0x050000
+#if defined( linux ) || defined( ABOUT_NO_SOUND )
   bool enableQSound = false;
 #else
   bool enableQSound = true;
@@ -367,7 +364,6 @@ QAbout::QAbout( QWidget* parent, const char* name )
   if( enableQSound )
     {
       d->threadRunning = false;
-#if QT_VERSION < 0x050000
       string	file = d->musicfile;
       if( d->diffcoded )
         {
@@ -376,7 +372,6 @@ QAbout::QAbout( QWidget* parent, const char* name )
         }
       d->qsound = new QSound( file.c_str(), this );
       d->qsound->play();
-#endif
     }
   else
     {
@@ -420,13 +415,11 @@ QAbout::~QAbout()
 #endif
 #endif // ABOUT_NO_SOUND
 
-#if QT_VERSION < 0x050000
   if( d->qsound )
     {
       d->qsound->stop();
       delete d->qsound;
     }
-#endif
 
   if( !d->tempfile.empty() )
     unlink( d->tempfile.c_str() );
@@ -726,7 +719,7 @@ void QAbout::music()
 {
 #if !defined( ABOUT_NO_SOUND ) && ( defined( SOMA_SOUND_OSS ) || defined( SOMA_SOUND_ALSA ) )
 
-#if ( defined( _WS_X11_ ) || defined( Q_WS_X11 ) )
+#if ( defined( _WS_X11_ ) || defined( Q_WS_X11 ) ) && QT_VERSION < 0x050000
 
   /*    ensure program and display are on the same machine
         (to avoid sound being heard on a remote machine)

@@ -55,7 +55,11 @@ int main( int argc, char** argv )
   while( !feof( fin ) )
     {
       ++i;
-      fscanf( fin, "%c", &c );
+      if( fscanf( fin, "%c", &c ) != 1 )
+      {
+        cerr << "error while reading stream, pos: " << i << endl;
+        return EXIT_FAILURE;
+      }
       fprintf( fout, "%c", c );
     }
   cout << i << " bytes copied.\n";
@@ -63,7 +67,7 @@ int main( int argc, char** argv )
   fclose( fin );
   fclose( fout );
 
-  return( 0 );
+  return EXIT_SUCCESS;
 }
 
 

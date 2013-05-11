@@ -21,6 +21,7 @@
 
 #include <roll/game/playerServer.h>
 #include <qobject.h>
+#include <QAbstractSocket>
 
 
 namespace roll
@@ -77,7 +78,7 @@ namespace roll
   public slots:
     virtual void hostFound();
     virtual void clientConnected();
-    virtual void socketError( int );
+    virtual void socketError( QAbstractSocket::SocketError );
     virtual void messageFromServer( const NetMessage & msg );
     virtual void messageFromClient( unsigned client, const NetMessage & msg );
     virtual void clientDisconnected( int );

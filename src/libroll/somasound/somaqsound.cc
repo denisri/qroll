@@ -111,14 +111,23 @@ void SomaQSound::close()
 bool SomaQSound::isOK() const
 {
   const_cast<SomaQSound *>( this )->init();
-  return QSound::isAvailable();
+#if QT_VERSION >= 0x050000
+  return d->initialized;
+#else
+  return QSound::isAvailable() && d->initialized;
+#endif
 }
 
 
 void SomaQSound::init()
 {
+#if QT_VERSION >= 0x050000
+  if( d->initialized )
+    return;
+#else
   if( d->initialized || !QSound::isAvailable() )
     return;
+#endif
   d->initialized = true;
 
   SomaSoundProcessor::init();
