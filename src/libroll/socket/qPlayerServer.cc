@@ -165,7 +165,7 @@ void QPlayerServer::makeClient( const string & address, unsigned short port )
   sk->connectToHost( hent->h_name, port );
   connect( sk, SIGNAL( messageReceived( const NetMessage & ) ), this, 
 	   SLOT( messageFromServer( const NetMessage & ) ) );
-  connect( sk, SIGNAL( connectionClosed() ), this, 
+  connect( sk, SIGNAL( disconnected() ), this, 
 	   SIGNAL( connectionClosed() ) );
 #endif
 }

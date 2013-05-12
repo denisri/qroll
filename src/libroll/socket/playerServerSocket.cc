@@ -132,7 +132,8 @@ NetMessage* PlayerServerSocket::readMessage( QTcpSocket* s ) const
 }
 
 
-void PlayerServerSocket::writeMessage( QTcpSocket* s, const NetMessage & msg )
+void PlayerServerSocket::writeMessage( QTcpSocket* s, 
+                                       const NetMessage & msg )
 {
   //cout << "PlayerServerSocket::writeMessage: to QSocket : " << s << endl;
   unsigned long		len = msg.size();
@@ -240,12 +241,12 @@ ServerSocket::~ServerSocket()
 void ServerSocket::newConnectionOpens()
 {
   QTcpSocket * socket = nextPendingConnection();
-  //cout << "new connection, socket " << socket << endl;
-  SingleSocket	*s = new SingleSocket( this, "singleSocket" );
+  cout << "new connection, socket " << socket << endl;
+  SingleSocket	*s = new SingleSocket( this, socket, "singleSocket" );
   unsigned	n = d->freeNum();
-  //cout << "-> client " << n << endl;
+  cout << "-> client " << n << endl;
   d->sockets.insert( new SockDescr( s, n ) );
-  s->setSocketDescriptor( socket->socketDescriptor() );
+  // s->setSocketDescriptor( socket->socketDescriptor() );
   connect( s, SIGNAL( connectionClosed( SingleSocket * ) ), this, 
 	   SLOT( clientClosed( SingleSocket * ) ) );
   connect( s, SIGNAL( error( SingleSocket *, int ) ), this, 
@@ -255,7 +256,7 @@ void ServerSocket::newConnectionOpens()
 
   MessageText	mt;
   mt.setText( "Rock'N'Roll" );
-  PlayerServerSocket::writeMessage( s, mt );
+  PlayerServerSocket::writeMessage( s->socket(), mt );
   emit clientConnected( n );
 }
 
@@ -283,15 +284,16 @@ void ServerSocket::clientError( SingleSocket* c, int )
 
 void ServerSocket::clientReadyRead( SingleSocket* c )
 {
-  /*unsigned	sz = c->size();
-  cout << "Message from client " << c->sockDescr()->num << " : " 
-    << sz << " bytes available\n";*/
+  QTcpSocket *sock = c->socket();
+  unsigned	sz = sock->bytesAvailable();
+  /* cout << "Message from client " << c->sockDescr()->num << " : " 
+    << sz << " bytes available\n"; */
 
   NetMessage	*msg = 0;
 
-  while( c->bytesAvailable() && ( msg = readMessage( c ) ) )
+  while( sock->bytesAvailable() && ( msg = readMessage( sock ) ) )
     {
-      //cout << "message received\n";
+      // cout << "message received\n";
       emit messageReceived( c->sockDescr()->num, *msg );
       delete msg;
     }
@@ -304,7 +306,7 @@ void ServerSocket::writeMessage( const NetMessage & msg )
 {
   set<SockDescr *>::const_iterator	is, es = d->sockets.end();
   for( is=d->sockets.begin(); is!=es; ++is )
-    PlayerServerSocket::writeMessage( (*is)->qs, msg );
+    PlayerServerSocket::writeMessage( (*is)->qs->socket(), msg );
 }
 
 
@@ -312,7 +314,7 @@ void ServerSocket::writeMessage( int conn, const NetMessage & msg )
 {
   SockDescr	*sd = d->sockDescr( conn );
   if( sd )
-    PlayerServerSocket::writeMessage( sd->qs, msg );
+    PlayerServerSocket::writeMessage( sd->qs->socket(), msg );
   else
     cerr << "attempt to send message to unknown client " << conn << endl;
 }
@@ -326,7 +328,7 @@ void ServerSocket::writeMessageToOthers( int conn, const NetMessage & msg )
     {
       SockDescr	*sd = *is;
       if( sd->num != (unsigned) conn )
-	PlayerServerSocket::writeMessage( sd->qs, msg );
+	PlayerServerSocket::writeMessage( sd->qs->socket(), msg );
     }
 }
 

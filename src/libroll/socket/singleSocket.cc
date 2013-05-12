@@ -27,20 +27,21 @@ using namespace std;
 
 
 #ifndef ANDROID
-SingleSocket::SingleSocket( ServerSocket* parent, const char* name ) 
-  : QTcpSocket( parent ), _serv( parent ), _sd( 0 )
+SingleSocket::SingleSocket( ServerSocket* parent, QTcpSocket* socket,
+                            const char* name ) 
+  : QObject( parent ), _serv( parent ), _socket( socket ), _sd( 0 )
 {
   setObjectName( name );
   // redirect signals to variants telling who I am
-  connect( this, SIGNAL( disconnected() ), 
-           SLOT( sendConnectionClosed() ) );
+  connect( socket, SIGNAL( disconnected() ), 
+           this, SLOT( sendConnectionClosed() ) );
 //   connect( this, SIGNAL( delayedCloseFinished() ), 
 //         SLOT( sendDelayedCloseFinished() ) );
-  connect( this, SIGNAL( error( QAbstractSocket::SocketError ) ), 
-           SLOT( sendError( QAbstractSocket::SocketError ) ) );
-  connect( this, SIGNAL( readyRead() ), SLOT( sendReadyRead() ) );
-  connect( this, SIGNAL( bytesWritten( qint64 ) ), 
-           SLOT( sendBytesWritten( qint64 ) ) );
+  connect( socket, SIGNAL( error( QAbstractSocket::SocketError ) ), 
+           this, SLOT( sendError( QAbstractSocket::SocketError ) ) );
+  connect( socket, SIGNAL( readyRead() ), this, SLOT( sendReadyRead() ) );
+  connect( socket, SIGNAL( bytesWritten( qint64 ) ), 
+           this, SLOT( sendBytesWritten( qint64 ) ) );
 }
 
 

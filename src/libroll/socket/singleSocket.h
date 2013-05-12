@@ -28,17 +28,18 @@ namespace roll
   struct SockDescr;
 
   /// Private class, should not be used directly
-  class SingleSocket : public QTcpSocket
+  class SingleSocket : public QObject //public QTcpSocket
   {
     Q_OBJECT
 
   public:
-    SingleSocket( ServerSocket * parent, 
+    SingleSocket( ServerSocket * parent, QTcpSocket* socket,
 		  const char * name = 0 );
     virtual ~SingleSocket();
 
     SockDescr* sockDescr() { return( _sd ); }
     void setSockDescr( SockDescr *sd ) { _sd = sd; }
+    QTcpSocket* socket() { return _socket; }
 
   signals:
     void connectionClosed( SingleSocket* );
@@ -57,8 +58,9 @@ namespace roll
   protected:
 
   private:
-    ServerSocket	*_serv;
-    SockDescr		*_sd;
+    QTcpSocket   *_socket;
+    ServerSocket *_serv;
+    SockDescr    *_sd;
   };
 
 }
