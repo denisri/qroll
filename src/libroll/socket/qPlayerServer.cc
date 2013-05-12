@@ -173,10 +173,14 @@ void QPlayerServer::makeClient( const string & address, unsigned short port )
 
 void QPlayerServer::makeLocal()
 {
-  //cout << "QPlayerServer::makeLocal\n";
+  cout << "QPlayerServer::makeLocal\n";
+  // disconnect();
   delete _socket;
+  cout << "socket deleted\n";
   _socket = new PlayerServerSocket( this );
+  cout << "new playerServerSocket created\n";
   PlayerServer::makeLocal();
+  cout << "PlayerServer::makeLocal done\n";
 }
 
 
@@ -206,7 +210,7 @@ void QPlayerServer::clientConnected()
 void QPlayerServer::socketError( QAbstractSocket::SocketError err )
 {
   cout << "QPlayerServer: socket error " << err << " - returning to local\n";
-  makeLocal();
+  // makeLocal();
   emit netError( (int) err );
 }
 
@@ -247,6 +251,7 @@ void QPlayerServer::messageFromServer( const NetMessage & msg )
 
 void QPlayerServer::clientDisconnected( int num )
 {
+  cout << "QPlayerServer::clientDisconnected\n";
 #ifndef ANDROID
   set<unsigned>	r = removeNetLink( (unsigned) num );
   if( !r.empty() )

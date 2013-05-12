@@ -61,11 +61,14 @@ void PlayerServer::addPlayer( unsigned num )
 {
   (*this)[ num ];	// insert
 
-  //cout << "newPlayer " << num << endl;
+  cout << "addPlayer " << num << endl;
 
   _bufN[ num ] = 0;
+  _buffer[ num ].clear();
   _buffer[ num ].push_back( 0 );
+  _buffer[ num ].clear();
   _buffer[ num ].push_back( 0 );
+  _sBuffer[ num ].clear();
   _sBuffer[ num ].push_back( false );
   _sBuffer[ num ].push_back( false );
   _repeat[ num ] = false;
@@ -74,6 +77,7 @@ void PlayerServer::addPlayer( unsigned num )
 
 void PlayerServer::removePlayer( unsigned num )
 {
+  cout << "removePlayer " << num << endl;
   _keys.erase( num );
   _kbd.erase( num );
   _buffer.erase( num );
@@ -95,9 +99,12 @@ void PlayerServer::makeLocal()
     if( (*i).second.network != 0 )	// remote player
       todel.insert( (*i).first );
 
+  cout << "PlayerServer::makeLocal, removing " << todel.size() << " players\n";
+  cout << "size: " << size() << endl;
   set<unsigned>::iterator	is, es = todel.end();
   for( is=todel.begin(); is!=es; ++is )
-    erase( *is );
+    removePlayer( *is );
+  cout << "now size: " << size() << endl;
 }
 
 
@@ -185,23 +192,24 @@ void PlayerServer::takeKeys()
   iterator	ip, fp = end();
   unsigned	player;
 
-  //cout << "PlayerServer::takeKeys()\n";
+  // cout << "PlayerServer::takeKeys()\n";
 
   if( mode() != Client )
     {
+      // cout << "takeKeys local, players: " << size() << endl;
       for( ip = begin(); ip!=fp; ++ip )
 	{
-	  player = (*ip).first;
-	  //cout << "takeKeys, joueur " << player << endl;
+	  player = ip->first;
+	  // cout << "takeKeys, player " << player << endl;
 
 	  map<unsigned, bool>	& kbd = _kbd[ player ];
-	  vector<unsigned>		& buf = _buffer[ player ];
+	  vector<unsigned>	& buf = _buffer[ player ];
 	  vector<bool>		& sbf = _sBuffer[ player ];
-	  unsigned			& bufN = _bufN[ player ];
-	  unsigned			& reptK = _repeatKey[ player ];
+	  unsigned		& bufN = _bufN[ player ];
+	  unsigned		& reptK = _repeatKey[ player ];
 	  bool			& rept = _repeat[ player ];
 
-	  Player			& play = (*this)[ player ];
+	  Player		& play = ip->second;
 
 	  if( buf[0] )	//	Buffer clavier
 	    {
@@ -214,7 +222,7 @@ void PlayerServer::takeKeys()
 	      sbf[1] = false;
 	      bufN = 0;
 	    }
-	  else if( reptK )	//	Touche en rÃ©pÃ©tition
+	  else if( reptK )	//	repeating key
 	    {
 	      //cout << "repeat\n";
 	      play.kbd = reptK;
@@ -271,10 +279,14 @@ set<unsigned> PlayerServer::removeNetLink( unsigned num )
     if( (*i).second.network == num )	// remote player
       todel.insert( (*i).first );
 
+  cout << "PlayerServer::removeNetLink " << num << ", " << todel.size() << " players\n";
+  cout << "server size: " << size() << endl;
   set<unsigned>::iterator	is, es = todel.end();
   for( is=todel.begin(); is!=es; ++is )
-    erase( *is );
-  return( todel );
+    removePlayer( *is );
+
+  cout << "now size: " << size() << endl;
+  return todel;
 }
 
 
@@ -301,5 +313,4 @@ void PlayerServer::endTurn()
 void PlayerServer::emitKey( unsigned, bool, unsigned )
 {
 }
-
 

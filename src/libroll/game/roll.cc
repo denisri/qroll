@@ -450,7 +450,14 @@ bool Roll::poss( unsigned i, unsigned j, int pouss, int mec )
 
 GElem* Roll::elemBehind( unsigned mec, unsigned x, unsigned y )
 {
-  Player	& pl = (*game.tbct.players)[ mec ];
+  PlayerServer::iterator ir = game.tbct.players->find( mec );
+  if( ir == game.tbct.players->end() )
+  {
+    // this roll has been removed
+    return game.tbct.b[x][y]->toForeground();
+  }
+
+  Player	& pl = ir->second;
   int		& bomb = pl.launchedBomb;
   int		copy = bomb;
 

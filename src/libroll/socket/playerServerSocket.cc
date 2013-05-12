@@ -193,7 +193,11 @@ ServerSocket_Private::~ServerSocket_Private()
 {
   set<SockDescr *>::iterator	is, es = sockets.end();
   for( is=sockets.begin(); is!=es; ++is )
+  {
+    (*is)->qs->disconnect();
+    delete (*is)->qs;
     delete *is;
+  }
 }
 
 
@@ -233,7 +237,8 @@ ServerSocket::ServerSocket( QPlayerServer * parent, quint16 port,
 
 ServerSocket::~ServerSocket()
 {
-  //cout << "ServerSocket::~ServerSocket\n";
+  cout << "ServerSocket::~ServerSocket\n";
+  disconnect();
   delete d;
 }
 
@@ -264,21 +269,26 @@ void ServerSocket::newConnectionOpens()
 void ServerSocket::clientClosed( SingleSocket* c )
 {
   int	num = c->sockDescr()->num;
-  //cout << "ServerSocket::clientClosed - client " << num << endl;
+  cout << "ServerSocket::clientClosed - client " << num << endl;
   d->sockets.erase( c->sockDescr() );
   delete c->sockDescr();
+  c->disconnect();
   delete c;
   emit clientDisconnected( num );
 }
 
 
-void ServerSocket::clientError( SingleSocket* c, int )
+void ServerSocket::clientError( SingleSocket* c, int e )
 {
-  /*cout << "clientError " << e << ", client " << c->sockDescr()->num 
-    << " - closing it" << endl;*/
+  int   num = c->sockDescr()->num;
+  cout << "clientError " << e << ", client " << num << " - closing it" 
+    << endl;
   d->sockets.erase( c->sockDescr() );
   delete c->sockDescr();
+  c->disconnect();
   delete c;
+  cout << "clients: " << d->sockets.size();
+  emit clientDisconnected( num );
 }
 
 
@@ -358,7 +368,8 @@ ClientSocket::ClientSocket( QPlayerServer * parent, const char * name )
 
 ClientSocket::~ClientSocket()
 {
-  //cout << "ClientSocket::~ClientSocket\n";
+  cout << "ClientSocket::~ClientSocket\n";
+  disconnect();
 }
 
 

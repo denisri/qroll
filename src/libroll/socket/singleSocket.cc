@@ -32,6 +32,7 @@ SingleSocket::SingleSocket( ServerSocket* parent, QTcpSocket* socket,
   : QObject( parent ), _serv( parent ), _socket( socket ), _sd( 0 )
 {
   setObjectName( name );
+  // socket->setParent( this );
   // redirect signals to variants telling who I am
   connect( socket, SIGNAL( disconnected() ), 
            this, SLOT( sendConnectionClosed() ) );
@@ -47,6 +48,9 @@ SingleSocket::SingleSocket( ServerSocket* parent, QTcpSocket* socket,
 
 SingleSocket::~SingleSocket()
 {
+  _socket->disconnect();
+  _socket->disconnectFromHost();
+  // delete _socket;
 }
 
 

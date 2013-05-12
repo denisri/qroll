@@ -244,8 +244,8 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
   d->serveraction = _networkMen->addAction( tr( "Create server" ), this,
                           SLOT( netServer() ) );
   d->clientaction = _networkMen->addAction( tr( "Client" ), this, SLOT( netClient() ) );
-  d->disconnectaction = ac = _networkMen->addAction( tr( "Close connection" ), this,
-                          SLOT( netClose() ) );
+  d->disconnectaction = ac = _networkMen->addAction( 
+    tr( "Close connection" ), this, SLOT( netClose() ) );
   ac->setEnabled( false );
   _networkMen->addSeparator();
   _networkMen->addAction( tr( "Add a local player" ), this,
@@ -734,12 +734,12 @@ void QRMainWin::netClient()
 void QRMainWin::netClose()
 {
 #ifndef ANDROID
+//   QPlayerServer	*qp = dynamic_cast<QPlayerServer *>( PlayerServer::server );
+//   if( qp )
+//   {
+//     qp->disconnect();
+//   }
   PlayerServer::server->makeLocal();
-  QPlayerServer	*qp = dynamic_cast<QPlayerServer *>( PlayerServer::server );
-  if( qp )
-    {
-      qp->disconnect();
-    }
 
   d->serveraction->setEnabled( true );
   d->clientaction->setEnabled( true );
