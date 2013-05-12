@@ -136,7 +136,7 @@ void PlayerServerSocket::writeMessage( QTcpSocket* s,
                                        const NetMessage & msg )
 {
   //cout << "PlayerServerSocket::writeMessage: to QSocket : " << s << endl;
-  unsigned long		len = msg.size();
+  unsigned		len = msg.size();
   NetMessage::MsgHdr	hdr( msg.code(), little_endian( len ) );
   s->write( (const char *) &hdr, sizeof( hdr ) );
   char	*wm = msg.write();

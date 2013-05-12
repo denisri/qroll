@@ -459,9 +459,7 @@ void QRPlayField::stageChanged( unsigned n )
 
 void QRPlayField::keyPressedEvent( QKeyEvent* key )
 {
-  bool	ctrl, shft, alt;
-
-  //cout << "QRPlayField::keyPressedEvent\n";
+  // cout << "QRPlayField::keyPressedEvent\n";
   if( game.running )
     {
       if( key->isAutoRepeat() )
@@ -469,25 +467,6 @@ void QRPlayField::keyPressedEvent( QKeyEvent* key )
 	  key->ignore();
 	  return;
 	}
-
-      if( key->modifiers() & Qt::ControlModifier )
-	ctrl = true;
-      else ctrl = false;
-      if( key->modifiers() & Qt::ShiftModifier )
-	shft = true;
-      else shft = false;
-      if( key->modifiers() & Qt::AltModifier )
-	alt = true;
-      else alt = false;
-
-      /*      _kbd[ Key_Control ] = ctl;
-      if( _kbd[ k ] )
-	{
-	  //cout << "key ignored\n";
-	  key->ignore();
-	  return;
-	}
-	_kbd[ k ] = true; */
 
       map<int, KeyCode>::const_iterator	ik, fk;
 
@@ -504,8 +483,8 @@ void QRPlayField::keyPressedEvent( QKeyEvent* key )
 
       if( ik != fk )	// keycode found
         {
-	  /*cout << "key pressed : player " << (*ik).second.player
-	    << ", keycode: " << (*ik).second.key << "\n";*/
+	  /* cout << "key pressed : player " << (*ik).second.player
+	    << ", keycode: " << (*ik).second.key << "\n"; */
 	  KeyCode	k  = (*ik).second;
 
 	  if( k.player < _players.size() )
@@ -551,8 +530,6 @@ void QRPlayField::keyPressedEvent( QKeyEvent* key )
 
 void QRPlayField::keyReleasedEvent( QKeyEvent* key )
 {
-  bool	ctrl, shft, alt;
-
   //cout << "QRPlayField::keyPressedEvent\n";
   if( game.running )
     {
@@ -561,25 +538,6 @@ void QRPlayField::keyReleasedEvent( QKeyEvent* key )
 	  key->ignore();
 	  return;
 	}
-
-      if( key->modifiers() & Qt::ControlModifier )
-	ctrl = true;
-      else ctrl = false;
-      if( key->modifiers() & Qt::ShiftModifier )
-	shft = true;
-      else shft = false;
-      if( key->modifiers() & Qt::AltModifier )
-	alt = true;
-      else alt = false;
-
-      /*      _kbd[ Key_Control ] = ctl;
-      if( _kbd[ k ] )
-	{
-	  //cout << "key ignored\n";
-	  key->ignore();
-	  return;
-	}
-	_kbd[ k ] = true; */
 
       map<int, KeyCode>::const_iterator	ik, fk;
 

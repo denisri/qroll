@@ -67,11 +67,11 @@ namespace roll
     ///	Message Header
     struct MsgHdr
     {
-      MsgHdr( unsigned char c, unsigned long l ) : code( c ), msgLen( l ) {}
+      MsgHdr( unsigned char c, unsigned l ) : code( c ), msgLen( l ) {}
       ///	Message type code
       unsigned char	code;
       ///	Size of message, little endian
-      unsigned long	msgLen;
+      unsigned msgLen;
     };
 
     /// Factory function

@@ -187,24 +187,24 @@ MessageAssignPlayers::~MessageAssignPlayers()
 
 unsigned MessageAssignPlayers::size() const
 {
-  return( players.size() * sizeof( unsigned long ) + sizeof( unsigned long ) );
+  return( players.size() * sizeof( unsigned ) + sizeof( unsigned ) );
 }
 
 
 bool MessageAssignPlayers::canRead( unsigned len ) const
 {
-  return( len >= sizeof( unsigned long ) 
-	  && len % sizeof( unsigned long ) == 0 );
+  return( len >= sizeof( unsigned ) 
+	  && len % sizeof( unsigned ) == 0 );
 }
 
 
 bool MessageAssignPlayers::read( const char* buffer, unsigned len )
 {
   players.clear();
-  len = len / sizeof( unsigned long ) - 1;
+  len = len / sizeof( unsigned ) - 1;
 
   unsigned	i;
-  unsigned long	*b = (unsigned long *) buffer;
+  unsigned	*b = (unsigned *) buffer;
 
   whose = native( *b++ );
 
@@ -218,13 +218,13 @@ bool MessageAssignPlayers::read( const char* buffer, unsigned len )
 char* MessageAssignPlayers::write() const
 {
   char		*buf = new char[ size() ];
-  unsigned long	*b = (unsigned long *) buf;
+  unsigned	*b = (unsigned *) buf;
   unsigned	i, n = players.size();
 
-  * b++ = little_endian( (unsigned long) whose );
+  * b++ = little_endian( (unsigned) whose );
 
   for( i=0; i<n; ++i )
-    b[i] = little_endian( (unsigned long) players[i] );
+    b[i] = little_endian( (unsigned) players[i] );
   return( buf );
 }
 
@@ -245,13 +245,13 @@ MessageNumPlayers::~MessageNumPlayers()
 
 unsigned MessageNumPlayers::size() const
 {
-  return( sizeof( unsigned long ) );
+  return( sizeof( unsigned ) );
 }
 
 
 bool MessageNumPlayers::read( const char* buffer, unsigned )
 {
-  num = native( * (unsigned long *) buffer );
+  num = native( * (unsigned *) buffer );
   return( true );
 }
 
@@ -259,7 +259,7 @@ bool MessageNumPlayers::read( const char* buffer, unsigned )
 char* MessageNumPlayers::write() const
 {
   char	*buf = new char[ size() ];
-  *(unsigned long *) buf = little_endian( (unsigned long) num );
+  *(unsigned *) buf = little_endian( (unsigned) num );
   return( buf );
 }
 
@@ -280,31 +280,31 @@ MessageStartGame::~MessageStartGame()
 
 unsigned MessageStartGame::size() const
 {
-  return( sizeof( unsigned long ) * 3 + 1 + series.length() );
+  return( sizeof( unsigned ) * 3 + 1 + series.length() );
 }
 
 
 bool MessageStartGame::canRead( unsigned len ) const
 {
-  return( len >= sizeof( unsigned long ) * 3 + 1 );
+  return( len >= sizeof( unsigned ) * 3 + 1 );
 }
 
 
 bool MessageStartGame::read( const char* buffer, unsigned l )
 {
-  const unsigned long	*bu = (const unsigned long *) buffer;
+  const unsigned	*bu = (const unsigned *) buffer;
 
   level = native( *bu++ );
   randomSeed = native( *bu++ );
 
-  unsigned long	len = native( *bu++ );
+  unsigned	len = native( *bu++ );
   const char	*bc = (const char *) bu;
   bool		res = true;
 
   rollExitFlag = (unsigned char) *bc++;
 
   //cout << "msg len ; " << len << endl;
-  l -= sizeof( unsigned long) * 3 + 1;
+  l -= sizeof( unsigned) * 3 + 1;
   if( len > l )
     {
       cerr << "MessageStartGame too short ! Truncating\n";
@@ -324,11 +324,11 @@ bool MessageStartGame::read( const char* buffer, unsigned l )
 char* MessageStartGame::write() const
 {
   char		*buf = new char[ size() ];
-  unsigned long	*bu = (unsigned long *) buf;
+  unsigned	*bu = (unsigned *) buf;
 
-  *bu++ = little_endian( (unsigned long) level );
-  *bu++ = little_endian( (unsigned long) randomSeed );
-  *bu++ = little_endian( (unsigned long) series.length() );
+  *bu++ = little_endian( (unsigned) level );
+  *bu++ = little_endian( (unsigned) randomSeed );
+  *bu++ = little_endian( (unsigned) series.length() );
 
   char	*bc = (char *) bu;
   *bc++ = (char) rollExitFlag;
@@ -407,24 +407,24 @@ MessageEndTurn::~MessageEndTurn()
 
 unsigned MessageEndTurn::size() const
 {
-  return( keys.size() * ( sizeof( unsigned long ) 
+  return( keys.size() * ( sizeof( unsigned ) 
 			  + sizeof( unsigned short ) * 2 ) );
 }
 
 
 bool MessageEndTurn::canRead( unsigned len ) const
 {
-  return( len % ( sizeof( unsigned long ) + sizeof( Key ) ) == 0 );
+  return( len % ( sizeof( unsigned ) + sizeof( Key ) ) == 0 );
 }
 
 
 bool MessageEndTurn::read( const char* buffer, unsigned len )
 {
-  unsigned long		i, p;
-  const unsigned long	*bu = (const unsigned long *) buffer;
+  unsigned		i, p;
+  const unsigned	*bu = (const unsigned *) buffer;
   const unsigned short	*bs;
 
-  len = len / ( sizeof( unsigned long ) + sizeof( Key ) );
+  len = len / ( sizeof( unsigned ) + sizeof( Key ) );
 
   for( i=0; i<len; ++i )
     {
@@ -434,7 +434,7 @@ bool MessageEndTurn::read( const char* buffer, unsigned len )
       k.key = native( *bs++ );
       k.fire = native( *bs++ );
       keys[ p ] = k;
-      bu = (const unsigned long *) bs;
+      bu = (const unsigned *) bs;
     }
   if( keys.size() != len )
     cout << "MessageEndTurn decoding failed !\n";
@@ -446,17 +446,17 @@ bool MessageEndTurn::read( const char* buffer, unsigned len )
 char* MessageEndTurn::write() const
 {
   char					*buf = new char[ size() ];
-  unsigned long				*bu = (unsigned long *) buf;
+  unsigned				*bu = (unsigned *) buf;
   unsigned short			*bs;
   map<unsigned, Key>::const_iterator	ik, ek = keys.end();
 
   for( ik=keys.begin(); ik!=ek; ++ik )
     {
-      *bu++ = little_endian( (unsigned long) (*ik).first );
+      *bu++ = little_endian( (unsigned) (*ik).first );
       bs = (unsigned short *) bu;
       *bs++ = little_endian( (*ik).second.key );
       *bs++ = little_endian( (*ik).second.fire );
-      bu = (unsigned long *) bs;
+      bu = (unsigned *) bs;
     }
 
   return( buf );
@@ -479,13 +479,13 @@ MessageKey::~MessageKey()
 
 unsigned MessageKey::size() const
 {
-  return( sizeof( unsigned long ) * 2 + sizeof( unsigned char ) );
+  return( sizeof( unsigned ) * 2 + sizeof( unsigned char ) );
 }
 
 
 bool MessageKey::read( const char* buffer, unsigned )
 {
-  const unsigned long	*bu = (const unsigned long *) buffer;
+  const unsigned *bu = (const unsigned *) buffer;
   player = native( *bu++ );
   key = native( *bu++ );
   pressRelease = *(const unsigned char *) bu;
@@ -498,8 +498,8 @@ char* MessageKey::write() const
   char		*buf = new char[ size() ];
   unsigned	*bu = (unsigned *) buf;
 
-  *bu++ = little_endian( (unsigned long) player );
-  *bu++ = little_endian( (unsigned long) key );
+  *bu++ = little_endian( (unsigned) player );
+  *bu++ = little_endian( (unsigned) key );
   *(unsigned char *) bu = pressRelease;
   return( buf );
 }

@@ -61,8 +61,6 @@ public:
   static std::map<int, KeyCode>	KeyMapMono;
   ///	Codes touches pour tous les joueurs, mode multijoueur
   static std::map<int, KeyCode>	KeyMapMulti;
-  ///	Code touche manquant dans le jeu
-  static unsigned K_FIRE;
 
   QRPlayField( const QRMainWin* parentMW, bool usegl, QWidget *parent=0, 
 	       const char *name=0 );

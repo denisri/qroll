@@ -136,7 +136,7 @@ void PlayerServer::keyPressed( unsigned player, unsigned key )
   unsigned		& reptK = _repeatKey[ player ];
 
   kbd[ key ] = true;
-  //cout << "joueur " << player << " a enfoncÃ© la touche " << key << endl;
+  // cout << "player " << player << " pressed key " << key << endl;
 
   if( key != Game::K_FIRE && ( bufN == 0 || key != buf[0] ) )
     {
@@ -149,7 +149,9 @@ void PlayerServer::keyPressed( unsigned player, unsigned key )
     }
 
   if( mode() == Client )
+  {
     emitKey( player, true, key );
+  }
 }
 
 

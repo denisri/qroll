@@ -124,7 +124,7 @@ namespace roll
   }
 
   ///	Converts a 32 bits unsigned to little_endian
-  inline unsigned little_endian( unsigned long n )
+  inline unsigned little_endian( unsigned n )
   {
     unsigned char	nn[4];
     nn[0] = n & 0xff;
@@ -145,7 +145,7 @@ namespace roll
 
 
   ///	Converts a little_endian 32 bits unsigned to native format
-  inline unsigned native( unsigned long n )
+  inline unsigned native( unsigned n )
   {
     unsigned char	*nn = (unsigned char *) &n;
     return( (nn[3] << 24) | (nn[2] << 16) | (nn[1] << 8) | nn[0] );
