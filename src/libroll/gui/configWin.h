@@ -38,7 +38,6 @@ public:
   virtual ~QRConfigWin();
 
 public slots:
-  void enableTab( int );
   void rollExit( bool );
   void useOpenGL( bool );
   void glModeChanged( int );

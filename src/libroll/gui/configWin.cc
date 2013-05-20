@@ -17,6 +17,7 @@
 
 #include <roll/gui/configWin.h>
 #include <roll/gui/gameConfig.h>
+#include <qtabwidget.h>
 #include <qtabbar.h>
 #include <qbuttongroup.h>
 #include <qgroupbox.h>
@@ -44,11 +45,8 @@ namespace roll
 
   struct QRConfigWin_Private
   {
-    QRConfigWin_Private() : tab( 0 ), glopt( 0 ), dbgtim( 0 ) {}
+    QRConfigWin_Private() : glopt( 0 ), dbgtim( 0 ) {}
 
-    unsigned		tab;
-    vector<QWidget *>	tabs;
-    map<int, unsigned>	tabnum;
     QButtonGroup	*glopt;
     QSpinBox		*dbgtim;
   };
@@ -69,26 +67,15 @@ QRConfigWin::QRConfigWin( QWidget* parent, const char* name,
   mainlay->setMargin( 10 );
   mainlay->setSpacing( 10 );
   setAttribute( Qt::WA_DeleteOnClose );
-  QTabBar	*tbar = new QTabBar( this );
+  QTabWidget       *tbar = new QTabWidget( this );
   mainlay->addWidget( tbar );
-
-  d->tabnum[ tbar->addTab( tr( "Graphics" ) ) ]        = 0;
-  d->tabnum[ tbar->addTab( tr( "Sound" ) ) ]           = 1;
-  d->tabnum[ tbar->addTab( tr( "Multiplayers" ) ) ]    = 2;
-  d->tabnum[ tbar->addTab( tr( "Levels debugger" ) ) ] = 3;
-
-//   QFrame	*ln = new QFrame( this );
-//   ln->setObjectName( "line" );
-//   ln->setFrameStyle( QFrame::HLine | QFrame::Raised );
-//   mainlay->addWidget( ln );
 
   //	Graphics options tab
 
-  QWidget	*gra = new QWidget( this );
+  QWidget	*gra = new QWidget; //( this );
   QVBoxLayout *gral = new QVBoxLayout( gra );
   gral->setSpacing( 5 );
-  d->tabs.push_back( gra );
-  mainlay->addWidget( gra );
+  tbar->addTab( gra, tr( "Graphics" ) );
 
   QCheckBox		*gl 
     = new QCheckBox( tr( "Use OpenGL to render pixmaps" ), gra );
@@ -139,24 +126,24 @@ QRConfigWin::QRConfigWin( QWidget* parent, const char* name,
 
   //	Sound tab
 
-  QWidget *snd = new QWidget( this );
+  QWidget *snd = new QWidget; //( this );
   QVBoxLayout *sndl = new QVBoxLayout( snd );
   snd->hide();
   sndl->setSpacing( 5 );
-  d->tabs.push_back( snd );
-  mainlay->addWidget( snd );
+  // mainlay->addWidget( snd );
+  tbar->addTab( snd, tr( "Sound" ) );
 
   sndl->addWidget( new QLabel( tr( "No sound options up to now..." ), snd ) );
   sndl->addStretch();
 
   //	Multiplayer tab
 
-  QWidget *mul = new QWidget( this );
+  QWidget *mul = new QWidget; //( this );
   QVBoxLayout *mull = new QVBoxLayout( mul );
   mul->hide();
   mull->setSpacing( 5 );
-  d->tabs.push_back( mul );
-  mainlay->addWidget( mul );
+  // mainlay->addWidget( mul );
+  tbar->addTab( mul, tr( "Multiplayers" ) );
 
   QCheckBox	*rollexit 
     = new QCheckBox( tr( "All Rolls must get to a door before the level "
@@ -167,12 +154,11 @@ QRConfigWin::QRConfigWin( QWidget* parent, const char* name,
 
   //	Debug tab
 
-  QWidget *dbg = new QWidget( this );
+  QWidget *dbg = new QWidget; //( this );
   QVBoxLayout *dbgl = new QVBoxLayout( dbg );
   dbg->hide();
   dbgl->setSpacing( 5 );
-  d->tabs.push_back( dbg );
-  mainlay->addWidget( dbg );
+  tbar->addTab( dbg, tr( "Levels debugger" ) );
 
   QHBoxLayout *dbh = new QHBoxLayout( 0 );
   dbgl->addLayout( dbh );
@@ -190,13 +176,21 @@ QRConfigWin::QRConfigWin( QWidget* parent, const char* name,
 
   // save button
 
-  QPushButton *sb = new QPushButton( tr( "Save config" ), this );
+  QWidget *buttons = new QWidget( this );
+  mainlay->addWidget( buttons );
+  QHBoxLayout *blay = new QHBoxLayout( buttons );
+  buttons->setLayout( blay );
+  blay->addStretch( 1 );
+  QPushButton *sb = new QPushButton( tr( "Save config" ), buttons );
   sb->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-  mainlay->addWidget( sb );
+  blay->addWidget( sb );
+  QPushButton *cb = new QPushButton( tr( "Cancel" ), buttons );
+  cb->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+  blay->addWidget( cb );
 
   //	Connects
 
-  connect( tbar, SIGNAL( selected( int ) ), this, SLOT( enableTab( int ) ) );
+  // connect( tbar, SIGNAL( selected( int ) ), this, SLOT( enableTab( int ) ) );
   connect( rollexit, SIGNAL( toggled( bool ) ), this, 
 	   SLOT( rollExit( bool ) ) );
   connect( gl, SIGNAL( toggled( bool ) ), this, SLOT( useOpenGL( bool ) ) );
@@ -207,6 +201,7 @@ QRConfigWin::QRConfigWin( QWidget* parent, const char* name,
   connect( d->dbgtim, SIGNAL( valueChanged( int ) ), this, 
 	   SLOT( setTiming( int ) ) );
   connect( sb, SIGNAL( clicked() ), this, SLOT( saveConfig() ) );
+  connect( cb, SIGNAL( clicked() ), this, SLOT( close() ) );
 }
 
 
@@ -214,18 +209,6 @@ QRConfigWin::~QRConfigWin()
 {
   emit closed();
   delete d;
-}
-
-
-void QRConfigWin::enableTab( int tabid )
-{
-  unsigned tab = d->tabnum[ tabid ];
-  if( tab != d->tab )
-    {
-      d->tabs[ d->tab ]->hide();
-      d->tab = tab;
-      d->tabs[ tab ]->show();
-    }
 }
 
 
