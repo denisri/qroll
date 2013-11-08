@@ -17,10 +17,10 @@
 
 
 #include <roll/socket/playerServerSocket.h>
-#ifndef ANDROID
+// #ifndef ANDROID
 #include <roll/socket/qPlayerServer.h>
 #include <roll/socket/singleSocket.h>
-#endif
+// #endif
 #include <roll/socket/netMessages.h>
 #include <iostream>
 #include <set>
@@ -68,7 +68,7 @@ const QPlayerServer* PlayerServerSocket::playerServer() const
 }
 
 
-#ifndef ANDROID
+// #ifndef ANDROID
 NetMessage* PlayerServerSocket::readMessage( QTcpSocket* s ) const
 {
   NetMessage::MsgHdr	& hdr = d->pendingmsg;
@@ -142,7 +142,7 @@ void PlayerServerSocket::writeMessage( QTcpSocket* s,
   char	*wm = msg.write();
   s->write( wm, len );
 }
-#endif
+// #endif
 
 
 void PlayerServerSocket::writeMessage( const NetMessage & )
@@ -156,7 +156,7 @@ void PlayerServerSocket::writeMessage( const NetMessage & )
 namespace roll
 {
 
-#ifndef ANDROID
+// #ifndef ANDROID
   struct SockDescr
   {
     SockDescr( SingleSocket* ss, unsigned n ) : qs( ss ), num( n )
@@ -177,12 +177,12 @@ namespace roll
     ServerSocket	*server;
     set<SockDescr *>	sockets;
   };
-#endif
+// #endif
 
 }
 
 
-#ifndef ANDROID
+// #ifndef ANDROID
 ServerSocket_Private::ServerSocket_Private( ServerSocket* serv )
   : server( serv )
 {
@@ -393,5 +393,5 @@ void ClientSocket::writeMessage( const NetMessage & msg )
   PlayerServerSocket::writeMessage( this, msg );
 }
 
-#endif
+// #endif
 

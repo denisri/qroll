@@ -20,7 +20,7 @@
 #define ROLL_GUI_CLIENTDIALOG_H
 
 
-#include <qdialog.h>
+#include <QDialog>
 #include <string>
 
 class QLineEdit;

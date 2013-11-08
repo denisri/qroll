@@ -26,7 +26,7 @@ using namespace std;
 // -------------- single socket -------------
 
 
-#ifndef ANDROID
+// #ifndef ANDROID
 SingleSocket::SingleSocket( ServerSocket* parent, QTcpSocket* socket,
                             const char* name ) 
   : QObject( parent ), _serv( parent ), _socket( socket ), _sd( 0 )
@@ -82,6 +82,6 @@ void SingleSocket::sendBytesWritten( qint64 nbytes )
 {
   emit bytesWritten( this, (int) nbytes );
 }
-#endif
+// #endif
 
 

@@ -20,10 +20,10 @@
 #define ROLL_SOCKET_PLAYERSERVERSOCKET_H
 
 #include <qglobal.h>
-#ifndef ANDROID
+// #ifndef ANDROID
 #include <QTcpSocket>
 #include <QTcpServer>
-#endif
+// #endif
 #include <set>
 
 
@@ -42,10 +42,10 @@ namespace roll
     PlayerServerSocket( QPlayerServer* parent );
     virtual ~PlayerServerSocket();
 
-#ifndef ANDROID
+// #ifndef ANDROID
     virtual NetMessage* readMessage( QTcpSocket* s ) const;
     virtual void writeMessage( QTcpSocket* s, const NetMessage & msg );
-#endif
+// #endif
     virtual void writeMessage( const NetMessage & msg );
     QPlayerServer* playerServer();
     const QPlayerServer* playerServer() const;
@@ -55,7 +55,7 @@ namespace roll
   };
 
 
-#ifndef ANDROID
+// #ifndef ANDROID
   class ServerSocket : public QTcpServer, public PlayerServerSocket
   {
     Q_OBJECT
@@ -108,7 +108,7 @@ namespace roll
 
   protected:
   };
-#endif
+// #endif
 
   //	inline utility functions
 
