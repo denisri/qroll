@@ -49,7 +49,7 @@ namespace soma
     virtual void process( int type );
     virtual unsigned inuse( int type )
     {
-      if( type >= _inuse.size() )
+      if( type >= (int) _inuse.size() )
         return false;
       return( _inuse[type] );
     }

@@ -21,18 +21,18 @@
 #include <roll/game/random.h>
 #include <roll/socket/qPlayerServer.h>
 #include <roll/gui/configWin.h>
-#ifndef ANDROID
+// #ifndef ANDROID
 #include <roll/gui/qAbout.h>
+// #endif
 #include <roll/gui/editPalette.h>
-#endif
 #include <roll/gui/levelParams.h>
 #include <roll/struct/series.h>
 #include <roll/struct/seriesManager.h>
 #include <roll/struct/simpleLevel.h>
-#ifndef ANDROID
+// #ifndef ANDROID
 #include <roll/gui/seriesArranger.h>
 #include <roll/gui/painter.h>
-#endif
+// #endif
 #include <roll/gui/gameConfig.h>
 #include <roll/sound/soundProcessor.h>
 
@@ -99,12 +99,12 @@ struct QRMainWin::Private
   ~Private()
   {
     delete config;
-#ifndef ANDROID
+// #ifndef ANDROID
     delete editpal;
     unsigned i, n = painters.size();
     for( i=0; i<n; ++i )
       delete painters[i];
-#endif
+// #endif
   }
 
   QFileDialog *fileDialog()
@@ -164,13 +164,13 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
 
   //    painters
 
-#ifndef ANDROID
+// #ifndef ANDROID
   d->painters.push_back( new DrawPainter( this ) );
   d->painters.push_back( new FillPainter( this ) );
   d->painters.push_back( new RectPainter( this ) );
   d->painters.push_back( new CopyPainter( this ) );
   d->painters.push_back( new PatternPainter( this ) );
-#endif
+// #endif
 
   //	signaux intra-classe
 
@@ -255,7 +255,7 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
   d->removeaction = ac;
   ac->setEnabled( false );
 
-#ifndef ANDROID
+// #ifndef ANDROID
   _soundM = menuBar()->addMenu( tr( "Sound" ) );
   ac = _soundM->addAction( tr( "Sound on/off" ), this,
                        SLOT( soundOnOff() ) );
@@ -264,7 +264,7 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
     ac->setEnabled( false );
   else
     ac->setChecked( true );
-#endif
+// #endif
 
   _viewM = menuBar()->addMenu( tr( "View" ) );
   d->zoomaction = _viewM->addAction( tr( "Allow zoom" ),
@@ -386,11 +386,18 @@ QRMainWin::~QRMainWin()
 
 void QRMainWin::load()
 {
+#ifdef ANDROID
+  _timer->stop();
+#endif
   QFileDialog	*fd = d->fileDialog();
   fd->setNameFilters( QStringList( d->filesfilter ) );
   fd->setFileMode( QFileDialog::ExistingFile );
   fd->setWindowTitle( tr( "Load Rock'n'Roll levels" ) );
-  if( fd->exec() )
+  int res = fd->exec();
+#ifdef ANDROID
+  _timer->start();
+#endif
+  if( res )
     {
       QStringList files = fd->selectedFiles();
       QString fn;
@@ -407,11 +414,18 @@ void QRMainWin::load()
 
 void QRMainWin::mergeSeries()
 {
+#ifdef ANDROID
+  _timer->stop();
+#endif
   QFileDialog	*fd = d->fileDialog();
   fd->setNameFilters( QStringList( d->filesfilter ) );
   fd->setFileMode( QFileDialog::ExistingFile );
   fd->setWindowTitle( tr( "Append Rock'n'Roll levels" ) );
-  if( fd->exec() )
+  int res = fd->exec();
+#ifdef ANDROID
+  _timer->stop();
+#endif
+  if( res )
     {
       QStringList files = fd->selectedFiles();
       QString fn;
@@ -460,11 +474,18 @@ void QRMainWin::save()
 
 void QRMainWin::saveAs()
 {
+#ifdef ANDROID
+  _timer->stop();
+#endif
   QFileDialog	*fd = d->fileDialog();
   fd->setNameFilters( QStringList( d->filesfilter ) );
   fd->setFileMode( QFileDialog::ExistingFile );
   fd->setWindowTitle( tr( "Save Rock'n'Roll levels" ) );
-  if( fd->exec() )
+  int res = fd->exec();
+#ifdef ANDROID
+  _timer->stop();
+#endif
+  if( res )
   {
     QStringList files = fd->selectedFiles();
     QString fn;
@@ -649,7 +670,7 @@ void QRMainWin::keyReleaseEvent( QKeyEvent* key )
 
 void QRMainWin::netServer()
 {
-#ifndef ANDROID
+// #ifndef ANDROID
   statusBar()->showMessage( tr( "Connecting to network..." ) );
   d->serveraction->setEnabled( false );
   d->clientaction->setEnabled( false );
@@ -674,13 +695,13 @@ void QRMainWin::netServer()
     cerr << "BUG: PlayerServer is not a QPlayerServer\n";
 
   PlayerServer::server->makeServer( 2000 );
-#endif
+// #endif
 }
 
 
 void QRMainWin::netClient()
 {
-#ifndef ANDROID
+// #ifndef ANDROID
   RRClientDialog	cd( this );
   int res = cd.exec();
   if( res == QDialog::Accepted )
@@ -727,13 +748,13 @@ void QRMainWin::netClient()
     }
   else
     statusBar()->showMessage( tr( "Connection canceled" ), 2000 );
-#endif
+// #endif
 }
 
 
 void QRMainWin::netClose()
 {
-#ifndef ANDROID
+// #ifndef ANDROID
 //   QPlayerServer	*qp = dynamic_cast<QPlayerServer *>( PlayerServer::server );
 //   if( qp )
 //   {
@@ -760,7 +781,7 @@ void QRMainWin::netClose()
       d->pauseaction->setEnabled( false );	// pause
       d->pauseaction->setChecked( false );
     }
-#endif
+// #endif
 }
 
 
@@ -1223,11 +1244,19 @@ void QRMainWin::playersRenumed( const RenumList & play )
 
 void QRMainWin::about()
 {
-#ifndef ANDROID
+// #ifndef ANDROID
   QAbout	ab;
 
-  ab.exec();
+#ifdef ANDROID
+  _timer->stop();
 #endif
+
+  ab.exec();
+
+#ifdef ANDROID
+  _timer->start();
+#endif
+// #endif
 }
 
 
@@ -1401,7 +1430,7 @@ bool QRMainWin::editMode() const
 
 void QRMainWin::editLevel()
 {
-#ifndef ANDROID
+// #ifndef ANDROID
   bool	x = !d->editmode;
   d->editmode = x;
   d->editaction->setChecked( x );
@@ -1423,7 +1452,7 @@ void QRMainWin::editLevel()
       setCursor( ArrowCursor ); // to override a bug in Qt: unsetCursor doesn't
       unsetCursor();            // work (apparently) ...
     }
-#endif
+// #endif
 }
 
 
@@ -1480,13 +1509,20 @@ void QRMainWin::levelParams()
     connect( d->levelparams, SIGNAL( levelChanged( unsigned ) ), this,
               SIGNAL( stageChanged( unsigned ) ) );
   }
+#ifdef ANDROID
+  _timer->stop();
+#endif
   d->levelparams->show();
+
 }
 
 
 void QRMainWin::levelParamsClosed()
 {
   d->levelparams = 0;
+#ifdef ANDROID
+  _timer->stop();
+#endif
 }
 
 
@@ -1546,7 +1582,7 @@ void QRMainWin::deleteLevel()
 
 void QRMainWin::arrangeSeries()
 {
-#ifndef ANDROID
+// #ifndef ANDROID
   if( SeriesArranger::instance() )
     delete SeriesArranger::instance();
   else
@@ -1561,6 +1597,9 @@ void QRMainWin::arrangeSeries()
 	       SIGNAL( stageChanged( unsigned ) ) );
       d->editarrangeaction->setChecked( true );
     }
+// #endif
+#ifdef ANDROID
+  _timer->stop();
 #endif
 }
 
@@ -1568,6 +1607,9 @@ void QRMainWin::arrangeSeries()
 void QRMainWin::seriesArrangerClosed()
 {
   d->editarrangeaction->setChecked( false );
+#ifdef ANDROID
+  _timer->start();
+#endif
 }
 
 
@@ -1598,7 +1640,7 @@ QPixmap QRMainWin::originalSprite( unsigned short num ) const
 
 void QRMainWin::paintStart( int x, int y, bool inlevel, QRPlayField* source )
 {
-#ifndef ANDROID
+// #ifndef ANDROID
   QREditPalette	*pal = theQRWin->editPalette();
   if( !pal )
     return;
@@ -1608,13 +1650,13 @@ void QRMainWin::paintStart( int x, int y, bool inlevel, QRPlayField* source )
     return;
 
   d->painters[ paintmode ]->start( x, y, inlevel, source );
-#endif
+// #endif
 }
 
 
 void QRMainWin::paintMove( int x, int y, bool inlevel, QRPlayField* source )
 {
-#ifndef ANDROID
+// #ifndef ANDROID
   QREditPalette	*pal = theQRWin->editPalette();
   if( !pal )
     return;
@@ -1624,13 +1666,13 @@ void QRMainWin::paintMove( int x, int y, bool inlevel, QRPlayField* source )
     return;
 
   d->painters[ paintmode ]->move( x, y, inlevel, source );
-#endif
+// #endif
 }
 
 
 void QRMainWin::paintStop( int x, int y, bool inlevel, QRPlayField* source )
 {
-#ifndef ANDROID
+// #ifndef ANDROID
   QREditPalette	*pal = theQRWin->editPalette();
   if( !pal )
     return;
@@ -1640,7 +1682,7 @@ void QRMainWin::paintStop( int x, int y, bool inlevel, QRPlayField* source )
     return;
 
   d->painters[ paintmode ]->stop( x, y, inlevel, source );
-#endif
+// #endif
 }
 
 
