@@ -22,6 +22,7 @@
 #include <roll/struct/general.h>
 #include <fstream>
 #include <stdio.h>
+#include <QFile>
 
 using namespace roll;
 using namespace std;
@@ -29,8 +30,8 @@ using namespace std;
 
 static void cleantag( string & s )
 {
-  if( !s.empty() && s[ s.length()-1 ] == ' ' || s[ s.length()-1 ] == '\t' 
-      || s[ s.length()-1 ] == '\n' )
+  if( !s.empty() && ( s[ s.length()-1 ] == ' ' || s[ s.length()-1 ] == '\t'
+      || s[ s.length()-1 ] == '\n' ) )
     s.erase( s.length()-1, 1 );
 }
 
@@ -123,81 +124,125 @@ bool Series::saveRaw( const string & flname ) const
   return( true );
 }
 
+namespace
+{
+  string readString( QFile & file )
+  {
+    string str;
+    char c = '.';
+    while( !file.atEnd() )
+    {
+      if( !file.getChar( &c ) )
+      {
+        err << "error reading series " << file.fileName().toStdString() << endl;
+        return str;
+      }
+      if( c == '\0' || c == '\n' || c == ' ' || c == '\t' || c == '\r' )
+        break;
+      str += c;
+    }
+    return str;
+  }
+
+  unsigned readUInt( QFile & file, bool & ok )
+  {
+    QString str;
+    char c = '.';
+    while( !file.atEnd() )
+    {
+      if( !file.getChar( &c ) )
+      {
+        err << "error reading series " << file.fileName().toStdString() << endl;
+        ok = false;
+        return 0;
+      }
+      if( c < '0' || c > '9' )
+        break;
+      str += c;
+    }
+    ok = true;
+    return str.toUInt( &ok );
+  }
+}
 
 bool Series::loadRaw( const string & fname )
 {
-  ifstream	file( fname.c_str() );
+  QFile	file( fname.c_str() );
 
-  if( !file )
-    {
-      err << fname << " not found\n";
-      return( false );
-    }
+  if( !file.open( QIODevice::ReadOnly ) )
+  {
+    err << fname << " not found\n";
+    return false;
+  }
 
   unsigned	n = 20;
   vector<char>	buf( n+1 );
 
-  file.read( &buf[0], n );
+  qint64 l = file.read( &buf[0], n );
+  if( l != n )
+    out << "mismatch\n";
   buf[ n ] = '\0';
-  if( !file || string( &buf[0] ) != "ROCK'N'ROLL Series V" )
+  if( file.atEnd() || string( &buf[0] ) != "ROCK'N'ROLL Series V" )
     // NOT a new format file
-    return( false );
+    return false;
 
-  string	version;
-  file >> version;
+  string	version = readString( file );
   cleantag( version );
   unsigned	major = 0, minor = 0;
   sscanf( version.c_str(), "%u.%u", &major, &minor );
   if( major == 0 )
-    return( false );	// failed reading ?
+    return false;	// failed reading ?
   out << "R&R Raw format series, version " << major << "." << minor << endl;
   if( major != 1 || minor > 0 )
     err << "version mismatch - expecting 1.0,\n" 
-	<< "format may be incompatible and load may fail\n";
+      << "format may be incompatible and load may fail\n";
 
   unsigned	nlevel = 0, i;
   unsigned	bo = 0x41424344;
   string	tag;
 
-  file >> tag;
+  tag = readString( file );
   cleantag( tag );
+  bool ok = true;
 
   //	read header
-  while( file && tag != "[Level]" )
+  while( !file.atEnd() && tag != "[Level]" )
+  {
+    if( tag == "ByteOrder:" )
     {
-      if( tag == "ByteOrder:" )
-	{
-	  file >> tag;
-	  cleantag( tag );
-	  if( tag.length() != 4 )
-	    err << "invalid ByteOrder value\n";
-	  else
-	    bo = *(unsigned *)&tag[0];
-	}
-      else if( tag == "Levels:" )
-	{
-	  file >> nlevel;
-	  out << "Levels : " << nlevel << endl;
-	}
-      else
-	{
-	  err << "ungnown tag " << tag << endl;
-	  //return( false );
-	}
-      file >> tag;
+      tag = readString( file );
       cleantag( tag );
+      if( tag.length() != 4 )
+        err << "invalid ByteOrder value\n";
+      else
+        bo = *(unsigned *)&tag[0];
     }
+    else if( tag == "Levels:" )
+    {
+      nlevel = readUInt( file, ok );
+      if( !ok )
+        return false;
+      out << "Levels : " << nlevel << endl;
+    }
+    else
+    {
+      err << "ungnown tag " << tag << endl;
+      return( false );
+    }
+    tag = readString( file );
+    cleantag( tag );
+  }
 
-  if( !file )
-    {
-      err << "premature EOF - corrupt file\n";
-      return( false );
-    }
+  if( file.atEnd() || !file.isOpen() )
+  {
+    err << "premature EOF - corrupt file\n";
+    return false;
+  }
   if( nlevel == 0 )
-    {
-      err << "levels number couldn't be read - aborting\n";
-      return( false );
-    }
+  {
+    err << "levels number couldn't be read - aborting\n";
+    return false;
+  }
   if( bo == 0 )
     err << "warning, byte order not specified - won't byteswap data\n";
 
@@ -207,35 +252,38 @@ bool Series::loadRaw( const string & fname )
   SimpleLevel	sl;
 
   for( i=0; i<nlevel; ++i )
+  {
+    tag = readString( file );
+    cleantag( tag );
+    if( tag == "[Level]" )
     {
-      file >> tag;
+      tag = readString( file );
       cleantag( tag );
-      if( tag == "[Level]" )
-	{
-	  file >> tag;
-	  cleantag( tag );
-	}
-      if( tag != "Level:" )
-	{
-	  err << "unexpected tag " << tag << "<--" << endl;
-	  err << "(len: " << tag.length() << " )\n";
-	  err << "1st char: " << (int) tag[0] << endl;
-	  return( false );
-	}
-      file >> j;
-      if( j != i )
-	err << "warning : found level " << j << ", expected " << i << endl;
-      if( !sl.read( file, bo ) )
-	{
-	  err << "Failed to read level " << j << endl;
-	  return( false );
-	}
-      if( appendLevel( sl ) == -1 )
-	err << "warning : couldn't insert level " << j 
-	    << ", level not loaded\n";
     }
+    if( tag != "Level:" )
+    {
+      err << "unexpected tag " << tag << "<--" << endl;
+      err << "(len: " << tag.length() << " )\n";
+      err << "1st char: " << (int) tag[0] << endl;
+      return false;
+    }
+    j = readUInt( file, ok );
+    if( !ok )
+      return false;
+    if( j != i )
+      err << "warning : found level " << j << ", expected " << i << endl;
+    if( !sl.read( file, bo ) )
+    {
+      err << "Failed to read level " << j << endl;
+      return false;
+    }
+    if( appendLevel( sl ) == -1 )
+      err << "warning : couldn't insert level " << j
+        << ", level not loaded\n";
+  }
+  out << "loading " << fname << " OK.\n";
 
-  return( true );
+  return true;
 }
 
 

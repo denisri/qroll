@@ -7,22 +7,24 @@ TARGET		= qroll${BUILDMODEEXT}
 INCBDIR	= roll
 
 HEADERS = \
+        struct/atariFormat.h \
+        struct/blobDescr.h \
+        struct/explosions.h \
 	struct/general.h \
-	struct/workLevel.h \
-	struct/series.h \
-	struct/seriesAtari.h \
-	struct/seriesRaw.h \
 	struct/level.h \
 	struct/levelAtari.h \
-	struct/levelRaw.h \
-	struct/atariFormat.h \
-        struct/simpleLevel.h \
-        struct/simpleLevel_d.h \
 	struct/levelPar.h \
 	struct/levelParam.h \
-	struct/explosions.h \
-	struct/blobDescr.h \
+        struct/levelRaw.h \
+        struct/qfileWrapper.h \
+        struct/series.h \
+        struct/seriesAtari.h \
 	struct/seriesManager.h \
+        struct/seriesRaw.h \
+        struct/simpleLevel.h \
+        struct/simpleLevel_d.h \
+        struct/stream_traits.h \
+        struct/workLevel.h \
 	game/ball.h \
 	game/button.h \
 	game/conveyLever.h \

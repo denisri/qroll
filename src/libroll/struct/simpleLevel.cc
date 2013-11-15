@@ -16,8 +16,10 @@
  ***************************************************************************/
 
 #include <roll/struct/simpleLevel_d.h>
+#include <roll/struct/qfileWrapper.h>
 #include <fstream>
 #include <string>
+#include <QFile>
 
 using namespace roll;
 using namespace std;
@@ -33,6 +35,7 @@ namespace roll
 // compile IO for standard types
 template void SimpleLevel::write( ostream & ) const;
 template bool SimpleLevel::read( istream &, unsigned );
+template bool SimpleLevel::read( QFile &, unsigned );
 
 // use base class for fstreams
 template<> void SimpleLevel::write( ofstream & s ) const

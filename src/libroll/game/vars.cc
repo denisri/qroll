@@ -27,11 +27,18 @@ using namespace std;
 // uncomment next line for debug output in file
 //#define FILE_OUTPUT
 #endif
+#ifdef ANDROID
+#define FILE_OUTPUT
+#endif
 
 namespace roll
 {
 #ifdef FILE_OUTPUT
+#ifdef ANDROID
+  static ofstream	qroll_file( "/sdcard/share/qroll/qroll-log.log" );
+#else
   static ofstream	qroll_file( "qroll_out.txt" );
+#endif
   ostream	& out = qroll_file;
   ostream	& err = qroll_file;
 #else

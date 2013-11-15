@@ -16,8 +16,10 @@
  ***************************************************************************/
 
 #include <roll/game/random.h>
+#include <roll/struct/general.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <QFile>
 
 
 using namespace roll;
@@ -68,23 +70,21 @@ void Random::srand( unsigned seed )
 
 bool Random::loadTable( const string & filename )
 {
-  FILE	*f = fopen( filename.c_str(), "rb" );
-  if( !f )
-    return( false );
-  fseek( f, 0, SEEK_END );
-  long	sz = ftell( f );
+  QFile	f( filename.c_str() );
+  if( !f.open( QIODevice::ReadOnly ) )
+    return false;
+  long	sz = f.bytesAvailable();
   unsigned char	*buf = new unsigned char[ sz ];
 
-  rewind( f );
-  fread( buf, 1, sz, f );
-  fclose( f );
+  f.read( (char *) buf, sz );
 
   delete[] d->table;
   d->table = buf;
   d->length = sz;
   d->pos = 0;
 
-  return( true );
+  // out << "random table read\n";
+  return true;
 }
 
 

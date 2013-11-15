@@ -27,6 +27,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
+#ifdef ANDROID
+#include <QFile>
+#endif
 
 
 using namespace roll;
@@ -156,6 +159,10 @@ namespace
     if( !RR_path.empty() )
       return RR_path;
 
+#ifdef ANDROID
+    RR_path = "assets:/share";
+    return RR_path;
+#else
     char *path = getenv( "ROLLDIR" );
 
 #ifdef _WIN32
@@ -213,6 +220,7 @@ namespace
     if( !stat( path2.c_str(), &s ) && ( s.st_mode & S_IFDIR ) )
       RR_path = path2;
     return RR_path;
+#endif
   }
 
 }
@@ -226,23 +234,23 @@ string roll::qRollSharePath()
 
 void init( int, char** )
 {
-  cout << "init...\n";
+  // out << "init...\n";
   ser = new SeriesAtari;
 
   RR_path = qRollSharePathP();
   out << "RR PATH = " << RR_path << endl;
 
   load_sprlink();		// Table de conversion des sprites
-  load_spflag();		// CaractÃ¯Â¿Â½istiques des sprites
+  load_spflag();		// elements characteristics
   expli.load( (RR_path + "/data/explode.b").c_str() );	// Explosions
   load_beb();
   if( !rrand.loadTable( RR_path + "/data/random.b" ) )
-    {
-      //tmp << "Random table couldn't load - generating a new one\n";
-      cerr << "Random table couldn't load - generating a new one\n";
-      rrand.genTable( 128*1024 );	// 128K should be OK
-      rrand.saveTable( RR_path + "/data/random.b" );	// attempt to save it
-    }
+  {
+    //tmp << "Random table couldn't load - generating a new one\n";
+    out << "Random table couldn't load - generating a new one\n";
+    rrand.genTable( 128*1024 );	// 128K should be OK
+    rrand.saveTable( RR_path + "/data/random.b" );	// attempt to save it
+  }
   //else tmp << "random table loaded\n";
 }
 
@@ -254,21 +262,86 @@ void exit_cleanup()
 
 void load_sprlink()
 {
+#ifdef ANDROID
+  QFile fich( "assets:/share/data/spritdef.b" );
+  if( !fich.open( QIODevice::ReadOnly ) )
+  {
+    out << "spritdef.b not found\n";
+    exit( 1 );
+  }
+  fich.read( (char *) spr_link, 960 );
+
+#else
   ifstream	fich( (RR_path + "/data/spritdef.b").c_str(), 
 		      ios::in | ios::binary );
   if( !fich )
-    {
-      out << "spritedef.b not found\n";
-      exit( 1 );
-    }
+  {
+    out << "spritdef.b not found\n";
+    exit( 1 );
+  }
+
   fich.unsetf( ios::skipws );
 
   for( int i=0; i<960; i++ ) fich >> spr_link[i];
+#endif
+  // out << "spritdef.b loaded\n";
 }
 
 
+#ifdef ANDROID
+namespace
+{
+  unsigned long readHexNumber( QFile & fich, bool & ok )
+  {
+    QString x;
+    ok = true;
+    while( !fich.atEnd() )
+    {
+      char c;
+      if( !fich.getChar( &c ) )
+        break;
+      if( c == ' ' || c == '\n' )
+      {
+        if( !x.isEmpty() )
+          break;
+      }
+      else
+        x += c;
+    }
+    unsigned long num = x.toULong( &ok, 16 );
+    return num;
+  }
+}
+#endif
+
 void load_spflag()
 {
+#ifdef ANDROID
+  QFile fich( "assets:/share/data/spritcar.b" );
+  if( !fich.open( QIODevice::ReadOnly ) )
+  {
+    out << "spritcar.b not found\n";
+    exit( 1 );
+  }
+  for( int i=0; i<512; ++i )
+  {
+    bool ok = true;
+    sp_flg[i].l1 = readHexNumber( fich, ok );
+    if( !ok )
+    {
+      out << "wrong data in spritcar.b\n";
+      exit( 1 );
+    }
+    sp_flg[i].l2 = readHexNumber( fich, ok );
+    if( !ok )
+    {
+      out << "wrong data in spritcar.b\n";
+      exit( 1 );
+    }
+  }
+  // out << "spritcar.b loaded.\n";
+#else
+
   ifstream	fich( (RR_path + "/data/spritcar.b").c_str() );
   if( !fich )
     {
@@ -285,6 +358,7 @@ void load_spflag()
       fich >> str;
       sscanf( str.c_str(), "%lX", &sp_flg[i].l2 );
     }
+#endif
 }
 
 
@@ -293,48 +367,113 @@ void load_beb()
   unsigned char			c1, c2;
   unsigned short		spr, ad=0;
 
+#ifdef ANDROID
+  QFile fich( "assets:/share/data/bebetes.b" );
+  if( !fich.open( QIODevice::ReadOnly ) )
+  {
+    out << "bebetes.b not found\n";
+    exit( 1 );
+  }
+
+  int			i, j;
+
+  while( !fich.atEnd() )
+  {
+    if( !fich.getChar( (char *) &c1 ) || !fich.getChar( (char *) &c2 )
+        || !fich.getChar( (char *) &c1 ) || !fich.getChar( (char *) &c2 )
+        || !fich.getChar( (char *) &c1 ) || !fich.getChar( (char *) &c2 ) )
+    {
+      out << "error reading bebetes.b\n";
+      exit( 1 );
+    }
+
+    spr = ((unsigned short)c1<<8) + c2 - 1;
+    if( spr > 0x100+239 ) break;
+    expli.a[spr] = ad;
+    expli.a[spr+1] = ad;
+    expli.a[spr+2] = ad;
+
+    if( !fich.getChar( (char *) &c1 ) || !fich.getChar( (char *) &c2 ) )
+    {
+      out << "error reading bebetes.b\n";
+      exit( 1 );
+    }
+    bebi[ad].tmax = ((unsigned short)c1<<8) + c2;
+
+    for( j=0; j<3; j++ ) for( i=0; i<3; i++ )
+    {
+      if( !fich.getChar( (char *) &c1 ) || !fich.getChar( (char *) &c2 ) )
+      {
+        out << "error reading bebetes.b\n";
+        exit( 1 );
+      }
+      spr = ((unsigned short)c1<<8) + c2;
+      bebi[ad].d1[i][j] = spr;
+    }
+    for( j=0; j<3; j++ ) for( i=0; i<3; i++ )
+    {
+      if( !fich.getChar( (char *) &c1 ) || !fich.getChar( (char *) &c2 ) )
+      {
+        out << "error reading bebetes.b\n";
+        exit( 1 );
+      }
+      spr = ((unsigned short)c1<<8) + c2;
+      bebi[ad].d2[i][j] = spr;
+    }
+    bebi[ad].cpt = 0;
+    bebi[ad].flg = 0;
+    bebi[ad].blk = 0;
+    bebi[ad].exi = 0;
+
+    ++ad;
+  }
+  out << "bebetes.b loaded.\n";
+
+#else
+
   ifstream	fich( (RR_path + "/data/bebetes.b").c_str(), 
 		      ios::in | ios::binary );
   if( !fich )
-    {
-      out << "bebetes.b not found - aborting\n";
-      exit( 1 );
-    }
+  {
+    out << "bebetes.b not found - aborting\n";
+    exit( 1 );
+  }
   fich.unsetf( ios::skipws );
   int			i, j;
 
   while( !fich.eof() )
-    {
-      fich >> c1 >> c2 >> c1 >> c2 >> c1 >> c2;
-      spr = ((unsigned short)c1<<8) + c2 - 1;
-      //		out << "Beb " << ad << " : spr " << spr << "\n";
-      if( spr > 0x100+239 ) break;
-      expli.a[spr] = ad;
-      expli.a[spr+1] = ad;
-      expli.a[spr+2] = ad;
+  {
+    fich >> c1 >> c2 >> c1 >> c2 >> c1 >> c2;
+    spr = ((unsigned short)c1<<8) + c2 - 1;
+    //		out << "Beb " << ad << " : spr " << spr << "\n";
+    if( spr > 0x100+239 ) break;
+    expli.a[spr] = ad;
+    expli.a[spr+1] = ad;
+    expli.a[spr+2] = ad;
 
-      fich >> c1 >> c2;
-      bebi[ad].tmax = ((unsigned short)c1<<8) + c2;
+    fich >> c1 >> c2;
+    bebi[ad].tmax = ((unsigned short)c1<<8) + c2;
 
-      for( j=0; j<3; j++ ) for( i=0; i<3; i++ )
+    for( j=0; j<3; j++ ) for( i=0; i<3; i++ )
 	{
 	  fich >> c1 >> c2;
 	  spr = ((unsigned short)c1<<8) + c2;
 	  bebi[ad].d1[i][j] = spr;
 	}
-      for( j=0; j<3; j++ ) for( i=0; i<3; i++ )
+    for( j=0; j<3; j++ ) for( i=0; i<3; i++ )
 	{
 	  fich >> c1 >> c2;
 	  spr = ((unsigned short)c1<<8) + c2;
 	  bebi[ad].d2[i][j] = spr;
 	}
-      bebi[ad].cpt = 0;
-      bebi[ad].flg = 0;
-      bebi[ad].blk = 0;
-      bebi[ad].exi = 0;
+    bebi[ad].cpt = 0;
+    bebi[ad].flg = 0;
+    bebi[ad].blk = 0;
+    bebi[ad].exi = 0;
 
-      ++ad;
-    }
+    ++ad;
+  }
+#endif
 }
 
 

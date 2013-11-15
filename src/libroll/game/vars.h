@@ -33,29 +33,29 @@ namespace roll
 {
   class Series;
 
-  ///	Dircetory des donnï¿½es du jeu
+  ///	Game data dircetory
   extern std::string		RR_path;
-  ///	Sï¿½rie de tableaux en mï¿½moire
+  ///	Levels series in memory
   extern Series			*ser;
   ///	Table de conversion des sprites
   extern unsigned char		spr_link[];
-  ///	Table des explosions initiales (par dï¿½faut)
+  ///	Table des explosions initiales (default)
   extern RExplosions		expli, explo;
-  ///	Table des descripteurs de bï¿½bettes, originale
+  ///	Blobs descriptors table, (read-only) original
   extern BlobDescr		bebi[];
-  ///	Table des descripteurs de bï¿½bettes, copie qui peut changer
+  ///	Blobs descriptors table, read-write copy
   extern BlobDescr		bebet[];
-  ///	Capacitï¿½s des objets
+  ///	Elements capabilities
   extern SpritFlag		sp_flg[];
-  ///	Moteur du jeu
+  ///	Game engine
   extern Game			game;
   /// acces via a function (needed on MinGW/Win32)
   Game & theGame();
   ///	Compteur d'animations
   extern unsigned short		anim;
-  ///	Crï¿½ateur d'ï¿½lï¿½ments
+  ///	Elements generator
   extern RElemFactory		elFactory;
-  ///	Crï¿½ateur de fond
+  ///	Backgroud generator
   extern RBackFactory		backFactory;
 
 }

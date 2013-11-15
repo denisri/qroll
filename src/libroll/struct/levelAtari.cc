@@ -17,6 +17,7 @@
 
 
 #include <roll/struct/levelAtari.h>
+#include <roll/struct/qfileWrapper.h>
 
 using namespace roll;
 using namespace std;
@@ -37,8 +38,10 @@ LevelAtari::~LevelAtari()
 }
 
 
-void LevelAtari::load( ifstream & fich )
+template <typename IStream>
+void LevelAtari::load( IStream & stream )
 {
+  istream_traits<IStream> fich( stream );
   unsigned char	c1,c2;
   unsigned long	i;
 
@@ -116,4 +119,10 @@ void LevelAtari::resize( unsigned sx, unsigned sy )
   delete[] olddata;
 }
 
+
+namespace roll
+{
+  template void LevelAtari::load( std::ifstream & fich );
+  template void LevelAtari::load( QFile & fich );
+}
 

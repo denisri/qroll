@@ -20,141 +20,14 @@
 
 #include <roll/struct/simpleLevel.h>
 #include <roll/struct/general.h>
+#include <roll/struct/stream_traits.h>
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <stdint.h>
 
-
 namespace roll
 {
-
-  template<class IStream> class istream_traits;
-  template <typename IStream> istream_traits<IStream> &
-  operator >> ( istream_traits<IStream> &, uint32_t & );
-  template <typename IStream> istream_traits<IStream> &
-  operator >> ( istream_traits<IStream> &, uint16_t & );
-  template <typename IStream> istream_traits<IStream> &
-  operator >> ( istream_traits<IStream> &, uint8_t & );
-  template <typename IStream> istream_traits<IStream> &
-  operator >> ( istream_traits<IStream> &, std::string & );
-
-  /**	Helper class for SimpleLevel stream IO operations. 
-	It is useful for using SimpleLevel::read and SimpleLevel::write 
-	functions on non-standard streams (like QDataStream from Qt). 
-	SimpleLevel IO functions use a istream_traits wrapper for its 
-	stream class.
-  */
-  template<class IStream> class istream_traits
-  {
-  public:
-    istream_traits( IStream & s ) : _stream( s ) {}
-    void seekg( int pos ) { _stream.seekg( pos, std::ios::cur ); }
-    void read( char* buf, unsigned len ) { _stream.read( buf, len ); }
-    /**	Stream-reading operators. 
-	SimpleLevel::read will only require the following types:
-	- operator >> ( unsigned )
-	- operator >> ( unsigned short )
-	- operator >> ( unsigned char )
-	- operator >> ( std::string )
-	Here we avoid template functions, not well supported by all compilers 
-	(Microsoft VC++...)
-    */
-    /*template<typename T> 
-    istream_traits<IStream> & operator >> ( T & x )
-    { _stream >> x; return( *this ); }*/
-    bool operator ! () const { return( !_stream ); }
-    void bin()
-    {
-      //out << "bin() pos: " << _stream.tellg() << endl;
-      char	c;
-      _stream.get( c );
-      if( c == 0x0d )	// Dos/Windows world
-	_stream.get( c );
-      //out << "-> " << _stream.tellg() << endl;
-    }
-    void ascii() {}
-
-  private:
-    friend istream_traits<IStream> &
-      operator >> <> ( istream_traits<IStream> &, uint32_t & );
-    friend istream_traits<IStream> &
-      operator >> <> ( istream_traits<IStream> &, uint16_t & );
-    friend istream_traits<IStream> &
-      operator >> <> ( istream_traits<IStream> &, uint8_t & );
-    friend istream_traits<IStream> &
-      operator >> <> ( istream_traits<IStream> &, std::string & );
-    IStream	& _stream;
-  };
-
-
-  template <typename IStream>
-  istream_traits<IStream> & operator >> ( istream_traits<IStream> & s,
-                                          uint32_t & x )
-  { s._stream >> x; return s; }
-  template <typename IStream>
-  istream_traits<IStream> & operator >> ( istream_traits<IStream> & s,
-                                          uint16_t & x )
-  { s._stream >> x; return s; }
-  template <typename IStream>
-  istream_traits<IStream> & operator >> ( istream_traits<IStream> & s,
-                                          uint8_t & x )
-  { s._stream >> x; return s; }
-  template <typename IStream>
-  istream_traits<IStream> & operator >> ( istream_traits<IStream> & s,
-                                          std::string & x )
-  { s._stream >> x; return s; }
-
-
-  /**	Helper class for SimpleLevel stream IO operations. 
-	It is useful for using SimpleLevel::read and SimpleLevel::write 
-	functions on non-standard streams (like QDataStream from Qt). 
-	SimpleLevel IO functions use a istream_traits wrapper for its 
-	stream class.
-  */
-  template<class OStream> class ostream_traits
-  {
-  public:
-    ostream_traits( OStream & s ) : _stream( s ) {}
-    void write( const char* buf, unsigned len );
-    /**	Stream-writing operators. 
-	SimpleLevel::write will only require the following types:
-	- operator << ( unsigned )
-	- operator << ( unsigned short )
-	- operator << ( unsigned char )
-	- operator << ( const char* )
-   */
-    template<typename T> inline
-    ostream_traits<OStream> & operator << ( const T & x ) 
-    { _stream << x; return( *this ); }
-
-  private:
-    OStream	& _stream;
-  };
-
-
-  template<typename T>
-  inline void ostream_traits<T>::write( const char* buf, unsigned len )
-  {
-    _stream.write( buf, len );
-  }
-
-
-  template<typename T> static inline T bswap( T x );
-
-
-  template<> /*static*/ inline unsigned short bswap( unsigned short x )
-  {
-    return( ( (x & 0xff) << 8 ) | ( x >> 8 ) );
-  }
-
-
-  template<> /*static*/ inline unsigned bswap( unsigned x )
-  {
-    return( ( (x & 0xff) << 24 ) | ( (x & 0xff00) << 8 ) 
-	    | ( (x & 0xff0000) >> 8 ) | ( x >> 24 ) );
-  }
-
 
   static void cleantag( std::string & s )
   {
@@ -277,152 +150,156 @@ namespace roll
     cleantag( tag );
 
     while( !!file && tag[0] != '[' )
+    {
+      if( tag == "Dim:" )
       {
-	//out << "tag : " << tag << std::endl;
-	if( tag == "Dim:" )
-	  file >> sx >> c >> sy;
-	else if( tag == "Layers:" )
-	  file >> nlay;
-	else if( tag == "Flags:" )
-	  {
-	    file >> tag;
-	    cleantag( tag );
-	    if( tag == "on" || tag == "1" || tag == "true" )
-	      hasflags = true;
-	    else
-	      hasflags = false;
-	  }
-	else if( !tag.empty() )
-	  err << "unrecognized tag " << tag << std::endl;
-
-	file >> tag;
-	cleantag( tag );
+        file >> sx >> c >> sy;
       }
+      else if( tag == "Layers:" )
+        file >> nlay;
+      else if( tag == "Flags:" )
+      {
+        file >> tag;
+        cleantag( tag );
+        if( tag == "on" || tag == "1" || tag == "true" )
+          hasflags = true;
+        else
+          hasflags = false;
+      }
+      else if( !tag.empty() )
+      {
+        err << "unrecognized tag " << tag << std::endl;
+        return false;
+      }
+
+      file >> tag;
+      cleantag( tag );
+    }
     if( !file || sx == 0 || sy == 0 || nlay == 0 )
-      {
-	err << "load failed\n";
-	return( false );
-      }
+    {
+      err << "load failed\n";
+      return false;
+    }
 
-    /*out << "Level : " << sx << " x " << sy << ", " << nlay 
-	<< " layers, " << ( hasflags ? "with flags" : "no flags" ) 
-	<< std::endl;*/
+    /* out << "Level : " << sx << " x " << sy << ", " << nlay
+      << " layers, " << ( hasflags ? "with flags" : "no flags" )
+      << std::endl; */
 
     *this = SimpleLevel( sx, sy, nlay > 1, hasflags );
 
     unsigned	val;
 
     while( !!file && tag != "[LevelData]" )
+    {
+      if( tag == "[Params]" )
       {
-	if( tag == "[Params]" )
-	  {
-	    file >> tag;
-	    cleantag( tag );
-	    while( !!file && tag[0] != '[' )
-	      {
-		if( tag == "Diams:" )
-		  file >> _diams;
-		else if( tag == "Time:" )
-		  file >> _time;
-		else if( tag == "Permeability:" )
-		  {
-		    file >> val;
-		    _permeability = (unsigned char) val;
-		  }
-		else if( tag == "Speed:" )
-		  {
-		    file >> val;
-		    _speed = (unsigned char) val;
-		  }
-		else if( tag == "Strength:" )
-		  {
-		    file >> val;
-		    _strength = (unsigned char) val;
-		  }
-		else if( tag == "GenSpeed:" )
-		  {
-		    file >> val;
-		    _genspeed = (unsigned char) val;
-		  }
-		else if( tag == "BlobMaxSize:" )
-		  file >> _blobmaxsize;
-		else if( tag == "BombDelay:" )
-		  file >> _bombdelay;
-		else if( tag == "ColWall:" )
-		  file >> _colwall;
-		else if( tag == "ColDiam:" )
-		  file >> _coldiam;
-		else if( tag == "ColRoll:" )
-		  file >> _colroll;
-		else if( tag == "CollLeftMonster:" )
-		  file >> _colleftmonster;
-		else if( tag == "ColGrass:" )
-		  file >> _colgrass;
-		else if( tag == "LevelFlags:" )
-		  file >> _flags;
-		else if( !tag.empty() )
-		  err << "unrecognized tag " << tag << std::endl;
-		file >> tag;
-		cleantag( tag );
-	      }
-	  }
-	else if( tag == "[VariableParams]" )
-	  {
-	    file >> tag;
-	    cleantag( tag );
-	    if( tag == "NumParams:" )
-	      {
-		unsigned	np = 0, pc, sp, i;
-		file >> np;
-		for( i=0; i<np; ++i )
-		  {
-		    pc = 0;
-		    sp = 0;
-		    do
-		      {
-			file >> tag;
-			cleantag( tag );
-		      } while( tag.empty() && !!file );
-		    if( tag != "ParamCode:" )
-		      return( false );
-		    file >> pc;
-		    do
-		      {
-			file >> tag;
-			cleantag( tag );
-		      } while( tag.empty() && !!file );
-		    if( tag != "ParamSize:" )
-		      return( false );
-		    file >> sp;
-
-		    file.bin();
-		    ParamBlock	pb( (ParamCode) pc, 
-				    std::vector<unsigned short>( sp ) );
-		    file.read( (char *) &pb.second[0], 
-			       sp * sizeof( unsigned short ) );
-		    file.ascii();
-		    // byteswap data
-		    if( bo != 0x41424344 )
-		      for( unsigned z=0; z<sp; ++z )
-			pb.second[z] = bswap( pb.second[z] );
-		    params.push_back( pb );
-		  }
-	      }
-	    else
-	      err << "unrecognized tag " << tag << std::endl;
-	    file >> tag;
-	    cleantag( tag );
-	  }
-	else
-	  {
-	    err << "unrecognized tag " << tag << std::endl;
-	    file >> tag;
-	    cleantag( tag );
-	  }
+        file >> tag;
+        cleantag( tag );
+        while( !!file && tag[0] != '[' )
+        {
+          if( tag == "Diams:" )
+            file >> _diams;
+          else if( tag == "Time:" )
+            file >> _time;
+          else if( tag == "Permeability:" )
+          {
+            file >> val;
+            _permeability = (unsigned char) val;
+          }
+          else if( tag == "Speed:" )
+          {
+            file >> val;
+            _speed = (unsigned char) val;
+          }
+          else if( tag == "Strength:" )
+          {
+            file >> val;
+            _strength = (unsigned char) val;
+          }
+          else if( tag == "GenSpeed:" )
+          {
+            file >> val;
+            _genspeed = (unsigned char) val;
+          }
+          else if( tag == "BlobMaxSize:" )
+            file >> _blobmaxsize;
+          else if( tag == "BombDelay:" )
+            file >> _bombdelay;
+          else if( tag == "ColWall:" )
+            file >> _colwall;
+          else if( tag == "ColDiam:" )
+            file >> _coldiam;
+          else if( tag == "ColRoll:" )
+            file >> _colroll;
+          else if( tag == "CollLeftMonster:" )
+            file >> _colleftmonster;
+          else if( tag == "ColGrass:" )
+            file >> _colgrass;
+          else if( tag == "LevelFlags:" )
+            file >> _flags;
+          else if( !tag.empty() )
+            err << "unrecognized tag " << tag << std::endl;
+          file >> tag;
+          cleantag( tag );
+        }
       }
+      else if( tag == "[VariableParams]" )
+      {
+        file >> tag;
+        cleantag( tag );
+        if( tag == "NumParams:" )
+        {
+          unsigned	np = 0, pc, sp, i;
+          file >> np;
+          for( i=0; i<np; ++i )
+          {
+            pc = 0;
+            sp = 0;
+            do
+            {
+              file >> tag;
+              cleantag( tag );
+            } while( tag.empty() && !!file );
+            if( tag != "ParamCode:" )
+              return( false );
+            file >> pc;
+            do
+            {
+              file >> tag;
+              cleantag( tag );
+            } while( tag.empty() && !!file );
+            if( tag != "ParamSize:" )
+              return( false );
+            file >> sp;
+
+            file.bin();
+            ParamBlock	pb( (ParamCode) pc,
+              std::vector<unsigned short>( sp ) );
+            file.read( (char *) &pb.second[0],
+               sp * sizeof( unsigned short ) );
+            file.ascii();
+            // byteswap data
+            if( bo != 0x41424344 )
+              for( unsigned z=0; z<sp; ++z )
+                pb.second[z] = bswap( pb.second[z] );
+            params.push_back( pb );
+          }
+        }
+        else
+          err << "unrecognized tag " << tag << std::endl;
+        file >> tag;
+        cleantag( tag );
+      }
+      else
+      {
+        err << "unrecognized tag " << tag << std::endl;
+        file >> tag;
+        cleantag( tag );
+      }
+    }
 
     if( !file )
-      return( false );
+      return false;
 
     //	read data
 
@@ -430,85 +307,84 @@ namespace roll
     unsigned short	*dat;
 
     for( i=0; i<nlay; ++i )
+    {
+      do
       {
-	do
-	  {
-	    file >> tag;
-	    cleantag( tag );
-	  } while( tag.empty() && !!file );
-	if( tag != "Layer:" )
-	  {
-	    err << "expected tag \"Layer:\", got " << tag << std::endl;
-	    return( false );
-	  }
-	file >> j;
-	if( i != j )
-	  err << "warning : wrong layer number: " << j << ", should be " 
-	      << i << std::endl;
-	do
-	  {
-	    file >> tag;
-	    cleantag( tag );
-	  } while( tag.empty() && !!file );
-	if( tag != "Size:" )
-	  {
-	    err << "expected tag \"Size:\", got " << tag << std::endl;
-	    return( false );
-	  }
-	file >> sz;
-	if( sz != sizeX() * sizeY() )
-	  {
-	    err << "Level layer " << i << " Size mismatch: " << sz 
-		<< ", should be " << sizeX() << " x " << sizeY() 
-		<< " = " << sizeX() * sizeY() << std::endl;
-	    return( false );
-	  }
-	//out << "data size: " << sz << std::endl;
-	dat = (i == 0 ? foreground() : background() );
-	file.bin();
-	if( dat )
-	  {
-	    file.read( (char *) dat, sz * sizeof( unsigned short ) );
-	    if( bo != 0x41424344 )
-	      for( unsigned z=0; z<sz; ++z )
-		dat[z] = bswap( dat[z] );
-	    file.ascii();
-	  }
-	else
-	  file.seekg( sz * sizeof( unsigned short ) );
+        file >> tag;
+        cleantag( tag );
+      } while( tag.empty() && !!file );
+      if( tag != "Layer:" )
+      {
+        err << "expected tag \"Layer:\", got " << tag << std::endl;
+        return( false );
       }
-    //out << "level data read\n";
+      file >> j;
+      if( i != j )
+        err << "warning : wrong layer number: " << j << ", should be "
+            << i << std::endl;
+      do
+      {
+        file >> tag;
+        cleantag( tag );
+      } while( tag.empty() && !!file );
+      if( tag != "Size:" )
+      {
+        err << "expected tag \"Size:\", got " << tag << std::endl;
+        return( false );
+      }
+      file >> sz;
+      if( sz != sizeX() * sizeY() )
+      {
+        err << "Level layer " << i << " Size mismatch: " << sz
+          << ", should be " << sizeX() << " x " << sizeY()
+          << " = " << sizeX() * sizeY() << std::endl;
+        return false;
+      }
+      dat = (i == 0 ? foreground() : background() );
+      file.bin();
+      if( dat )
+      {
+        file.read( (char *) dat, sz * sizeof( unsigned short ) );
+        if( bo != 0x41424344 )
+          for( unsigned z=0; z<sz; ++z )
+        dat[z] = bswap( dat[z] );
+        file.ascii();
+      }
+      else
+        file.seekg( sz * sizeof( unsigned short ) );
+    }
+    // out << "level data read\n";
     if( !file )
-      {
-	err << "broken file\n";
-	return( false );
-      }
+    {
+      err << "broken file\n";
+      return( false );
+    }
 
     if( hasflags )
+    {
+      file >> tag;
+      cleantag( tag );
+      if( tag != "DataFlags:" )
       {
-	file >> tag;
-	cleantag( tag );
-	if( tag != "DataFlags:" )
-	  {
-	    err << "expected tag \"DataFlags:\", got " << tag 
-		<< std::endl;
-	    return( false );
-	  }
-	file >> sz;
-	if( _elemflags )
-	  {
-	    _elemflags->insert( _elemflags->end(), sz, 0 );
-	    file.bin();
-	    file.read( (char *) &(*_elemflags)[0], sz * sizeof( unsigned ) );
-	    file.ascii();
-	    if( bo != 0x41424344 )
-	      for( unsigned z=0; z<sz; ++z )
-		(*_elemflags)[z] = bswap( (*_elemflags)[z] );
-	  }
-	else
-	  file.seekg( sz * sizeof( unsigned short ) );
+        err << "expected tag \"DataFlags:\", got " << tag
+          << std::endl;
+        return( false );
       }
-    return( true );
+      file >> sz;
+      if( _elemflags )
+      {
+        _elemflags->insert( _elemflags->end(), sz, 0 );
+        file.bin();
+        file.read( (char *) &(*_elemflags)[0], sz * sizeof( unsigned ) );
+        file.ascii();
+        if( bo != 0x41424344 )
+          for( unsigned z=0; z<sz; ++z )
+            (*_elemflags)[z] = bswap( (*_elemflags)[z] );
+      }
+      else
+        file.seekg( sz * sizeof( unsigned short ) );
+    }
+    return true;
   }
 
 }

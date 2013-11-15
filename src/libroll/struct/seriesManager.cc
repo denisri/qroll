@@ -27,6 +27,7 @@ using namespace std;
 
 bool SeriesManager::load( const string & filename )
 {
+  out << "SeriesManager::load " << filename << endl;
 #ifndef ROLL_ATARI_FORMAT_ONLY
   SeriesRaw	*sr = new SeriesRaw;
   if( sr->load( filename ) )

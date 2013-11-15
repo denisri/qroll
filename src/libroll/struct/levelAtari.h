@@ -36,7 +36,8 @@ namespace roll
     LevelAtari();
     virtual ~LevelAtari();
 
-    void load( std::ifstream & fich );
+    template <typename IStream>
+    void load( IStream & stream );
 
     virtual void resize( unsigned sx, unsigned sy );
     virtual unsigned short diams() const { return( diam ); }

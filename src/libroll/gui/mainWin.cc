@@ -332,7 +332,12 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
   else setWindowIcon( rpix );
   setWindowTitle( tr( "QRoll, heir of Rock'N'Roll" ) );
 
+#ifdef ANDROID
+  // FIXME: temporary while Atari format cannot be read on Android
+  load( (RR_path + "/levels/serieN0.rol").c_str() );
+#else
   load( (RR_path + "/levels/serie0.rol").c_str() );
+#endif
 
   //	Timer
 
@@ -479,7 +484,7 @@ void QRMainWin::saveAs()
 #endif
   QFileDialog	*fd = d->fileDialog();
   fd->setNameFilters( QStringList( d->filesfilter ) );
-  fd->setFileMode( QFileDialog::ExistingFile );
+  fd->setFileMode( QFileDialog::AnyFile );
   fd->setWindowTitle( tr( "Save Rock'n'Roll levels" ) );
   int res = fd->exec();
 #ifdef ANDROID
@@ -869,10 +874,17 @@ void QRMainWin::receiveKeyReleased( const QRPlayField::KeyCode & key,
 
 void QRMainWin::initPixmaps()
 {
+#ifdef ANDROID
+    QImage	image1( "assets:/share/data/rockrol3.png" );
+    assert( !image1.isNull() );
+    QImage	image2( "assets:/share/data/rr2_sp2b.png" );
+    assert( !image2.isNull() );
+#else
   QImage	image1( (RR_path + "/data/rockrol3.png").c_str() );
   assert( !image1.isNull() );
   QImage	image2( (RR_path + "/data/rr2_sp2b.png").c_str() );
   assert( !image2.isNull() );
+#endif
 
   /*out << "image1 sz: " << image1.width() << " x " << image1.height() << endl;
   out << "image2 sz: " << image2.width() << " x " << image2.height() << endl;
