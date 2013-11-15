@@ -21,6 +21,7 @@
 #include <roll/struct/workLevel.h>
 #include <roll/struct/simpleLevel.h>
 #include <roll/struct/levelAtari.h>
+#include <roll/struct/qfileWrapper.h>
 
 using namespace roll;
 using namespace std;
@@ -51,15 +52,13 @@ bool SeriesAtari::load( const string & name )
 
   out << "Loading series " << name << "\n";
 
-  ifstream	fich( name.c_str(), ios::in | ios::binary );
-
-  if( !fich )
-    {
-      out << name << " not found\n";
-      return( false );
-    }
-
-  fich.unsetf( ios::skipws );
+  QFile	stream( name.c_str() );
+  if( !stream.open( QIODevice::ReadOnly ) )
+  {
+    out << name << " not found\n";
+    return false;
+  }
+  istream_traits<QFile> fich( stream );
 
   unsigned char	c1,c2,c3,c4;
   unsigned long	dec = 0;
@@ -93,14 +92,14 @@ bool SeriesAtari::load( const string & name )
   //cout << "elements map :\n";
   unsigned short	tspr[240];
   for(i=0; i<240; i++)
-    {
-      fich >> c1 >> c2;
-      if( c1 > 1 )
-	return( false );
-      if(c1!=0) c1=1;
+  {
+    fich >> c1 >> c2;
+    if( c1 > 1 )
+      return( false );
+    if(c1!=0) c1=1;
       tspr[i]=((unsigned short)c1<<8)+c2;
-      //cout << tspr[i] << " ";
-    }
+    //cout << tspr[i] << " ";
+  }
   //cout << endl;
 
   fich >> c1 >> c2;
@@ -112,26 +111,26 @@ bool SeriesAtari::load( const string & name )
   vector<unsigned long>	tfnt( tnt );
 
   for( i=0; i<tnt; i++ )
+  {
+    fich >> c1 >> c2 >> c3 >> c4;
+    tfnt[i] = ((unsigned long)c1<<24) | ((unsigned long)c2<<16)
+      | ((unsigned long)c3<<8) | (unsigned long)c4;
+    if( i==0 ) dec = tfnt[0];
+    tfnt[i] -= dec;
+    if( i>0 && tfnt[i]<=tfnt[i-1] )
     {
-      fich >> c1 >> c2 >> c3 >> c4;
-      tfnt[i] = ((unsigned long)c1<<24) | ((unsigned long)c2<<16)
-	| ((unsigned long)c3<<8) | (unsigned long)c4;
-      if( i==0 ) dec = tfnt[0];
-      tfnt[i] -= dec;
-      if( i>0 && tfnt[i]<=tfnt[i-1] )
-	{
-	  /*out << "fnt[" << (i-1) << "]: " << tfnt[i-1]
-	      << " >= fnt[" << i << "]: " << tfnt[i]
-	      << ". cars: "
-	      << (int)c1 << " " << (int)c2 << " "
-	      << (int)c3 << " " << (int)c4
-	      << "\n";*/
-	  return( false );
-	}
+      /*out << "fnt[" << (i-1) << "]: " << tfnt[i-1]
+          << " >= fnt[" << i << "]: " << tfnt[i]
+          << ". cars: "
+          << (int)c1 << " " << (int)c2 << " "
+          << (int)c3 << " " << (int)c4
+          << "\n";*/
+      return false;
     }
+  }
 
   if( !fich )
-    return( false );
+    return false;
 
   //out << "Dec : " << dec << "\n";
   //out << "\n";
@@ -155,10 +154,10 @@ bool SeriesAtari::load( const string & name )
   tb = new LevelAtari[nt];
 
   for( i=0; i<nt; i++ )
-    {
-      tb[i].load( fich );
-      //out << "Tableau " << i << " : taille : " << tb[i].size << "\n";
-    }
+  {
+    tb[i].load( stream );
+    //out << "Tableau " << i << " : taille : " << tb[i].size << "\n";
+  }
 
   setFilename( name );
   convList();

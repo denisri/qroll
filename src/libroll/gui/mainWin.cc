@@ -332,12 +332,7 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
   else setWindowIcon( rpix );
   setWindowTitle( tr( "QRoll, heir of Rock'N'Roll" ) );
 
-#ifdef ANDROID
-  // FIXME: temporary while Atari format cannot be read on Android
-  load( (RR_path + "/levels/serieN0.rol").c_str() );
-#else
   load( (RR_path + "/levels/serie0.rol").c_str() );
-#endif
 
   //	Timer
 
