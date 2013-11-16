@@ -203,12 +203,14 @@ void QRGLGameField::setupScreen( unsigned, unsigned )
     // toy to test "real" 3D...
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    /*
     GLfloat m[16] = { 8.66025388e-01, 0.5, 0, 0,
       -0.5, 8.66025388e-01, 0, 0,
       0, 0, 1., 0,
       0, 0, 0, 1.,
     };
     glLoadMatrixf( m );
+    */
 
 #ifndef GL_VERSION_ES_CM_1_0
   }
@@ -342,8 +344,8 @@ void QRGLGameField::initializeGL()
   glDisable( GL_DEPTH_TEST );
   glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 #ifndef GL_VERSION_ES_CM_1_0
-  glPixelStoref( GL_UNPACK_SKIP_PIXELS, 0 );
-  glPixelStoref( GL_UNPACK_SKIP_ROWS, 0 );
+  glPixelStorei( GL_UNPACK_SKIP_PIXELS, 0 );
+  glPixelStorei( GL_UNPACK_SKIP_ROWS, 0 );
 #endif
 
   makeTextures();
@@ -353,9 +355,7 @@ void QRGLGameField::initializeGL()
 void QRGLGameField::makeTextures()
 {
   unsigned	i;
-#ifndef GL_VERSION_ES_CM_1_0
   GLenum	status;
-#endif
 
   if( !gltexmap )
   {
@@ -373,7 +373,11 @@ void QRGLGameField::makeTextures()
 #ifndef GL_VERSION_ES_CM_1_0
     status = glGetError();
     if( status != GL_NO_ERROR )
-      cerr << "OpenGL error tex: " << gluErrorString(status) << endl;
+      err << "OpenGL error tex: " << gluErrorString(status) << endl;
+#else
+    status = glGetError();
+    if( status != GL_NO_ERROR )
+      err << "OpenGL error tex: " << status << endl;
 #endif
 
     setColorsChanged( true );
@@ -409,6 +413,10 @@ void QRGLGameField::makeTextures()
       status = glGetError();
       if( status != GL_NO_ERROR )
         cerr << "OpenGL error tex: " << gluErrorString(status) << endl;
+#else
+      status = glGetError();
+      if( status != GL_NO_ERROR )
+        cerr << "OpenGL error tex: " << status << endl;
 #endif
     }
     setColorsChanged( false );

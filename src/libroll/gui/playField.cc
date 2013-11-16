@@ -61,7 +61,7 @@ namespace roll
   };
 
 
-  QGesture *RRPanGestureRecognizer::create( QObject * target )
+  QGesture *RRPanGestureRecognizer::create( QObject * )
   {
     QPanGesture *gesture = new QPanGesture;
     reset( gesture );
@@ -70,7 +70,7 @@ namespace roll
 
 
   QGestureRecognizer::Result RRPanGestureRecognizer::recognize(
-    QGesture * gesture, QObject * watched, QEvent * event )
+    QGesture * gesture, QObject *, QEvent * event )
   {
     Result res = Ignore;
 
@@ -92,7 +92,6 @@ namespace roll
     }
     else if( event->type() == QEvent::TouchEnd )
     {
-      QTouchEvent *tev = static_cast<QTouchEvent *>( event );
       reset( gesture );
       res = FinishGesture;
     }
@@ -102,7 +101,6 @@ namespace roll
       if( tev->touchPoints().size() == 1 )
       {
         QPanGesture *pan = static_cast<QPanGesture *>( gesture );
-        res = MayBeGesture;
         const QTouchEvent::TouchPoint & point = tev->touchPoints()[0];
         pan->setHotSpot( point.scenePos() );
         pan->setProperty( "lastOffset", pan->offset() );
@@ -138,24 +136,24 @@ namespace roll
 
 #if QT_VERSION >= 0x040600
 
-  const Qt::GestureType DoubleTap
-    = (Qt::GestureType) ( Qt::CustomGesture + 43 );
-
-  class DoubleTapGesture : public QTapGesture
+  class DoubleTapGesture : public QGesture
   {
   public:
     DoubleTapGesture();
     virtual ~DoubleTapGesture() {}
 
+    bool hasprevious;
     clock_t previoustap;
     float timeout;
+    static GestureType gtype;
   };
 
+  GestureType DoubleTapGesture::gtype = CustomGesture;
 
   DoubleTapGesture::DoubleTapGesture()
-    : QTapGesture(), previoustap( 0 ), timeout( 0.5 )
+    : QGesture(), hasprevious( false ), previoustap( 0 ), timeout( 0.5 )
   {
-    setProperty( "gestureType", DoubleTap );
+    setProperty( "gestureType", gtype );
   }
 
 
@@ -171,16 +169,16 @@ namespace roll
   };
 
 
-  QGesture *RRDoubleTapGestureRecognizer::create( QObject * target )
+  QGesture *RRDoubleTapGestureRecognizer::create( QObject * )
   {
     DoubleTapGesture *gesture = new DoubleTapGesture;
-    reset( gesture );
+    // reset( gesture );
     return gesture;
   }
 
 
   QGestureRecognizer::Result RRDoubleTapGestureRecognizer::recognize(
-    QGesture * gesture, QObject * watched, QEvent * event )
+    QGesture * gesture, QObject *, QEvent * event )
   {
     Result res = Ignore;
 
@@ -190,22 +188,25 @@ namespace roll
       // if( tev->touchPoints().size() == 1 )
       {
         DoubleTapGesture *tap = static_cast<DoubleTapGesture *>( gesture );
-        res = TriggerGesture; // MayBeGesture;
+        res = MayBeGesture;
         const QTouchEvent::TouchPoint & point = tev->touchPoints()[0];
         gesture->setHotSpot( point.startScenePos() );
         tap->setProperty( "position", point.pos() );
-        tap->setProperty( "state", Qt::GestureStarted );
-        if( tap->previoustap == 0 )
+        if( !tap->hasprevious )
         {
+          // out << "start new DoubleTap\n";
           tap->previoustap = clock();
         }
         else if( clock() - tap->previoustap <= tap->timeout * CLOCKS_PER_SEC )
         {
-//           tap->setProperty( "state", Qt::GestureStarted );
           res = TriggerGesture;
+          // out << "DoubleTap triggered.\n";
         }
         else
         {
+          // out << "DoubleTap timeout\n";
+          res = MayBeGesture;
+          reset( tap );
           tap->previoustap = clock();
         }
       }
@@ -213,17 +214,42 @@ namespace roll
     else if( event->type() == QEvent::TouchEnd )
     {
       DoubleTapGesture *tap = static_cast<DoubleTapGesture *>( gesture );
-      if( !tap->previoustap )
-        res = TriggerGesture;
+      if( !tap->hasprevious )
+      {
+        if( clock() - tap->previoustap <= tap->timeout * CLOCKS_PER_SEC )
+        {
+          res = MayBeGesture;
+          tap->hasprevious = true;
+          // out << "DoubleTap, release, record previous one\n";
+        }
+        else
+        {
+          // out << "timeout\n";
+          res = CancelGesture;
+          reset( tap );
+        }
+      }
       else
       {
         res = FinishGesture;
-        reset( gesture );
+        // out << "DoubleTap, release, finished OK\n";
+        reset( tap );
       }
     }
+    /*
     else if( event->type() == QEvent::TouchUpdate )
     {
+      DoubleTapGesture *tap = static_cast<DoubleTapGesture *>( gesture );
+      if( tap->state() != GestureStarted
+          && ( clock() - tap->previoustap > tap->timeout * CLOCKS_PER_SEC ) )
+      {
+        res = CancelGesture;
+        // tap->setProperty( "state", Qt::GestureCanceled );
+        out << "DoubleTap update, timed out\n";
+        reset( tap );
+      }
     }
+    */
 
     return res;
   }
@@ -232,9 +258,10 @@ namespace roll
   void RRDoubleTapGestureRecognizer::reset( QGesture * gesture )
   {
     DoubleTapGesture *tap = static_cast<DoubleTapGesture *>( gesture );
-    gesture->setProperty( "state", Qt::GestureFinished );
+    // gesture->setProperty( "state", Qt::GestureCanceled );
     gesture->unsetHotSpot();
-    tap->previoustap = false;
+    tap->hasprevious = false;
+    tap->previoustap = 0;
     tap->timeout = 0.5;
   }
 
@@ -297,7 +324,8 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
   lay->setSpacing( 0 );
   setLayout( lay );
 #if QT_VERSION >= 0x040600
-  QGestureRecognizer::registerRecognizer( new RRDoubleTapGestureRecognizer );
+  DoubleTapGesture::gtype
+      = QGestureRecognizer::registerRecognizer( new RRDoubleTapGestureRecognizer );
 #endif
 
   // d->game = new QWidget( this );
@@ -355,7 +383,7 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
   grabGesture( Qt::SwipeGesture );
   grabGesture( Qt::TapGesture );
   grabGesture( Qt::TapAndHoldGesture );
-  grabGesture( DoubleTap );
+  grabGesture( DoubleTapGesture::gtype );
 #if QT_VERSION >= 0x040700
   QTapAndHoldGesture::setTimeout( 100 );
 #endif
@@ -686,46 +714,58 @@ bool QRPlayField::usesOpenGL() const
 void QRPlayField::setUseOpenGL( bool x )
 {
   if( d->opengl != x )
+  {
+    d->opengl = x;
+    unsigned	p;
+    bool	old = false, enablesc = false;
+    //float	sc = 1;
+
+    if( d->gameField )
     {
-      d->opengl = x;
-      unsigned	p;
-      bool	old = false, enablesc = false;
-      //float	sc = 1;
-
-      if( d->gameField )
-	{
-	  p = player();
-	  //sc = scale();
-	  enablesc = scalingEnabled();
-	  delete d->gameField;
-	  old = true;
-	}
-      else
-	p = 0;
+      p = player();
+      //sc = scale();
+      enablesc = scalingEnabled();
+      delete d->gameField;
+      old = true;
+    }
+    else
+      p = 0;
 
 #ifndef RR_NO_OPENGL
-      if( x )
-	{
-	  QRGLGameField	*gf 
-	    = new QRGLGameField( d->parentMW->sprites(), this, // d->game, 
-				 "GLGameField" );
-	  d->gameField = gf;
-	  d->gameWid = gf;
-          // d->game->layout()->addWidget( gf );
-          d->layout->insertWidget( 0, gf );
-	}
-      else
-	{
+    if( x )
+    {
+#ifdef ANDROID
+      /* on Android the GL widget must be a top-level widget
+         see http://qt-project.org/doc/qt-5.1/qtdoc/platform-notes-android.html#opengl-special-considerations
+      */
+      QRGLGameField	*gf
+        = new QRGLGameField( d->parentMW->sprites(), 0, "GLGameField" );
+      gf->setWindowState( Qt::WindowFullScreen );
+      d->gameField = gf;
+      d->gameWid = gf;
+      gf->show();
+#else
+      QRGLGameField	*gf
+        = new QRGLGameField( d->parentMW->sprites(), this, // d->game,
+           "GLGameField" );
+      d->gameField = gf;
+      d->gameWid = gf;
+      // d->game->layout()->addWidget( gf );
+      d->layout->insertWidget( 0, gf );
 #endif
-	  QRGameField	*gf 
-	    = new QRGameField( d->parentMW->sprites(), this, // d->game, 
-			       "QRGameField" );
-	  d->gameField = gf;
-	  d->gameWid = gf;
-          // d->game->layout()->addWidget( gf );
-          d->layout->insertWidget( 0, gf );
+    }
+    else
+    {
+#endif
+      QRGameField	*gf
+        = new QRGameField( d->parentMW->sprites(), this, // d->game,
+               "QRGameField" );
+      d->gameField = gf;
+      d->gameWid = gf;
+      // d->game->layout()->addWidget( gf );
+      d->layout->insertWidget( 0, gf );
 #ifndef RR_NO_OPENGL
-	}
+    }
 #endif
       d->gameField->setPlayer( p );
 
@@ -919,7 +959,7 @@ bool QRPlayField::event( QEvent * event )
 #if QT_VERSION >= 0x040600
 #include <qstatusbar.h>
 
-bool QRPlayField::tapGesture( QPointF pos )
+bool QRPlayField::tapGesture( QPointF )
 {
   if( !d->tapkey )
     return true;
@@ -1134,7 +1174,7 @@ bool QRPlayField::gestureEvent( QGestureEvent *event )
     msg += _statestring( static_cast<QTapGesture *>( swipe ) ) + "SWIPE ";
   else
     msg += "        ";
-  if( QGesture *tap = event->gesture( DoubleTap ) )
+  if( QGesture *tap = event->gesture( DoubleTapGesture::gtype ) )
     msg += _statestring( static_cast<DoubleTapGesture *>( tap ) ) + "DOUBLETAP ";
   else
     msg += "            ";
@@ -1161,36 +1201,31 @@ bool QRPlayField::gestureEvent( QGestureEvent *event )
   // use tap gestures only during game, otherwise panning is preferred
   if( game.running )
   {
-#if 0
-    if( QGesture *tap = event->gesture( Qt::TapGesture ) )
-    {
-      if( /*tap->state() == Qt::GestureCanceled
-        ||*/ tap->state() == Qt::GestureFinished )
-      {
-/*        if( d->tapkey )
-        {
-          QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
-          keyReleasedEvent( &kup );
-          d->tapkey = 0;
-        }*/
-        QKeyEvent kup( QEvent::KeyRelease, Qt::Key_Control, 0 );
-        keyReleasedEvent( &kup );
-        return true;
-      }
-      if( tap->state() == Qt::GestureStarted )
-      {
-        QTapGesture *tapg = static_cast<QTapGesture *>( tap );
-        tapGesture( tapg->hotSpot() );
-      }
-    }
-#endif
-
-    if( QGesture *tap = event->gesture( DoubleTap ) )
+    if( QGesture *tap = event->gesture( Qt::TapAndHoldGesture ) )
     {
       if( tap->state() == Qt::GestureFinished )
       {
         QKeyEvent kup( QEvent::KeyRelease, Qt::Key_Space, 0 );
         keyPressedEvent( &kup );
+        keyReleasedEvent( &kup );
+        return true;
+      }
+    }
+
+    if( QGesture *tap = event->gesture( DoubleTapGesture::gtype ) )
+    {
+      out << "DOUBLE TAP\n";
+      if( tap->state() == Qt::GestureStarted )
+      {
+        out << "set CTRL\n";
+        QKeyEvent kup( QEvent::KeyPress, Qt::Key_Control, 0 );
+        keyPressedEvent( &kup );
+      }
+      else if( tap->state() == Qt::GestureFinished
+               || tap->state() == Qt::GestureCanceled )
+      {
+        out << "release CTRL\n";
+        QKeyEvent kup( QEvent::KeyRelease, Qt::Key_Control, 0 );
         keyReleasedEvent( &kup );
       }
     }
