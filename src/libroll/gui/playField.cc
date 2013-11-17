@@ -274,7 +274,8 @@ namespace roll
       : parentMW( 0 ), scoreBox( 0 ), opengl( false ), layout( 0 ),
         gameField( 0 ), gameWid( 0 ), dragging( false ), interndrag( false ),
         tapkey( 0 ), pinching( false ), panning( false ), tapping( false ),
-        pinchinitscale( 1. )
+        pinchinitscale( 1. ), doubleTapping( false ), tapAndHoldTimer( 0 ),
+        relativeControls( true )
     {}
 
     const QRMainWin	*parentMW;
@@ -288,13 +289,16 @@ namespace roll
     QPoint		dragorg;
     int			draglvlorgx;
     int			draglvlorgy;
-    bool                interndrag;
-    int                 tapkey;
-    bool                pinching;
-    bool                panning;
-    bool                tapping;
-    float               pinchinitscale;
-    QPointF             panoffset;
+    bool    interndrag;
+    int     tapkey;
+    bool    pinching;
+    bool    panning;
+    bool    tapping;
+    float   pinchinitscale;
+    QPointF panoffset;
+    bool    doubleTapping;
+    clock_t tapAndHoldTimer;
+    bool    relativeControls;
   };
 
 }
@@ -382,7 +386,7 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
   grabGesture( Qt::PinchGesture );
   grabGesture( Qt::SwipeGesture );
   grabGesture( Qt::TapGesture );
-  grabGesture( Qt::TapAndHoldGesture );
+  // grabGesture( Qt::TapAndHoldGesture );
   grabGesture( DoubleTapGesture::gtype );
 #if QT_VERSION >= 0x040700
   QTapAndHoldGesture::setTimeout( 100 );
@@ -1046,9 +1050,13 @@ bool QRPlayField::panGesture( QPanGesture * gesture )
   if( game.running )
   {
     if( gesture->state() == Qt::GestureStarted )
-      d->panoffset = QPointF( 0, 0 );
-    QPointF delta = gesture->offset() - gesture->lastOffset();
-    float mindelta1 = 16;
+      d->panoffset = gesture->offset();
+
+    QPointF delta = gesture->offset() - d->panoffset;
+    if( d->relativeControls )
+      delta = gesture->offset() - gesture->lastOffset();
+
+    float mindelta1 = 8; // 16;
     if( d->tapkey )
       mindelta1 = 8;
     //float mindelta2 = 32*32;
@@ -1088,7 +1096,8 @@ bool QRPlayField::panGesture( QPanGesture * gesture )
     {
       QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
       keyReleasedEvent( &kup );
-      d->panoffset = gesture->offset();
+      if( d->relativeControls )
+        d->panoffset = gesture->offset();
     }
     QKeyEvent ke( QEvent::KeyPress, key, 0 );
     keyPressedEvent( &ke );
@@ -1180,6 +1189,8 @@ bool QRPlayField::gestureEvent( QGestureEvent *event )
     msg += "            ";
   d->parentMW->statusBar()->showMessage( msg, 1000 );
 
+  float holdTime = 0.2; // 0.2 second min for tap and hold
+
   /*
   if( QGesture *swipe = event->gesture( Qt::SwipeGesture ) )
   {
@@ -1187,48 +1198,61 @@ bool QRPlayField::gestureEvent( QGestureEvent *event )
     // swipeTriggered( static_cast<QSwipeGesture *>( swipe ) );
   }
   else */
-  if( QGesture *pinch = event->gesture(Qt::PinchGesture ) )
+  if( QGesture *pinch = event->gesture( Qt::PinchGesture ) )
   {
-    event->setAccepted( pinch, pinchGesture(
-      static_cast<QPinchGesture *>( pinch ) ) );
+    bool res = pinchGesture( static_cast<QPinchGesture *>( pinch ) );
+    event->setAccepted( pinch, res );
   }
+
   if( QGesture *pan = event->gesture( Qt::PanGesture ) )
   {
-    event->setAccepted( pan,
-                        panGesture( static_cast<QPanGesture *>( pan ) ) );
+    bool res = panGesture( static_cast<QPanGesture *>( pan ) );
+    event->setAccepted( pan, res );
   }
 
   // use tap gestures only during game, otherwise panning is preferred
   if( game.running )
   {
-    if( QGesture *tap = event->gesture( Qt::TapAndHoldGesture ) )
-    {
-      if( tap->state() == Qt::GestureFinished )
-      {
-        QKeyEvent kup( QEvent::KeyRelease, Qt::Key_Space, 0 );
-        keyPressedEvent( &kup );
-        keyReleasedEvent( &kup );
-        return true;
-      }
-    }
-
     if( QGesture *tap = event->gesture( DoubleTapGesture::gtype ) )
     {
-      out << "DOUBLE TAP\n";
       if( tap->state() == Qt::GestureStarted )
       {
-        out << "set CTRL\n";
+        d->doubleTapping = true;
         QKeyEvent kup( QEvent::KeyPress, Qt::Key_Control, 0 );
         keyPressedEvent( &kup );
+        event->setAccepted( true );
       }
       else if( tap->state() == Qt::GestureFinished
                || tap->state() == Qt::GestureCanceled )
       {
-        out << "release CTRL\n";
         QKeyEvent kup( QEvent::KeyRelease, Qt::Key_Control, 0 );
         keyReleasedEvent( &kup );
+        d->doubleTapping = false;
+        event->setAccepted( true );
       }
     }
+
+    if( QGesture *tap = event->gesture( Qt::TapGesture ) )
+    {
+      if( !d->panning && !d->pinching && !d->doubleTapping )
+      {
+        if( tap->state() == GestureStarted )
+        {
+          d->tapAndHoldTimer = clock();
+          d->tapping = true;
+          event->setAccepted( true );
+        }
+        else if( tap->state() == GestureFinished
+                 && clock() - d->tapAndHoldTimer >= holdTime * CLOCKS_PER_SEC )
+        {
+          QKeyEvent kup( QEvent::KeyRelease, Qt::Key_Space, 0 );
+          keyPressedEvent( &kup );
+          keyReleasedEvent( &kup );
+          return true;
+        }
+      }
+    }
+
   }
 
   return true;
