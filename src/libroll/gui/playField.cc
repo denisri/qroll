@@ -102,16 +102,21 @@ namespace roll
       {
         QPanGesture *pan = static_cast<QPanGesture *>( gesture );
         const QTouchEvent::TouchPoint & point = tev->touchPoints()[0];
-        pan->setHotSpot( point.scenePos() );
-        pan->setProperty( "lastOffset", pan->offset() );
-        QPointF acc = point.scenePos() - pan->offset()
-          - pan->delta();
-        float accf = sqrt( acc.rx() * acc.rx() + acc.ry() * acc.ry() );
-        pan->setProperty( "acceleration", accf );
-        pan->setProperty( "delta", point.scenePos() - pan->offset() );
-        pan->setProperty( "offset", point.scenePos() - point.startScenePos() );
-        pan->setProperty( "state", Qt::GestureUpdated );
-        res = TriggerGesture;
+        QPointF offset = point.scenePos() - pan->hotSpot();
+        if( offset.x() * offset.x() + offset.y() * offset.y()
+            >= 64 ) // don't trigger moves of less than 8 pixels
+        {
+          pan->setHotSpot( point.scenePos() );
+          pan->setProperty( "lastOffset", pan->offset() );
+          QPointF acc = point.scenePos() - pan->offset()
+            - pan->delta();
+          float accf = sqrt( acc.rx() * acc.rx() + acc.ry() * acc.ry() );
+          pan->setProperty( "acceleration", accf );
+          pan->setProperty( "delta", point.scenePos() - pan->offset() );
+          pan->setProperty( "offset", point.scenePos() - point.startScenePos() );
+          pan->setProperty( "state", Qt::GestureUpdated );
+          res = TriggerGesture;
+        }
       }
       else
         res = CancelGesture;
@@ -384,13 +389,13 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
 #if QT_VERSION >= 0x040600
   grabGesture( Qt::PanGesture );
   grabGesture( Qt::PinchGesture );
-  grabGesture( Qt::SwipeGesture );
+  // grabGesture( Qt::SwipeGesture );
   grabGesture( Qt::TapGesture );
-  // grabGesture( Qt::TapAndHoldGesture );
+  // grabGesture( Qt::TapAndHoldGesture ); // handle this in tap.
   grabGesture( DoubleTapGesture::gtype );
-#if QT_VERSION >= 0x040700
-  QTapAndHoldGesture::setTimeout( 100 );
-#endif
+// #if QT_VERSION >= 0x040700
+  // QTapAndHoldGesture::setTimeout( 100 );
+// #endif
 #endif
 
   //setActiveWindow();
@@ -1056,7 +1061,7 @@ bool QRPlayField::panGesture( QPanGesture * gesture )
     if( d->relativeControls )
       delta = gesture->offset() - gesture->lastOffset();
 
-    float mindelta1 = 8; // 16;
+    float mindelta1 = 16;
     if( d->tapkey )
       mindelta1 = 8;
     //float mindelta2 = 32*32;
@@ -1160,6 +1165,7 @@ QString _statestring( QGesture* g )
 bool QRPlayField::gestureEvent( QGestureEvent *event )
 {
   QString msg = "   " + QString::number( event->gestures().size() ) + "  ";
+  // out << "gesture event\n";
 
   if( QGesture *tap = event->gesture( Qt::TapGesture ) )
   {
@@ -1173,14 +1179,14 @@ bool QRPlayField::gestureEvent( QGestureEvent *event )
   else msg += "             ";
   if( QGesture *pan = event->gesture( Qt::PanGesture ) )
   {
-    msg += _statestring( static_cast<QTapGesture *>( pan ) ) + "PAN ";
+    msg += _statestring( static_cast<QPanGesture *>( pan ) ) + "PAN ";
   }
   else msg += "       ";
   if( QGesture *pinch = event->gesture(Qt::PinchGesture ) )
-    msg += _statestring( static_cast<QTapGesture *>( pinch ) ) + "PINCH ";
+    msg += _statestring( static_cast<QPinchGesture *>( pinch ) ) + "PINCH ";
   else msg += "        ";
   if( QGesture *swipe = event->gesture( Qt::SwipeGesture ) )
-    msg += _statestring( static_cast<QTapGesture *>( swipe ) ) + "SWIPE ";
+    msg += _statestring( static_cast<QSwipeGesture *>( swipe ) ) + "SWIPE ";
   else
     msg += "        ";
   if( QGesture *tap = event->gesture( DoubleTapGesture::gtype ) )
@@ -1234,6 +1240,11 @@ bool QRPlayField::gestureEvent( QGestureEvent *event )
 
     if( QGesture *tap = event->gesture( Qt::TapGesture ) )
     {
+      /* we are not using the Qt "TapAndHold" builtin gesture, because that one
+         delivers a "finish" state as soon as the timeout is reached, and not when
+         the touch is released. As in our context we need to interrupt the gesture
+         later, we must catch the touch release event, and finish it only there.
+      */
       if( !d->panning && !d->pinching && !d->doubleTapping )
       {
         if( tap->state() == GestureStarted )
