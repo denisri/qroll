@@ -57,7 +57,7 @@ unsigned short RConveyLever::sprite( RBack* ) const
 {
   int	st = state();
   if( st > 1 )
-    return( s + 40 );	// arrÃªtÃ©
+    return( s + 40 );	// stopped
   return( s + (1 - st) * 40 );
 }
 
@@ -66,7 +66,7 @@ unsigned short RConveyLever::backStillSprite( RBack* ) const
 {
   int	st = state();
   if( st > 1 )
-    return( s + 40 );	// arrÃªtÃ©
+    return( s + 40 );	// stopped
   return( s + (1 - st) * 40 );
 }
 

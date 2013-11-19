@@ -91,7 +91,7 @@ unsigned short GElem::sprite( RBack* back ) const
     {
       spr = back->sprite();
       if( spr != 255 )
-	return( spr );
+        return( spr );
     }	// pour l'instant...
 
   //	explosion ?
@@ -143,32 +143,32 @@ unsigned short GElem::frontStillSprite( RBack* back ) const
 void GElem::process( unsigned x, unsigned y )
 {
   if( f & BUSY )
-    {
-      f &= ~BUSY;
-    }
+  {
+    f &= ~BUSY;
+  }
   else
+  {
+    if( f & EXP1 )			// explosion
     {
-      if( f & EXP1 )			// explosion
-	{
-	  f = ( f & ~EXP1 ) | EXP2;	// change d'explosion
-	  return;
-	}
-      if( f & EXP2 )
-	f &= ~EXP2;			// dernière attente avant explosion
-      if( f & PETE )			// explosion à créer
-	{
-	  explode( x, y );		// ben oui...
-	  return;
-	}
-
-      if( f & REMAIN )			// retenait qqchose ?
-	f &= ~(REMAIN | WAIT | EXTFLG);	// alors oublie maintenant.
-      if( f & (WAIT | EXTFLG) )		// qqch à retenir ?
-	f |= REMAIN;
-
-      if( !(f & WAIT) )			// fallait pas attendre ?
-	realProcess( x, y );		// partie différenciée
+      f = ( f & ~EXP1 ) | EXP2;	// change d'explosion
+      return;
     }
+    if( f & EXP2 )
+      f &= ~EXP2;			// dernière attente avant explosion
+    if( f & PETE )			// explosion à créer
+    {
+      explode( x, y );		// ben oui...
+      return;
+    }
+
+    if( f & REMAIN )			// retenait qqchose ?
+      f &= ~(REMAIN | WAIT | EXTFLG);	// alors oublie maintenant.
+    if( f & (WAIT | EXTFLG) )		// qqch à retenir ?
+      f |= REMAIN;
+
+    if( !(f & WAIT) )			// fallait pas attendre ?
+      realProcess( x, y );		// partie différenciée
+  }
 }
 
 

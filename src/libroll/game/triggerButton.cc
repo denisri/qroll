@@ -1,5 +1,5 @@
 /***************************************************************************
-                          detonator.cc  -  description
+                          button.cc  -  description
                              -------------------
     begin                : 1999
     copyright            : (C) 2000 by Denis RiviÃ¨re
@@ -16,50 +16,66 @@
  ***************************************************************************/
 
 
-#include <roll/game/detonator.h>
+#include <roll/game/triggerButton.h>
 #include <roll/game/vars.h>
 
 using namespace roll;
+using namespace std;
 
 
-RDetonator::~RDetonator()
+RTriggerButton::~RTriggerButton()
 {
+  deactivate();
 }
 
 
-void RDetonator::activate( unsigned, unsigned )
+void RTriggerButton::activate( unsigned, unsigned )
 {
-  _pressed = 2;
+  _active = true;
+  activeElements().insert( coverElement() );
+  // TODO: sound
 }
 
 
-unsigned short RDetonator::sprite( RBack* ) const
+std::set<unsigned> & RTriggerButton::activeElements()
 {
-  if( _pressed )
-    return( s + 40 );
-  return( s );
+  static set<unsigned> activeelem;
+  return activeelem;
 }
 
 
-unsigned short RDetonator::backStillSprite( RBack* ) const
+bool RTriggerButton::isTriggerActive( unsigned element )
 {
-  if( _pressed )
-    return( s + 40 );
-  return( s );
+  return activeElements().find( element ) != activeElements().end();
 }
 
 
-void RDetonator::realProcess( unsigned, unsigned )
+unsigned RTriggerButton::coverElement() const
 {
-  if( _pressed )
+  if( ( s & 0xff ) % 40 < 10 )
+    return s-1;
+  else
+    return s+1;
+}
+
+
+void RTriggerButton::deactivate()
+{
+  if( _active )
   {
-    --_pressed;
-    if( !_pressed )
-    {
-      game.tbct.explodeDyna = 2;
-    }
+    _active = false;
+    unsigned elem = coverElement();
+    set<unsigned> & active = activeElements();
+    set<unsigned>::iterator i = active.find( elem );
+    if( i != active.end() )
+      active.erase( i );
   }
 }
 
+
+void RTriggerButton::realProccess( unsigned x, unsigned y )
+{
+  deactivate();
+}
 
 

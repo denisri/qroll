@@ -1,8 +1,8 @@
 /***************************************************************************
-                          detonator.cc  -  description
+                          button.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis RiviÃ¨re
+    copyright            : (C) 2000 by Denis Rivière
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -16,50 +16,28 @@
  ***************************************************************************/
 
 
-#include <roll/game/detonator.h>
+#ifndef ROLL_GAME_TRIGGERCOVER_H
+#define ROLL_GAME_TRIGGERCOVER_H
+
+
+#include <roll/game/foregroundElem.h>
 #include <roll/game/vars.h>
 
-using namespace roll;
-
-
-RDetonator::~RDetonator()
+namespace roll
 {
-}
 
-
-void RDetonator::activate( unsigned, unsigned )
-{
-  _pressed = 2;
-}
-
-
-unsigned short RDetonator::sprite( RBack* ) const
-{
-  if( _pressed )
-    return( s + 40 );
-  return( s );
-}
-
-
-unsigned short RDetonator::backStillSprite( RBack* ) const
-{
-  if( _pressed )
-    return( s + 40 );
-  return( s );
-}
-
-
-void RDetonator::realProcess( unsigned, unsigned )
-{
-  if( _pressed )
+  class RTriggerCover : public RForegroundElem
   {
-    --_pressed;
-    if( !_pressed )
-    {
-      game.tbct.explodeDyna = 2;
-    }
-  }
+  public:
+    RTriggerCover( unsigned short s ) : RForegroundElem( s ) {}
+    virtual ~RTriggerCover();
+    virtual bool isExplosive() const { out << "explosive RTriggerCover\n"; return true; }
+
+  protected:
+    virtual void realProcess( unsigned x, unsigned y );
+  };
+
 }
 
-
+#endif
 

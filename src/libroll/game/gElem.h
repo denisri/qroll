@@ -157,9 +157,9 @@ namespace roll
     /**@name	Data */
     //@{
     ///	Sprite number with page
-    unsigned short	s;
+    unsigned short s;
     ///	Flags
-    unsigned long		f;
+    unsigned long  f;
     //@}
 
   protected:

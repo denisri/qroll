@@ -37,54 +37,56 @@ set( _sources
   struct/explosions.cc
   struct/blobDescr.cc
   struct/seriesManager.cc
-  game/dynamite.cc
-  game/detonator.cc
-  game/conveyLever.cc
-  game/button.cc
+  game/back.cc
+  game/backFactory.cc
   game/ball.cc
-  game/portcullis.cc
-  game/openPortcullis.cc
-  game/player.cc
-  game/playerServer.cc
-  game/spring.cc
-  game/lift.cc
-  game/conveyorBelt.cc
-  game/miscEatable.cc
-  game/foregroundElem.cc
-  game/telepWall.cc
-  game/keyGen.cc
+  game/blob.cc
   game/bomb.cc
   game/burningBomb.cc
-  game/generator.cc
-  game/rockGen.cc
-  game/diamMonster.cc
-  game/rockMonster.cc
-  game/grassMonster.cc
-  game/hungryMonster.cc
-  game/lock.cc
-  game/key.cc
-  game/fallingEatable.cc
-  game/diam.cc
-  game/eatable.cc
-  game/holeWall.cc
-  game/permeabWall.cc
-  game/transformWall.cc
-  game/passingWall.cc
-  game/blob.cc
-  game/rightMonster.cc
-  game/leftMonster.cc
+  game/button.cc
   game/closeDoor.cc
+  game/conveyorBelt.cc
+  game/conveyLever.cc
+  game/detonator.cc
+  game/diam.cc
+  game/diamMonster.cc
   game/door.cc
-  game/rock.cc
-  game/backFactory.cc
-  game/back.cc
+  game/dynamite.cc
+  game/eatable.cc
   game/elemFactory.cc
-  game/roll.cc
-  game/init.cc
+  game/fallingEatable.cc
+  game/foregroundElem.cc
   game/game.cc
-  game/vars.cc
   game/gElem.cc
+  game/generator.cc
+  game/grassMonster.cc
+  game/holeWall.cc
+  game/hungryMonster.cc
+  game/init.cc
+  game/key.cc
+  game/keyGen.cc
+  game/leftMonster.cc
+  game/lift.cc
+  game/lock.cc
+  game/miscEatable.cc
+  game/openPortcullis.cc
+  game/passingWall.cc
+  game/permeabWall.cc
+  game/player.cc
+  game/playerServer.cc
+  game/portcullis.cc
   game/random.cc
+  game/rightMonster.cc
+  game/rock.cc
+  game/rockGen.cc
+  game/rockMonster.cc
+  game/roll.cc
+  game/spring.cc
+  game/telepWall.cc
+  game/transformWall.cc
+  game/triggerButton.cc
+  game/triggerCover.cc
+  game/vars.cc
   gui/qGameField.cc
   gui/gameField.cc
   gui/qglGameField.cc
@@ -139,57 +141,59 @@ set( _headers
   "struct/simpleLevel_d.h"
   "struct/stream_traits.h"
   "struct/workLevel.h"
+  "game/back.h"
+  "game/backFactory.h"
   "game/ball.h"
+  "game/blob.h"
+  "game/bomb.h"
+  "game/burningBomb.h"
   "game/button.h"
+  "game/closeDoor.h"
   "game/conveyLever.h"
   "game/conveyorBelt.h"
-  game/detonator.h
+  "game/constantes.h"
+  "game/detonator.h"
+  "game/diam.h"
+  "game/diamMonster.h"
   game/documentation.h
+  game/door.h
   game/dynamite.h
-  game/portcullis.h
+  game/eatable.h
+  game/elemFactory.h
+  game/fallingEatable.h
+  game/foregroundElem.h
+  game/game.h
+  game/gElem.h
+  game/generator.h
+  game/grassMonster.h
+  game/holeWall.h
+  game/hungryMonster.h
+  game/init.h
+  game/key.h
+  game/keyGen.h
+  game/leftMonster.h
+  game/lift.h
+  game/lock.h
+  game/miscEatable.h
   game/openPortcullis.h
+  game/passingWall.h
+  game/permeabWall.h
+  game/portcullis.h
   game/player.h
   game/playerServer.h
-  game/spring.h
-  game/lift.h
-  game/miscEatable.h
-  game/foregroundElem.h
-  game/telepWall.h
-  game/keyGen.h
-  game/bomb.h
-  game/burningBomb.h
-  game/generator.h
-  game/rockGen.h
-  game/diamMonster.h
-  game/rockMonster.h
-  game/grassMonster.h
-  game/hungryMonster.h
-  game/lock.h
-  game/key.h
-  game/fallingEatable.h
-  game/diam.h
-  game/eatable.h
-  game/holeWall.h
-  game/permeabWall.h
-  game/transformWall.h
-  game/passingWall.h
-  game/blob.h
-  game/rightMonster.h
-  game/leftMonster.h
-  game/closeDoor.h
-  game/door.h
-  game/rock.h
-  game/backFactory.h
-  game/back.h
-  game/elemFactory.h
-  game/roll.h
-  game/spritFlag.h
-  game/init.h
-  game/constantes.h
-  game/game.h
-  game/vars.h
-  game/gElem.h
   game/random.h
+  game/rightMonster.h
+  game/rock.h
+  game/rockGen.h
+  game/rockMonster.h
+  game/roll.h
+  game/spring.h
+  game/spritFlag.h
+  game/telepWall.h
+  game/transformWall.h
+  game/vars.h
+  game/triggerButton.h
+  game/triggerCover.h
   gui/gameField.h
   gui/qGameField.h
   gui/qglGameField.h

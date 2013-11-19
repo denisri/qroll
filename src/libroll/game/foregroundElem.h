@@ -47,6 +47,8 @@ namespace roll
     Wall( unsigned num = 20 ) : RForegroundElem( num ) {}
     virtual ~Wall();
 
+    virtual unsigned short sprite( RBack* back = 0 ) const;
+    virtual unsigned short frontStillSprite( RBack* back = 0 ) const;
     virtual bool canBeInBorder() const { return( true ); }
   };
 

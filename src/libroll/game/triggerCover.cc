@@ -1,5 +1,5 @@
 /***************************************************************************
-                          detonator.cc  -  description
+                          button.cc  -  description
                              -------------------
     begin                : 1999
     copyright            : (C) 2000 by Denis RiviÃ¨re
@@ -16,50 +16,25 @@
  ***************************************************************************/
 
 
-#include <roll/game/detonator.h>
+#include <roll/game/triggerCover.h>
+#include <roll/game/triggerButton.h>
 #include <roll/game/vars.h>
 
 using namespace roll;
 
 
-RDetonator::~RDetonator()
+RTriggerCover::~RTriggerCover()
 {
 }
 
 
-void RDetonator::activate( unsigned, unsigned )
+void RTriggerCover::realProcess( unsigned x, unsigned y )
 {
-  _pressed = 2;
-}
-
-
-unsigned short RDetonator::sprite( RBack* ) const
-{
-  if( _pressed )
-    return( s + 40 );
-  return( s );
-}
-
-
-unsigned short RDetonator::backStillSprite( RBack* ) const
-{
-  if( _pressed )
-    return( s + 40 );
-  return( s );
-}
-
-
-void RDetonator::realProcess( unsigned, unsigned )
-{
-  if( _pressed )
+  if( RTriggerButton::isTriggerActive( s ) )
   {
-    --_pressed;
-    if( !_pressed )
-    {
-      game.tbct.explodeDyna = 2;
-    }
+    game.tbct.d[x][y] = elFactory.createElem( explo.d[explo.a[s]][1][1] );
+    delete this;
   }
 }
-
 
 

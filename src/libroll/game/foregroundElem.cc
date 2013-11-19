@@ -17,6 +17,7 @@
 
 
 #include <roll/game/foregroundElem.h>
+#include <roll/game/vars.h>
 
 using namespace roll;
 
@@ -29,7 +30,7 @@ unsigned short RForegroundElem::backStillSprite( RBack* ) const
 
 unsigned short RForegroundElem::frontStillSprite( RBack* ) const
 {
-  return( s );
+  return s;
 }
 
 
@@ -41,3 +42,25 @@ Wall::~Wall()
 }
 
 
+unsigned short Wall::sprite( RBack* ) const
+{
+  if( s == 151 && game.running ) // invisible wall
+    return 255;
+  else
+    return s;
+}
+
+
+unsigned short Wall::frontStillSprite( RBack* ) const
+{
+  //    explosion ?
+  if( f & EXP1 )
+    return 18;
+  if( f & EXP2 )
+    return 58;
+
+  if( s == 151 && game.running ) // invisible wall
+    return 255;
+  else
+    return s;
+}

@@ -1,8 +1,8 @@
 /***************************************************************************
-                          detonator.cc  -  description
+                          button.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000 by Denis RiviÃ¨re
+    copyright            : (C) 2000 by Denis Rivière
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -16,50 +16,37 @@
  ***************************************************************************/
 
 
-#include <roll/game/detonator.h>
-#include <roll/game/vars.h>
-
-using namespace roll;
+#ifndef ROLL_GAME_TRIGGERBUTTON_H
+#define ROLL_GAME_TRIGGERBUTTON_H
 
 
-RDetonator::~RDetonator()
+#include <roll/game/button.h>
+#include <set>
+
+namespace roll
 {
-}
 
-
-void RDetonator::activate( unsigned, unsigned )
-{
-  _pressed = 2;
-}
-
-
-unsigned short RDetonator::sprite( RBack* ) const
-{
-  if( _pressed )
-    return( s + 40 );
-  return( s );
-}
-
-
-unsigned short RDetonator::backStillSprite( RBack* ) const
-{
-  if( _pressed )
-    return( s + 40 );
-  return( s );
-}
-
-
-void RDetonator::realProcess( unsigned, unsigned )
-{
-  if( _pressed )
+  class RTriggerButton : public RButton
   {
-    --_pressed;
-    if( !_pressed )
-    {
-      game.tbct.explodeDyna = 2;
-    }
-  }
+  public:
+    RTriggerButton( unsigned short s ) : RButton( s ), _active( false ) {}
+    virtual ~RTriggerButton();
+
+    virtual void activate( unsigned x, unsigned y );
+    virtual unsigned coverElement() const;
+
+    static bool isTriggerActive( unsigned element );
+
+  protected:
+    virtual void realProccess( unsigned x, unsigned y );
+    static std::set<unsigned> & activeElements();
+    virtual void deactivate();
+
+  private:
+    bool _active;
+  };
+
 }
 
-
+#endif
 

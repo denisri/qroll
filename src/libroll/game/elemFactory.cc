@@ -44,6 +44,8 @@
 #include <roll/game/conveyLever.h>
 #include <roll/game/detonator.h>
 #include <roll/game/dynamite.h>
+#include <roll/game/triggerButton.h>
+#include <roll/game/triggerCover.h>
 
 #include <roll/game/vars.h>
 
@@ -64,7 +66,7 @@ GElem* RElemFactory::createElem( unsigned num )
 {
   switch( num )
     {
-    case 0:	// monstre 1 (gauche)
+    case 0:  // monstre 1 (gauche)
     case 1:
     case 2:
     case 40:
@@ -82,7 +84,7 @@ GElem* RElemFactory::createElem( unsigned num )
     case 200:
     case 201:
     case 202:
-    case 6:	// monstre 3
+    case 6:  // monstre 3
     case 7:
     case 8:
     case 46:
@@ -100,7 +102,7 @@ GElem* RElemFactory::createElem( unsigned num )
     case 206:
     case 207:
     case 208:
-    case 0x100:	// monstres 1 page 1
+    case 0x100:  // monstres 1 page 1
     case 0x101:
     case 0x102:
     case 0x128:
@@ -112,7 +114,7 @@ GElem* RElemFactory::createElem( unsigned num )
     case 0x178:
     case 0x179:
     case 0x17a:
-    case 0x106:	// monstres 3 page 1
+    case 0x106:  // monstres 3 page 1
     case 0x107:
     case 0x108:
     case 0x12e:
@@ -134,13 +136,13 @@ GElem* RElemFactory::createElem( unsigned num )
     case 163:
     case 164:
     case 165:
-    case 169:	// monstre 4 bulle
+    case 169:  // monstre 4 bulle
     case 170:
     case 171:
     case 203:
     case 204:
     case 205:
-    case 0x103:	// monstre 2 page 1
+    case 0x103:  // monstre 2 page 1
     case 0x104:
     case 0x105:
     case 0x12b:
@@ -158,31 +160,31 @@ GElem* RElemFactory::createElem( unsigned num )
     case 0x1cb:
     case 0x1cc:
     case 0x1cd:
-    case 0x109:	// monstre 4 page 1
+    case 0x109:  // monstre 4 page 1
     case 0x10a:
     case 0x10b:
       return( new RRightMonster( num ) );
-    case 9:	// monstre 4 : glouton bouffe-tout
+    case 9:  // monstre 4 : glouton bouffe-tout
     case 10:
     case 11:
       return( new RHungryMonster( 9 ) );
-    case 49:	// bouffe rock
+    case 49:  // bouffe rock
     case 50:
     case 51:
       return( new RRockMonster( 49 ) );
-    case 89:	// bouffe herbe
+    case 89:  // bouffe herbe
     case 90:
     case 91:
       return( new RGrassMonster( 89 ) );
-    case 129:	// bouffe diams
+    case 129:  // bouffe diams
     case 130:
     case 131:
       return( new RDiamMonster( 129 ) );
-    case 209:	// gÃ©nÃ©rateur de rocks
+    case 209:  // gÃ©nÃ©rateur de rocks
     case 210:
     case 211:
       return( new RRockGen( 209 ) );
-    case 12:	// bÃ©bettes
+    case 12:  // bÃ©bettes
     case 13:
     case 14:
     case 15:
@@ -218,7 +220,7 @@ GElem* RElemFactory::createElem( unsigned num )
     case 215:
     case 216:
     case 217:
-    case 0x10c:	// bÃ©bettes page 1
+    case 0x10c:  // bÃ©bettes page 1
     case 0x10d:
     case 0x10e:
     case 0x134:
@@ -237,13 +239,13 @@ GElem* RElemFactory::createElem( unsigned num )
     case 0x1d5:
     case 0x1d6:
       return( new RBlob( num ) );
-    case 19:	// herbe
+    case 19:  // herbe
     case 59:
     case 99:
     case 139:
     case 179:
     case 219:
-    case 0x112:	// herbes page 1
+    case 0x112:  // herbes page 1
     case 0x113:
     case 0x13a:
     case 0x13b:
@@ -256,7 +258,7 @@ GElem* RElemFactory::createElem( unsigned num )
     case 0x1da:
     case 0x1db:
       return( new RGrass( num ) );
-    case 20:	// standard walls
+    case 20:  // standard walls
     case 21:
     case 22:
     case 31:
@@ -290,18 +292,18 @@ GElem* RElemFactory::createElem( unsigned num )
     case 0x18d:
     case 0x1b4:
     case 0x1b5:
-    case 0x1b6:	// (trees)
+    case 0x1b6:  // (trees)
     case 0x1b7:
     case 0x1b8:
     case 0x1b9:
     case 0x1dc:
     case 0x1dd:
-    case 0x1de:	// (trees)
+    case 0x1de:  // (trees)
     case 0x1df:
     case 0x1e0:
     case 0x1e1:
       return( new Wall( num ) );
-    case 23:	// mur 2 (transformeur)
+    case 23:  // mur 2 (transformeur)
     case 63:
     case 103:
     case 143:
@@ -309,57 +311,57 @@ GElem* RElemFactory::createElem( unsigned num )
     case 223:
     case 0x142:
       return( new RTransformWall( num ) );
-    case 24:	// mur 3 (passeur)
+    case 24:  // mur 3 (passeur)
     case 64:
     case 104:
     case 144:
     case 184:
     case 224:
       return( new RPassingWall( num ) );
-    case 25:	// mur 4 (filtreur)
+    case 25:  // mur 4 (filtreur)
     case 65:
     case 105:
     case 145:
     case 185:
     case 225:
       return( new RPermeabWall( num ) );
-    case 26:	// mur tÃ©lÃ©porteur
+    case 26:  // mur tÃ©lÃ©porteur
     case 0x16a:
       return( new RTelepWall( num ) );
-    case 66:	// mur tÃ©lÃ©porto-transformeur
+    case 66:  // mur tÃ©lÃ©porto-transformeur
     case 0x192:
       return( new RTelepTransWall( num ) );
-    case 106:	// mur tÃ©lÃ©porteur Ã  attente
+    case 106:  // mur tÃ©lÃ©porteur Ã  attente
       return( new RTelepPermeabWall( num ) );
-    case 27:	// serrure
+    case 27:  // serrure
     case 67:
     case 107:
     case 147:
     case 187:
     case 227:
       return( new RLock( num ) );
-    case 30:	// jungle
+    case 30:  // jungle
     case 70:
     case 110:
     case 150:
-    case 0x11e:	// jungle page 1
+    case 0x11e:  // jungle page 1
     case 0x146:
     case 0x16e:
     case 0x196:
       return( new RJungle( num ) );
-    case 32:	// gÃ©nÃ©rateur de monstres 1
+    case 32:  // gÃ©nÃ©rateur de monstres 1
       return( new RGenerator( num ) );
-    case 72:	// gÃ©nÃ©rateur de monstres 2
+    case 72:  // gÃ©nÃ©rateur de monstres 2
       return( new RGenerator2( num ) );
-    case 112:	// gÃ©nÃ©rateur de monstres 3
+    case 112:  // gÃ©nÃ©rateur de monstres 3
       return( new RGenerator3( num ) );
-    case 152:	// gÃ©nÃ©rateur de monstres 4
+    case 152:  // gÃ©nÃ©rateur de monstres 4
       return( new RGenerator4( num ) );
-    case 192:	// arrivÃ©e de tÃ©lÃ©porteur
+    case 192:  // arrivÃ©e de tÃ©lÃ©porteur
       return( new Wall( num ) );
-    case 232:	// gÃ©nÃ©rateur de clefs
+    case 232:  // gÃ©nÃ©rateur de clefs
       return( new RKeyGen( num ) );
-    case 34:	// roll
+    case 34:  // roll
     case 35:
     case 74:
     case 75:
@@ -372,76 +374,76 @@ GElem* RElemFactory::createElem( unsigned num )
     case 234:
     case 235:
       return( new Roll );
-    case 28:	// porte fermÃ©e
+    case 28:  // porte fermÃ©e
     case 68:
     case 108:
     case 148:
     case 188:
     case 228:
       return( new RCloseDoor( num ) );
-    case 29:	// open door
+    case 29:  // open door
     case 69:
     case 109:
     case 149:
     case 189:
     case 229:
       return( new OpenDoor( num ) );
-    case 33:	// bombe Ã©teinte
-    case 0x121:	// bombe rouge
-    case 0x199:	// bombe rose
+    case 33:  // bombe Ã©teinte
+    case 0x121:  // bombe rouge
+    case 0x199:  // bombe rose
       return( new RBomb( num ) );
-    case 73:	// bombe allumÃ©e
+    case 73:  // bombe allumÃ©e
     case 113:
-    case 0x149:	// bombe rouge allumÃ©e
+    case 0x149:  // bombe rouge allumÃ©e
     case 0x171:
-    case 0x1c1:	// bombe rose allumÃ©e
+    case 0x1c1:  // bombe rose allumÃ©e
     case 0x1e9:
-    case 0x14c:	// grenade tombante
+    case 0x14c:  // grenade tombante
     case 0x174:
       {
-	unsigned short n = ((num & 0xff) / 40) % 3;
-	return( new RBurningBomb( n == 1 ? num : num - 40, n == 1 ? 3 : 2 ) );
+        unsigned short n = ((num & 0xff) / 40) % 3;
+        return( new RBurningBomb( n == 1 ? num : num - 40, n == 1 ? 3 : 2 ) );
       }
-    case 153:	// sablier
+    case 153:  // sablier
       return( new RHourglass( num ) );
-    case 36:	// clef:
+    case 36:  // clef:
     case 76:
     case 116:
     case 156:
     case 196:
     case 236:
-    case 190:	// passe-partout
-    case 0x1ec:	// clef spÃ©ciale page 1
+    case 190:  // passe-partout
+    case 0x1ec:  // special key page 1
       return( new RKey( num ) );
-    case 37:	// diam
+    case 37:  // diam
     case 77:
     case 117:
     case 157:
     case 197:
     case 237:
-    case 0x125:	// diams page 1
+    case 0x125:  // diams page 1
     case 0x14d:
     case 0x175:
     case 0x19d:
     case 0x1c5:
     case 0x1ed:
       return( new RDiam( num ) );
-    case 230:	// bonus life
+    case 230:  // bonus life
       return( new RBonusLife( num ) );
-    case 38:	// rock
+    case 38:  // rock
     case 78:
     case 118:
     case 158:
     case 198:
     case 238:
-    case 0x126:	// rocks page 1
+    case 0x126:  // rocks page 1
     case 0x14e:
     case 0x176:
     case 0x19e:
     case 0x1c6:
     case 0x1ee:
       return( new Rock( num ) );
-    case 39:	// rock tÃªte de mort
+    case 39:  // rock tÃªte de mort
     case 79:
     case 119:
     case 159:
@@ -450,151 +452,169 @@ GElem* RElemFactory::createElem( unsigned num )
       return( new RNitroRock( num ) );
     case 239:
       return( new RNitroPlusRock( num ) );
-    case 0x1c7:	// nitro page 1
+    case 0x1c7:  // nitro page 1
       return( new Rock( num ) );
-    case 0x1ef:	// nitro+ page 1
+    case 0x1ef:  // nitro+ page 1
       return( new RNitroPlusRock( num ) );
-    case 193:	// rock bouffe-herbe
+    case 193:  // rock bouffe-herbe
       return( new RGrassRock( num ) );
-    case 233:	// pastille de force
+    case 233:  // pastille de force
       return( new RStrengthPill( num ) );
-    case 0x110:	// gÃ©lule
+    case 0x110:  // gÃ©lule
     case 0x138:
     case 0x160:
     case 0x188:
     case 0x1b0:
     case 0x1d8:
       return( new RFallingEatable( num ) );
-    case 0x1bf:	// rock cassable
+    case 0x1bf:  // rock cassable
     case 0x1e7:
       return( new Rock( num ) );
-    case 186:	// mur bouffeur
+    case 186:  // mur bouffeur
       return( new RHoleWall( num ) );
     case 255:
-    case 226:	// illusion
+    case 226:  // illusion
       return( new EmptyElem );
 
-    case 0x1a0:	// tapis roulant 1 (arrÃªtÃ© au dÃ©part)
+    case 0x1a0:  // conveyor belt 1 (stopped at start)
     case 0x1a1:
     case 0x1a2:
       if( game.tbct.conveyDir.size() == 0 )
-	game.tbct.conveyDir.push_back( 0 );
+        game.tbct.conveyDir.push_back( 0 );
       return( new RConveyorBelt( 0x1a0, 0 ) );
-    case 0x156:	// tapis roulant 2 (va Ã  gauche au dÃ©part)
+    case 0x156:  // conveyor belt 2 (goes left at start)
       if( game.tbct.conveyDir.size() == 0 )
-	game.tbct.conveyDir.push_back( 0 );
+        game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 1 )
-	game.tbct.conveyDir.push_back( -1 );
+        game.tbct.conveyDir.push_back( -1 );
       return( new RConveyorBelt( 0x1a0, 1 ) );
-    case 0x157:	// tapis roulant 2 (va Ã  droite au dÃ©part)
+    case 0x157:  // conveyor belt 2 (goes right at start)
       if( game.tbct.conveyDir.size() == 0 )
-	game.tbct.conveyDir.push_back( 0 );
+        game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 1 )
-	game.tbct.conveyDir.push_back( -1 );
+        game.tbct.conveyDir.push_back( -1 );
       if( game.tbct.conveyDir.size() == 2 )
-	game.tbct.conveyDir.push_back( 1 );
+        game.tbct.conveyDir.push_back( 1 );
       return( new RConveyorBelt( 0x1a0, 2 ) );
-    case 0x17f:	// tapis roulant 3 (va Ã  droite au dÃ©part, contrÃ´lable)
+    case 0x17f:  // conveyor belt 3 (goes right at start, controlable)
       if( game.tbct.conveyDir.size() == 0 )
-	game.tbct.conveyDir.push_back( 0 );
+        game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 1 )
-	game.tbct.conveyDir.push_back( -1 );
+        game.tbct.conveyDir.push_back( -1 );
       if( game.tbct.conveyDir.size() == 2 )
-	game.tbct.conveyDir.push_back( 1 );
+        game.tbct.conveyDir.push_back( 1 );
       if( game.tbct.conveyDir.size() == 3 )
-	game.tbct.conveyDir.push_back( 1 );
+        game.tbct.conveyDir.push_back( 1 );
       return( new RConveyorBelt( 0x1a0, 3 ) );
-    case 0x1a7:	// tapis roulant 4 (arrÃªtÃ© au dÃ©part, contrÃ´lable)
+    case 0x1a7:  // conveyor belt 4 (stopped at start, controlable)
       if( game.tbct.conveyDir.size() == 0 )
-	game.tbct.conveyDir.push_back( 0 );
+        game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 1 )
-	game.tbct.conveyDir.push_back( -1 );
+        game.tbct.conveyDir.push_back( -1 );
       if( game.tbct.conveyDir.size() == 2 )
-	game.tbct.conveyDir.push_back( 1 );
+        game.tbct.conveyDir.push_back( 1 );
       if( game.tbct.conveyDir.size() == 3 )
-	game.tbct.conveyDir.push_back( 1 );
+        game.tbct.conveyDir.push_back( 1 );
       if( game.tbct.conveyDir.size() == 4 )
-	game.tbct.conveyDir.push_back( 0 );
+        game.tbct.conveyDir.push_back( 0 );
       return( new RConveyorBelt( 0x1a0, 4 ) );
-    case 0x1cf:	// tapis roulant 5 (va Ã  gauche, contrÃ´lable)
+    case 0x1cf:  // conveyor belt 5 (goes left at start, controlable)
       if( game.tbct.conveyDir.size() == 0 )
-	game.tbct.conveyDir.push_back( 0 );
+        game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 1 )
-	game.tbct.conveyDir.push_back( -1 );
+        game.tbct.conveyDir.push_back( -1 );
       if( game.tbct.conveyDir.size() == 2 )
-	game.tbct.conveyDir.push_back( 1 );
+        game.tbct.conveyDir.push_back( 1 );
       if( game.tbct.conveyDir.size() == 3 )
-	game.tbct.conveyDir.push_back( 1 );
+        game.tbct.conveyDir.push_back( 1 );
       if( game.tbct.conveyDir.size() == 4 )
-	game.tbct.conveyDir.push_back( 0 );
+        game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 5 )
-	game.tbct.conveyDir.push_back( -1 );
+        game.tbct.conveyDir.push_back( -1 );
       return( new RConveyorBelt( 0x1a0, 5 ) );
-    case 0x17e:	// levier tapis roulant droit
+    case 0x17e:  // lever for conveyor belt right
       if( game.tbct.conveyDir.size() == 0 )
-	game.tbct.conveyDir.push_back( 0 );
+        game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 1 )
-	game.tbct.conveyDir.push_back( -1 );
+        game.tbct.conveyDir.push_back( -1 );
       if( game.tbct.conveyDir.size() == 2 )
-	game.tbct.conveyDir.push_back( 1 );
+        game.tbct.conveyDir.push_back( 1 );
       if( game.tbct.conveyDir.size() == 3 )
-	game.tbct.conveyDir.push_back( 1 );
+        game.tbct.conveyDir.push_back( 1 );
       return( new RConveyLever( 0x17e, 3 ) );
-    case 0x1a6:	// levier tapis roulant immobile
+    case 0x1a6:  // levier tapis roulant immobile
       if( game.tbct.conveyDir.size() == 0 )
-	game.tbct.conveyDir.push_back( 0 );
+        game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 1 )
-	game.tbct.conveyDir.push_back( -1 );
+        game.tbct.conveyDir.push_back( -1 );
       if( game.tbct.conveyDir.size() == 2 )
-	game.tbct.conveyDir.push_back( 1 );
+        game.tbct.conveyDir.push_back( 1 );
       if( game.tbct.conveyDir.size() == 3 )
-	game.tbct.conveyDir.push_back( 1 );
+        game.tbct.conveyDir.push_back( 1 );
       if( game.tbct.conveyDir.size() == 4 )
-	game.tbct.conveyDir.push_back( 0 );
+        game.tbct.conveyDir.push_back( 0 );
       return( new RConveyLever( 0x17e, 4 ) );
-    case 0x1ce:	// levier tapis roulant gauche
+    case 0x1ce:  // levier tapis roulant gauche
       if( game.tbct.conveyDir.size() == 0 )
-	game.tbct.conveyDir.push_back( 0 );
+        game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 1 )
-	game.tbct.conveyDir.push_back( -1 );
+        game.tbct.conveyDir.push_back( -1 );
       if( game.tbct.conveyDir.size() == 2 )
-	game.tbct.conveyDir.push_back( 1 );
+        game.tbct.conveyDir.push_back( 1 );
       if( game.tbct.conveyDir.size() == 3 )
-	game.tbct.conveyDir.push_back( 1 );
+        game.tbct.conveyDir.push_back( 1 );
       if( game.tbct.conveyDir.size() == 4 )
-	game.tbct.conveyDir.push_back( 0 );
+        game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 5 )
-	game.tbct.conveyDir.push_back( -1 );
+        game.tbct.conveyDir.push_back( -1 );
       return( new RConveyLever( 0x17e, 5 ) );
-    case 0x118:	// balle
+    case 0x118:  // balle
       return( new RBall( num, DROI_N ) );
     case 0x140:
       return( new RBall( num-40, GAU_N ) );
-    case 0x158:
+    case 0x168:
       return( new RBall( num-80, HAU_N ) );
-    case 0x180:
+    case 0x190:
       return( new RBall( num-120, BA_N ) );
-    case 0x11b:	// dÃ©tonateur
+    case 0x11b:  // detonator
     case 0x143:
       return( new RDetonator( 0x11b ) );
-    case 0x16b:	// dynamite
+    case 0x16b:  // dynamite
     case 0x193:
     case 0x1bb:
       return( new RDynamite( num ) );
-    case 0x1be:	// ascenseur "manuel"
+    case 0x1be:  // ascenseur "manuel"
       return( new RLift( num ) );
-    case 0x1e6:	// ascenseur "automatique"
+    case 0x1e6:  // ascenseur "automatique"
       return( new RAutoLift( num ) );
-    case 0x11c:	// ressort vertical
+    case 0x11c:  // ressort vertical
       return( new RSpring( num, RSpring::VERTICAL ) );
-    case 0x144:	// ressort horizontal
+    case 0x144:  // ressort horizontal
       return( new RSpring( num, RSpring::HORIZONTAL ) );
-    case 0x195:	// herse ouverte
+    case 0x195:  // herse ouverte
       return( new EmptyElem );
-    case 0x1bd:	// herse ouvrante
+    case 0x1bd:  // herse ouvrante
       return( new RPortcullis( num + 40, RPortcullis::OPENING ) );
-    case 0x1e5:	// herse fermÃ©e
+    case 0x1e5:  // closed portcullis
       return( new RPortcullis( num, RPortcullis::CLOSED ) );
+    case 0x158:
+    case 0x15b:
+    case 0x180:
+    case 0x183:
+    case 0x1a8:
+    case 0x1ab:
+    case 0x1d0:
+    case 0x1d3:
+      return new RTriggerCover( num );
+    case 0x159:
+    case 0x15a:
+    case 0x181:
+    case 0x182:
+    case 0x1a9:
+    case 0x1aa:
+    case 0x1d1:
+    case 0x1d2:
+      return new RTriggerButton( num );
     default:
       return( new GElem( num ) );
     };
