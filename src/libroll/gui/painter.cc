@@ -75,17 +75,16 @@ void DrawPainter::start( int x, int y, bool inlevel, QRPlayField* )
     return;
   GElem			*ng = elFactory.createElem( pal->selectedSprite() );
 
-  if( ng->s != olds	// element has been changed
-      && ( ng->canBeInBorder() || ( x > 0 && x < (int) game.tbct.sizeX() - 1 
-				    && y > 0 
-				    && y < (int) game.tbct.sizeY() - 1 ) ) )
-    {
-      delete game.tbct.d[x][y];
-      game.tbct.d[x][y] = ng;
-      game.tbct.setModified( true );
-      // handle undo buffer... ? maybe one day
-      _parent->stepFull();	// needs redrawing
-    }
+  if( ng->canBeInBorder() || ( x > 0 && x < (int) game.tbct.sizeX() - 1 
+                              && y > 0 
+                              && y < (int) game.tbct.sizeY() - 1 ) )
+  {
+    delete game.tbct.d[x][y];
+    game.tbct.d[x][y] = ng;
+    game.tbct.setModified( true );
+    // handle undo buffer... ? maybe one day
+    _parent->stepFull();	// needs redrawing
+  }
   else
     delete ng;
 }

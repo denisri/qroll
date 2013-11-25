@@ -37,6 +37,18 @@ namespace roll
     virtual void realProcess( unsigned x, unsigned y );
   };
 
+
+  class RExplodingTriggerCover : public RTriggerCover
+  {
+  public:
+    RExplodingTriggerCover( unsigned short s ) : RTriggerCover( s )
+    {}
+    virtual ~RExplodingTriggerCover();
+
+  protected:
+    virtual void realProcess( unsigned x, unsigned y );
+  };
+
 }
 
 #endif

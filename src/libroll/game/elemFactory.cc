@@ -598,12 +598,13 @@ GElem* RElemFactory::createElem( unsigned num )
     case 0x1e5:  // closed portcullis
       return( new RPortcullis( num, RPortcullis::CLOSED ) );
     case 0x158:
-    case 0x15b:
     case 0x180:
-    case 0x183:
     case 0x1a8:
-    case 0x1ab:
     case 0x1d0:
+      return new RExplodingTriggerCover( num );
+    case 0x15b:
+    case 0x183:
+    case 0x1ab:
     case 0x1d3:
       return new RTriggerCover( num );
     case 0x159:

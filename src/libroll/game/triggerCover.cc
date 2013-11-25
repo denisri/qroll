@@ -38,3 +38,17 @@ void RTriggerCover::realProcess( unsigned x, unsigned y )
 }
 
 
+// ---
+
+RExplodingTriggerCover::~RExplodingTriggerCover()
+{
+}
+
+
+void RExplodingTriggerCover::realProcess( unsigned x, unsigned y )
+{
+  if( RTriggerButton::isTriggerActive( s ) )
+    explode( x, y );
+}
+
+

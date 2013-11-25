@@ -140,6 +140,7 @@ void WorkLevel::make( SimpleLevel & sl )
   *(LevelParam *) this = sl;
   tab = sl.srcLevel;
   startPos.erase( startPos.begin(), startPos.end() );
+  conveyDir.clear();
 
   // conversion of color codes
   _colors[ UNCHANGED ] = RGB( 0, 0, 0 );
