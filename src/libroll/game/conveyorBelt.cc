@@ -25,52 +25,54 @@ using namespace roll;
 
 void RConveyorBelt::realProcess( unsigned x, unsigned y )
 {
-  int	dir = game.tbct.conveyDir[ _num ]; // direction de ce type de tapis
+  // direction of this kind of conveyor
+  int	dir = game.tbct.conveyDir[ _num ];
   unsigned	flags = 0;
 
   switch( dir )
+  {
+  case -1:	// left
+    flags = GAU;
+  case 1:	// right
     {
-    case -1:	// gauche
-      flags = GAU;
-    case 1:	// droite
+      RRSoundProcessor::processor().processIfNotUsed
+        ( RollSoundBank::CONVEYORBELT );
+      if( !flags ) flags = DROI;
+      GElem	*&next = game.tbct.d[x+dir][y-1];
+      GElem	*&over = game.tbct.d[x][y-1];
+      if( next->isEmpty() && over->canMove() && !over->isBusy() )
       {
-	RRSoundProcessor::processor().processIfNotUsed
-          ( RollSoundBank::CONVEYORBELT );
-	if( !flags ) flags = DROI;
-	GElem	*&next = game.tbct.d[x+dir][y-1];
-	GElem	*&over = game.tbct.d[x][y-1];
-	if( next->isEmpty() && over->canMove() && !over->isBusy() )
-	  {
-	    if( over->hasExtFlg() )
-	      {
-		delete next;
-		next = over;
-		over->f |= ( f & ~(GAU | DROI | HAU | BA) ) | flags;
-		over = new EmptyElem;
-		if( dir == -1 ) next->setExtFlg( true );
-		else next->setExtFlg( false );
-	      }
-	    else over->setExtFlg( true );
-	  }
+        if( over->hasExtFlg() )
+        {
+          delete next;
+          next = over;
+          over->f |= ( f & ~(GAU | DROI | HAU | BA) ) | flags;
+          over = new EmptyElem;
+          if( dir == -1 ) next->setExtFlg( true );
+          else next->setExtFlg( false );
+        }
+        else over->setExtFlg( true );
       }
-      break;
-    default:	// arrÃªtÃ©
-      break;
     }
+    break;
+  default:	// stopped
+    break;
+  }
 }
 
 
 unsigned short RConveyorBelt::animation() const
 {
+  const unsigned short basesprite = 0x1a0;
   switch( game.tbct.conveyDir[_num] )
-    {
-    case 1:
-      return( s + 2 - (anim % 3) );
-    case -1:
-      return( s + (anim % 3) );
-    default:
-      return( s );
-    }
+  {
+  case 1:
+    return( basesprite + 2 - (anim % 3) );
+  case -1:
+    return( basesprite + (anim % 3) );
+  default:
+    return( basesprite );
+  }
 }
 
 

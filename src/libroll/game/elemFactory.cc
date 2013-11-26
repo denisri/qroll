@@ -481,13 +481,13 @@ GElem* RElemFactory::createElem( unsigned num )
     case 0x1a2:
       if( game.tbct.conveyDir.size() == 0 )
         game.tbct.conveyDir.push_back( 0 );
-      return( new RConveyorBelt( 0x1a0, 0 ) );
+      return( new RConveyorBelt( num, 0 ) );
     case 0x156:  // conveyor belt 2 (goes left at start)
       if( game.tbct.conveyDir.size() == 0 )
         game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 1 )
         game.tbct.conveyDir.push_back( -1 );
-      return( new RConveyorBelt( 0x1a0, 1 ) );
+      return( new RConveyorBelt( num, 1 ) );
     case 0x157:  // conveyor belt 2 (goes right at start)
       if( game.tbct.conveyDir.size() == 0 )
         game.tbct.conveyDir.push_back( 0 );
@@ -495,7 +495,7 @@ GElem* RElemFactory::createElem( unsigned num )
         game.tbct.conveyDir.push_back( -1 );
       if( game.tbct.conveyDir.size() == 2 )
         game.tbct.conveyDir.push_back( 1 );
-      return( new RConveyorBelt( 0x1a0, 2 ) );
+      return( new RConveyorBelt( num, 2 ) );
     case 0x17f:  // conveyor belt 3 (goes right at start, controlable)
       if( game.tbct.conveyDir.size() == 0 )
         game.tbct.conveyDir.push_back( 0 );
@@ -505,7 +505,7 @@ GElem* RElemFactory::createElem( unsigned num )
         game.tbct.conveyDir.push_back( 1 );
       if( game.tbct.conveyDir.size() == 3 )
         game.tbct.conveyDir.push_back( 1 );
-      return( new RConveyorBelt( 0x1a0, 3 ) );
+      return( new RConveyorBelt( num, 3 ) );
     case 0x1a7:  // conveyor belt 4 (stopped at start, controlable)
       if( game.tbct.conveyDir.size() == 0 )
         game.tbct.conveyDir.push_back( 0 );
@@ -517,7 +517,7 @@ GElem* RElemFactory::createElem( unsigned num )
         game.tbct.conveyDir.push_back( 1 );
       if( game.tbct.conveyDir.size() == 4 )
         game.tbct.conveyDir.push_back( 0 );
-      return( new RConveyorBelt( 0x1a0, 4 ) );
+      return( new RConveyorBelt( num, 4 ) );
     case 0x1cf:  // conveyor belt 5 (goes left at start, controlable)
       if( game.tbct.conveyDir.size() == 0 )
         game.tbct.conveyDir.push_back( 0 );
@@ -531,7 +531,7 @@ GElem* RElemFactory::createElem( unsigned num )
         game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 5 )
         game.tbct.conveyDir.push_back( -1 );
-      return( new RConveyorBelt( 0x1a0, 5 ) );
+      return( new RConveyorBelt( num, 5 ) );
     case 0x17e:  // lever for conveyor belt right
       if( game.tbct.conveyDir.size() == 0 )
         game.tbct.conveyDir.push_back( 0 );
@@ -541,7 +541,7 @@ GElem* RElemFactory::createElem( unsigned num )
         game.tbct.conveyDir.push_back( 1 );
       if( game.tbct.conveyDir.size() == 3 )
         game.tbct.conveyDir.push_back( 1 );
-      return( new RConveyLever( 0x17e, 3 ) );
+      return( new RConveyLever( num, 3 ) );
     case 0x1a6:  // levier tapis roulant immobile
       if( game.tbct.conveyDir.size() == 0 )
         game.tbct.conveyDir.push_back( 0 );
@@ -553,7 +553,7 @@ GElem* RElemFactory::createElem( unsigned num )
         game.tbct.conveyDir.push_back( 1 );
       if( game.tbct.conveyDir.size() == 4 )
         game.tbct.conveyDir.push_back( 0 );
-      return( new RConveyLever( 0x17e, 4 ) );
+      return( new RConveyLever( num, 4 ) );
     case 0x1ce:  // levier tapis roulant gauche
       if( game.tbct.conveyDir.size() == 0 )
         game.tbct.conveyDir.push_back( 0 );
@@ -567,7 +567,7 @@ GElem* RElemFactory::createElem( unsigned num )
         game.tbct.conveyDir.push_back( 0 );
       if( game.tbct.conveyDir.size() == 5 )
         game.tbct.conveyDir.push_back( -1 );
-      return( new RConveyLever( 0x17e, 5 ) );
+      return( new RConveyLever( num, 5 ) );
     case 0x118:  // balle
       return( new RBall( num, DROI_N ) );
     case 0x140:

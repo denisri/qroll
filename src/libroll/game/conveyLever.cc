@@ -55,19 +55,21 @@ void RConveyLever::activate( unsigned, unsigned )
 
 unsigned short RConveyLever::sprite( RBack* ) const
 {
+  const unsigned short basesprite = 0x17e;
   int	st = state();
   if( st > 1 )
-    return( s + 40 );	// stopped
-  return( s + (1 - st) * 40 );
+    return( basesprite + 40 );	// stopped
+  return( basesprite + (1 - st) * 40 );
 }
 
 
 unsigned short RConveyLever::backStillSprite( RBack* ) const
 {
+  const unsigned short basesprite = 0x17e;
   int	st = state();
   if( st > 1 )
-    return( s + 40 );	// stopped
-  return( s + (1 - st) * 40 );
+    return( basesprite + 40 );	// stopped
+  return( basesprite + (1 - st) * 40 );
 }
 
 
