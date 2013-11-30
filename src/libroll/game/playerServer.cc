@@ -195,64 +195,64 @@ void PlayerServer::takeKeys()
   // cout << "PlayerServer::takeKeys()\n";
 
   if( mode() != Client )
+  {
+    // cout << "takeKeys local, players: " << size() << endl;
+    for( ip = begin(); ip!=fp; ++ip )
     {
-      // cout << "takeKeys local, players: " << size() << endl;
-      for( ip = begin(); ip!=fp; ++ip )
-	{
-	  player = ip->first;
-	  // cout << "takeKeys, player " << player << endl;
+      player = ip->first;
+      // cout << "takeKeys, player " << player << endl;
 
-	  map<unsigned, bool>	& kbd = _kbd[ player ];
-	  vector<unsigned>	& buf = _buffer[ player ];
-	  vector<bool>		& sbf = _sBuffer[ player ];
-	  unsigned		& bufN = _bufN[ player ];
-	  unsigned		& reptK = _repeatKey[ player ];
-	  bool			& rept = _repeat[ player ];
+      map<unsigned, bool>	& kbd = _kbd[ player ];
+      vector<unsigned>	& buf = _buffer[ player ];
+      vector<bool>		& sbf = _sBuffer[ player ];
+      unsigned		& bufN = _bufN[ player ];
+      unsigned		& reptK = _repeatKey[ player ];
+      bool			& rept = _repeat[ player ];
 
-	  Player		& play = ip->second;
+      Player		& play = ip->second;
 
-	  if( buf[0] )	//	Buffer clavier
-	    {
-	      //cout << "buffer\n";
-	      play.kbd = buf[0];
-	      play.fire = sbf[0];
-	      buf[0] = buf[1];
-	      sbf[0] = sbf[1];
-	      buf[1] = 0;
-	      sbf[1] = false;
-	      bufN = 0;
-	    }
-	  else if( reptK )	//	repeating key
-	    {
-	      //cout << "repeat\n";
-	      play.kbd = reptK;
-	      play.fire = kbd[ Game::K_FIRE ];
-	      // buf[0] = reptK;
-	      //sbf[0] = kbd[ Game::K_FIRE ];
-	      rept = true;
-	    }
-	  else		//	No buffered key
-	    {
-	      //cout << "nobuf\n";
-	      play.fire = kbd[ Game::K_FIRE ];
-	      if( kbd[ Game::K_LEFT ] ) 
-		play.kbd = Game::K_LEFT;
-	      else if( kbd[ Game::K_RIGHT ] ) 
-		play.kbd = Game::K_RIGHT;
-	      else if( kbd[ Game::K_UP ] ) 
-		play.kbd = Game::K_UP;
-	      else if( kbd[ Game::K_DOWN ] ) 
-		play.kbd = Game::K_DOWN;
-	      else if( kbd[ Game::K_BOMB ] ) 
-		play.kbd = Game::K_BOMB;
-	      else if( kbd[ Game::K_ABORT ] ) 
-		play.kbd = Game::K_ABORT;
-	      else play.kbd = Game::K_NONE;
-	    }
-	  // should be removed ?
-	  _keys[ player ] = Key( play.kbd, play.fire );
-	}
+      if( buf[0] )	//	Buffer clavier
+      {
+        //cout << "buffer\n";
+        play.kbd = buf[0];
+        play.fire = sbf[0];
+        buf[0] = buf[1];
+        sbf[0] = sbf[1];
+        buf[1] = 0;
+        sbf[1] = false;
+        bufN = 0;
+      }
+      else if( reptK )	//	repeating key
+      {
+        //cout << "repeat\n";
+        play.kbd = reptK;
+        play.fire = kbd[ Game::K_FIRE ];
+        // buf[0] = reptK;
+        //sbf[0] = kbd[ Game::K_FIRE ];
+        rept = true;
+      }
+      else		//	No buffered key
+      {
+        //cout << "nobuf\n";
+        play.fire = kbd[ Game::K_FIRE ];
+        if( kbd[ Game::K_LEFT ] ) 
+          play.kbd = Game::K_LEFT;
+        else if( kbd[ Game::K_RIGHT ] ) 
+          play.kbd = Game::K_RIGHT;
+        else if( kbd[ Game::K_UP ] ) 
+          play.kbd = Game::K_UP;
+        else if( kbd[ Game::K_DOWN ] ) 
+          play.kbd = Game::K_DOWN;
+        else if( kbd[ Game::K_BOMB ] ) 
+          play.kbd = Game::K_BOMB;
+        else if( kbd[ Game::K_ABORT ] ) 
+          play.kbd = Game::K_ABORT;
+        else play.kbd = Game::K_NONE;
+      }
+      // should be removed ?
+      _keys[ player ] = Key( play.kbd, play.fire );
     }
+  }
 
   endTurn();
 }
