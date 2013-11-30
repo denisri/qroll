@@ -51,28 +51,28 @@ void Roll::realProcess( unsigned x, unsigned y )
   PlayerServer::iterator  ip = game.tbct.players->find( _num );
 
   if( ip == game.tbct.players->end() )
-    {
-      replaceAndProcessBack( x, y );
-      delete this;	// j'existe plus, je m'efface.
-      return;
-    }
+  {
+    replaceAndProcessBack( x, y );
+    delete this;	// j'existe plus, je m'efface.
+    return;
+  }
 
   Player	& pl = (*ip).second;
 
   if( pl.win )
-    {
-      replaceAndProcessBack( x, y );
-      delete this;
-      return;
-    }
+  {
+    replaceAndProcessBack( x, y );
+    delete this;
+    return;
+  }
 
   pl.pos = Coord( x, y );
   /* already tested
   if( pl.win )
-    {
-      f &= ~( GAU | DROI | HAU | BA );
-      return;
-    }
+  {
+    f &= ~( GAU | DROI | HAU | BA );
+    return;
+  }
   */
 
   pl.dead = 0;
@@ -90,138 +90,138 @@ void Roll::realProcess( unsigned x, unsigned y )
     f |= PETE;
 
   else if( pl.kbd == game.K_BOMB && pl.launchedBomb == -1 )
+  {
+    unsigned	& nbb = pl.bombs[ pl.bombToLaunch ];
+    if( nbb > 0 )
     {
-      unsigned	& nbb = pl.bombs[ pl.bombToLaunch ];
-      if( nbb > 0 )
-	{
-	  --nbb;
-	  pl.launchedBomb = pl.bombToLaunch;
-	}
+      --nbb;
+      pl.launchedBomb = pl.bombToLaunch;
     }
+  }
 
   unsigned	spdc = _num ? 0x100 : 0;
 
   switch( pl.kbd )
+  {
+  case Game::K_LEFT:	// gauche
+    pl.latency = 0;
+    s = 34 + 3*40 + spdc;
+
+    if( poss( x-1, y, -1, _num ) && !pl.fire )
     {
-    case Game::K_LEFT:	// gauche
+      delete game.tbct.d[x-1][y];
+      game.tbct.d[x-1][y] = this;
+      //game.tbct.d[x][y] = elemBehind( _num );
+      //_backRoll = 0;
+      f = (f & ~RETPET) | GAU | GAU_N;
+      // prend un truc sur le coin de la gueule ?
+      GElem	*elup = game.tbct.d[x-1][y-1];
+      if( elup->isFalling() && squashedBy( elup ) ) f |= PETE;
+      replaceAndProcessBack( x, y );
+    }
+    else if( f & RETPET )
+      f |= PETE;
+    break;
+
+  case Game::K_RIGHT:	// droite
+    pl.latency = 0;
+    s = 35 + 3*40 + spdc;
+
+    if( poss( x+1, y, 1, _num ) && !pl.fire )
+    {
+      delete game.tbct.d[x+1][y];
+      game.tbct.d[x+1][y] = this;
+      //game.tbct.d[x][y] = elemBehind( _num );
+      //_backRoll = 0;
+      f = (f & ~RETPET) | BUSY | DROI | DROI_N;
+      // prend un truc sur le coin de la gueule ?
+      GElem	*elup = game.tbct.d[x+1][y-1];
+      if( elup->isFalling() && squashedBy( elup ) ) f |= PETE;
+      replaceAndProcessBack( x, y );
+    }
+    else if( f & RETPET )
+      f |= PETE;
+    break;
+
+  case Game::K_UP:		// haut
+    if( f & RETPET )
+      f |= PETE;
+    if( pl.latency )
+    {
+      s = 34 + spdc;
       pl.latency = 0;
-      s = 34 + 3*40 + spdc;
+    }
 
-      if( poss( x-1, y, -1, _num ) && !pl.fire )
-	{
-	  delete game.tbct.d[x-1][y];
-	  game.tbct.d[x-1][y] = this;
-	  //game.tbct.d[x][y] = elemBehind( _num );
-	  //_backRoll = 0;
-	  f = (f & ~RETPET) | GAU | GAU_N;
-	  // prend un truc sur le coin de la gueule ?
-	  GElem	*elup = game.tbct.d[x-1][y-1];
-	  if( elup->isFalling() && squashedBy( elup ) ) f |= PETE;
-	  replaceAndProcessBack( x, y );
-	}
-      else if( f & RETPET )
-	f |= PETE;
-      break;
+    if( poss( x, y-1, 0, _num ) && !pl.fire )
+    {
+      delete game.tbct.d[x][y-1];
+      game.tbct.d[x][y-1] = this;
+      //game.tbct.d[x][y] = elemBehind( _num );
+      //_backRoll = 0;
+      f |= HAU | HAU_N;
+      // prend un truc sur le coin de la gueule ?
+      if( y > 1 )
+      {
+        GElem	*elup = game.tbct.d[x][y-2];
+        if( elup->isFalling() && squashedBy( elup ) ) f |= PETE;
+      }
+      replaceAndProcessBack( x, y );
+    }
+    break;
 
-    case Game::K_RIGHT:	// droite
+  case Game::K_DOWN:		// bas
+    if( pl.latency )
+    {
+      s = 34 + spdc;
       pl.latency = 0;
-      s = 35 + 3*40 + spdc;
+    }
 
-      if( poss( x+1, y, 1, _num ) && !pl.fire )
-	{
-	  delete game.tbct.d[x+1][y];
-	  game.tbct.d[x+1][y] = this;
-	  //game.tbct.d[x][y] = elemBehind( _num );
-	  //_backRoll = 0;
-	  f = (f & ~RETPET) | BUSY | DROI | DROI_N;
-	  // prend un truc sur le coin de la gueule ?
-	  GElem	*elup = game.tbct.d[x+1][y-1];
-	  if( elup->isFalling() && squashedBy( elup ) ) f |= PETE;
-	  replaceAndProcessBack( x, y );
-	}
-      else if( f & RETPET )
-	f |= PETE;
-      break;
+    if( poss( x, y+1, 0, _num ) & !pl.fire )
+    {
+      delete game.tbct.d[x][y+1];
+      game.tbct.d[x][y+1] = this;
+      //game.tbct.d[x][y] = elemBehind( _num );
+      //_backRoll = 0;
+      f = (f & ~RETPET) | BUSY | BA | BA_N;
+      replaceAndProcessBack( x, y );
+      game.tbct.d[x][y]->f &= ~TOMB;	// prevent scratch
+    }
+    else if( f & RETPET ) 
+      f |= PETE;
+    break;
 
-    case Game::K_UP:		// haut
-      if( f & RETPET )
-	f |= PETE;
-      if( pl.latency )
-	{
-	  s = 34 + spdc;
-	  pl.latency = 0;
-	}
+  default:		// pas de mouvement
+    RRSoundProcessor::processor().stop( RollSoundBank::ROLL_PUSH );
 
-      if( poss( x, y-1, 0, _num ) && !pl.fire )
-	{
-	  delete game.tbct.d[x][y-1];
-	  game.tbct.d[x][y-1] = this;
-	  //game.tbct.d[x][y] = elemBehind( _num );
-	  //_backRoll = 0;
-	  f |= HAU | HAU_N;
-	  // prend un truc sur le coin de la gueule ?
-	  if( y > 1 )
-	    {
-	      GElem	*elup = game.tbct.d[x][y-2];
-	      if( elup->isFalling() && squashedBy( elup ) ) f |= PETE;
-	    }
-	  replaceAndProcessBack( x, y );
-	}
-      break;
-
-    case Game::K_DOWN:		// bas
-      if( pl.latency )
-	{
-	  s = 34 + spdc;
-	  pl.latency = 0;
-	}
-
-      if( poss( x, y+1, 0, _num ) & !pl.fire )
-	{
-	  delete game.tbct.d[x][y+1];
-	  game.tbct.d[x][y+1] = this;
-	  //game.tbct.d[x][y] = elemBehind( _num );
-	  //_backRoll = 0;
-	  f = (f & ~RETPET) | BUSY | BA | BA_N;
-	  replaceAndProcessBack( x, y );
-	  game.tbct.d[x][y]->f &= ~TOMB;	// prevent scratch
-	}
-      else if( f & RETPET ) 
-	f |= PETE;
-      break;
-
-    default:		// pas de mouvement
-      RRSoundProcessor::processor().stop( RollSoundBank::ROLL_PUSH );
-
-      if( f & RETPET ) f |= PETE;
-      if( s != 115+spdc )	//pousseur
-	{
-	  if( s != 35+spdc && s != 75+spdc )
-	    {
-	      s = 34 + spdc;
-	      ++pl.latency;
-	      if( pl.latency >= 50 ) s = 35 + spdc;
-	    }
-	  else	// yawner
-	    {
-	      ++pl.latency;
-	      if( pl.latency == 55 )
-		{
-		  s = 75 + spdc;
-                  RRSoundProcessor::processor().process( RollSoundBank::ROLL_YAWN );
-		}
-	      if( pl.latency == 60 ) s = 35 + spdc;
-	      if( pl.latency > 62 )
-		{	//	end of yawn
-		  pl.latency = 0;
-		  s = 34 + spdc;
-		}
-	    }
-	}
-      if( _backRoll )
-	_backRoll->process( x, y );
-      break;
-    }	// fin switch */
+    if( f & RETPET ) f |= PETE;
+    if( s != 115+spdc )	//pousseur
+    {
+      if( s != 35+spdc && s != 75+spdc )
+      {
+        s = 34 + spdc;
+        ++pl.latency;
+        if( pl.latency >= 50 ) s = 35 + spdc;
+      }
+      else	// yawner
+      {
+        ++pl.latency;
+        if( pl.latency == 55 )
+        {
+          s = 75 + spdc;
+          RRSoundProcessor::processor().process( RollSoundBank::ROLL_YAWN );
+        }
+        if( pl.latency == 60 ) s = 35 + spdc;
+        if( pl.latency > 62 )
+        {	//	end of yawn
+          pl.latency = 0;
+          s = 34 + spdc;
+        }
+      }
+    }
+    if( _backRoll )
+      _backRoll->process( x, y );
+    break;
+  }	// fin switch */
 }
 
 

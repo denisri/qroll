@@ -231,7 +231,7 @@ void PlayerServer::takeKeys()
 	      //sbf[0] = kbd[ Game::K_FIRE ];
 	      rept = true;
 	    }
-	  else		//	Pas de touche bufferisÃ©e
+	  else		//	No buffered key
 	    {
 	      //cout << "nobuf\n";
 	      play.fire = kbd[ Game::K_FIRE ];
