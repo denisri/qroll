@@ -22,6 +22,7 @@
 
 #include <qlabel.h>
 #include <qlcdnumber.h>
+class QPushButton;
 
 
 /**	Barre de scores, timing
@@ -66,7 +67,7 @@ protected:
   QLCDNumber	*_diams;
   QLCDNumber	*_bombs[8];
   QFrame	*_key;
-  QFrame	*_bombsT[8];
+  QPushButton	*_bombsT[8];
   const QPixmap * const * _sprites;
   int           _bombToLaunch;
   int           _keyid;

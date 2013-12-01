@@ -24,6 +24,8 @@
 #include <roll/game/key.h>
 #include <roll/sound/soundProcessor.h>
 #include <qlayout.h>
+#include <qpushbutton.h>
+#include <qbuttongroup.h>
 
 using namespace roll;
 using namespace std;
@@ -133,35 +135,33 @@ QRScoreBox::QRScoreBox( const QPixmap * const * sprites, QWidget *parent,
   bombsLabel->setText( tr( "BOMBS :" ) );
   bombsLabel->setEnabled( false );
 
+  QButtonGroup *bgrp = new QButtonGroup( this );
+  bgrp->setExclusive( true );
+
   for( int i=0; i<4; ++i )
     {
-      QFrame *fr = new QFrame( this );
-      _bombsT[i*2] = fr;
-      fr->setFrameStyle( PanelStyle );
-      fr->setGeometry( 12, 290+25*i, 20, 20 );
-      lay = new QVBoxLayout( fr );
-      fr->setLayout( lay );
-      lay->setMargin( 2 );
+      QPushButton *bt = new QPushButton( this );
+      _bombsT[i*2] = bt;
+      bt->setCheckable( true );
+      bgrp->addButton( bt );
+      bt->setFocusPolicy( Qt::NoFocus );
+      bt->setGeometry( 11, 290+25*i, 20, 20 );
       _bombs[i*2] = new QLCDNumber( this );
       _bombs[i*2]->setDigitCount( 2 );
-      _bombs[i*2]->setGeometry( 32, 290+25*i, 30, 20 );
+      _bombs[i*2]->setGeometry( 33, 290+25*i, 30, 20 );
 
-      fr = new QFrame( this );
-      _bombsT[i*2+1] = fr;
-      fr->setFrameStyle( PanelStyle );
-      fr->setGeometry( 68, 290+25*i, 20, 20 );
-      lay = new QVBoxLayout( fr );
-      fr->setLayout( lay );
-      lay->setMargin( 2 );
+      bt = new QPushButton( this );
+      _bombsT[i*2+1] = bt;
+      bt->setCheckable( true );
+      bgrp->addButton( bt );
+      bt->setFocusPolicy( Qt::NoFocus );
+      bt->setGeometry( 67, 290+25*i, 20, 20 );
       _bombs[i*2+1] = new QLCDNumber( this );
       _bombs[i*2+1]->setDigitCount( 2 );
-      _bombs[i*2+1]->setGeometry( 88, 290+25*i, 30, 20 );
+      _bombs[i*2+1]->setGeometry( 89, 290+25*i, 30, 20 );
     }
 
   resize( 128, 384 );
-
-  /*_timer = new QTimer( this, "timer" );
-    connect(_timer, SIGNAL(timeout()), this, SLOT(oneLessSecond()));*/
 }
 
 
@@ -256,20 +256,15 @@ void QRScoreBox::setPlayer( unsigned num )
 void QRScoreBox::setBombs( unsigned bombid, unsigned num )
 {
   _bombs[ bombid ]->display( (int) num );
-  QLabel *label = _bombsT[ bombid ]->findChild<QLabel *>();
   if( num == 0 )
   {
-    if( label )
-      delete label;
-   // label->setPixmap( QPixmap() );
+    _bombsT[ bombid ]->setIcon( QIcon() );
   }
-  else if( !label )
+  else // if( !label )
   {
     static unsigned bombspr[8] = { 33, 0x121, 0x199, 0x124, 0, 0, 0, 0 };
     QPixmap pix = _sprites[ bombspr[bombid] ]->scaled( 16, 16 );
-    label = new QLabel( _bombsT[ bombid ] );
-    label->setPixmap( pix );
-    _bombsT[ bombid ]->layout()->addWidget( label );
+    _bombsT[ bombid ]->setIcon( pix );
   }
 }
 
