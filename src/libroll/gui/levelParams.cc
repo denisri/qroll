@@ -820,7 +820,8 @@ void QLevelParams::newExplosion()
   unsigned			i, n;
 
   for( i=0; i<512; ++i )
-    if( expli.a[i] && addresses.find( expli.a[i] ) == notused )
+  {
+    if( expli.a[i] >= 0 && addresses.find( expli.a[i] ) == notused )
     {
       GElem	*elem = elFactory.createElem( i );
       if( elem && elem->isExplosive() )
@@ -830,6 +831,7 @@ void QLevelParams::newExplosion()
       }
       delete elem;
     }
+  }
   for( i=0, n=d->explnum.size(); i<n; ++i )
     elist.erase( d->explnum[i] );
 

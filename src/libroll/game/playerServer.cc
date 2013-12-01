@@ -245,8 +245,10 @@ void PlayerServer::takeKeys()
           play.kbd = Game::K_DOWN;
         else if( kbd[ Game::K_BOMB ] ) 
           play.kbd = Game::K_BOMB;
-        else if( kbd[ Game::K_ABORT ] ) 
+        else if( kbd[ Game::K_ABORT ] )
           play.kbd = Game::K_ABORT;
+        else if( kbd[ Game::K_CHANGEBOMB ] )
+          play.kbd = Game::K_CHANGEBOMB;
         else play.kbd = Game::K_NONE;
       }
       // should be removed ?

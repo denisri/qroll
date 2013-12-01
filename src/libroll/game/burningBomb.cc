@@ -22,11 +22,14 @@
 using namespace roll;
 
 
+using namespace std; // FIXME
 void RBurningBomb::realProcess( unsigned x, unsigned y )
 {
   --_timing;
-  if( _timing == 0 )	// mÃ¨che Ã©coulÃ©e
+  if( _timing == 0 )
+  { cout << "RBurningBomb " << s << ", explodes\n";
     explode( x, y );
+  }
 
   else RFallingElem::realProcess( x, y );
 }
@@ -40,13 +43,13 @@ unsigned short RBurningBomb::animation() const
 
 GElem* RBurningBomb::transformed() const
 {
-  if( _timing & 1 )	// timing impair : Ã©teinds la bombe
+  if( _timing & 1 )	// odd timing : extinct bomb
     {
       div_t	sp = div( s & 0xff, 40 );
       return( elFactory.createElem( (s & 0x100) | sp.rem 
 				    | ( ((int) (sp.quot/3)) * 120 ) ) );
     }
-  else			// timing pair: allonge le temps
+  else			// even timing: increase time
     {
       RBurningBomb	*b = (RBurningBomb *) elFactory.createElem( s );
       b->setTiming( _timing + 1 );

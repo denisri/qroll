@@ -31,7 +31,7 @@ namespace roll
   public:
     RTriggerCover( unsigned short s ) : RForegroundElem( s ) {}
     virtual ~RTriggerCover();
-    virtual bool isExplosive() const { out << "explosive RTriggerCover\n"; return true; }
+    virtual bool isExplosive() const { return true; }
 
   protected:
     virtual void realProcess( unsigned x, unsigned y );

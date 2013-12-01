@@ -388,17 +388,18 @@ GElem* RElemFactory::createElem( unsigned num )
     case 189:
     case 229:
       return( new OpenDoor( num ) );
-    case 33:  // bombe Ã©teinte
+    case 33:  // inactive bomb
     case 0x121:  // bombe rouge
+    case 0x124:  // grenade
     case 0x199:  // bombe rose
       return( new RBomb( num ) );
-    case 73:  // bombe allumÃ©e
+    case 73:  // burning bomb
     case 113:
-    case 0x149:  // bombe rouge allumÃ©e
+    case 0x149:  // burning red bomb
     case 0x171:
-    case 0x1c1:  // bombe rose allumÃ©e
+    case 0x1c1:  // burning pink bomb
     case 0x1e9:
-    case 0x14c:  // grenade tombante
+    case 0x14c:  // falling grenade
     case 0x174:
       {
         unsigned short n = ((num & 0xff) / 40) % 3;

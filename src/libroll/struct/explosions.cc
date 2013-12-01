@@ -102,6 +102,9 @@ void RExplosions::load( const string & nom )
 
   // Pareil bombes
   a[73] = a[113] = a[33];
+  a[0x149] = a[0x171] = a[0x121];
+  a[0x1c1] = a[0x1e9] = a[0x199];
+  a[0x14c] = a[0x174] = a[0x124];
 }
 
 

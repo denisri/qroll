@@ -185,42 +185,42 @@ void GElem::explode( unsigned x, unsigned y )
   unsigned short	s = el->s;
 
   if( el->isExplosive() )
+  {
+    if( x == 0 || y == 0 || x+1 == game.tbct.sizeX() 
+        || y+1 == game.tbct.sizeY() )
+      return;	// au bord, on ne pète pas.
+
+    for( j=0; j<3; ++j ) for( i=0; i<3; ++i )
     {
-      if( x == 0 || y == 0 || x+1 == game.tbct.sizeX() 
-	  || y+1 == game.tbct.sizeY() )
-	return;	// au bord, on ne pète pas.
+      RBack *&bk = game.tbct.b[x+i-1][y+j-1];
+      if( !(sp_flg[bk->s].l2 & BC_INDES) && !(bk->f & BI_INDE) )
+        // background destructible
+      {
+        //	change background
+        delete bk;
+        bk = backFactory.createBack( explo.d[explo.a[s]][i][j] );
 
-      for( j=0; j<3; ++j ) for( i=0; i<3; ++i )
-	{
-	  RBack *&bk = game.tbct.b[x+i-1][y+j-1];
-	  if( !(sp_flg[bk->s].l2 & BC_INDES) && !(bk->f & BI_INDE) )
-	    // background destructible
-	    {
-	      //	change background
-	      delete bk;
-	      bk = backFactory.createBack( explo.d[explo.a[s]][i][j] );
+        GElem *& ge = game.tbct.d[x+i-1][y+j-1];
 
-	      GElem *& ge = game.tbct.d[x+i-1][y+j-1];
-
-	      if( !(sp_flg[ge->s].l2 & INDES) && !(ge->f & INDE) ) // 1er plan
-		{
-		  if( i+j*3 > 4 ) fl = BUSY | EXP1;
-		  else fl = EXP1;
-		  if( (i!=1 || j!=1) && ge->explodesWhenBlown() )
-		    ge->f |= PETE | fl;
-		  else
-		    {
-		      delete ge;
-		      ge = elFactory.createElem( explo.d[explo.a[s]][i][j] );
-		      ge->f |= fl;
-		      if( ge->chainExplodes() )
-			ge->f |= PETE;
-		    }
-		}
-	    }
-	}
-      RRSoundProcessor::processor().process( RollSoundBank::EXPLO );
+        if( !(sp_flg[ge->s].l2 & INDES) && !(ge->f & INDE) ) // 1er plan
+        {
+          if( i+j*3 > 4 ) fl = BUSY | EXP1;
+          else fl = EXP1;
+          if( (i!=1 || j!=1) && ge->explodesWhenBlown() )
+            ge->f |= PETE | fl;
+          else
+          {
+            delete ge;
+            ge = elFactory.createElem( explo.d[explo.a[s]][i][j] );
+            ge->f |= fl;
+            if( ge->chainExplodes() )
+              ge->f |= PETE;
+          }
+        }
+      }
     }
+    RRSoundProcessor::processor().process( RollSoundBank::EXPLO );
+  }
 }
 
 

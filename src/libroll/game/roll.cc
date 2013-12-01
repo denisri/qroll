@@ -190,6 +190,12 @@ void Roll::realProcess( unsigned x, unsigned y )
       f |= PETE;
     break;
 
+  case Game::K_CHANGEBOMB:
+    pl.bombToLaunch ++;
+    if( pl.bombToLaunch > 3 ) // pl.bombs.size() )
+      pl.bombToLaunch = 0;
+    break;
+
   default:		// pas de mouvement
     RRSoundProcessor::processor().stop( RollSoundBank::ROLL_PUSH );
 
@@ -465,13 +471,13 @@ GElem* Roll::elemBehind( unsigned mec, unsigned x, unsigned y )
     return( _backRoll );
 
   if( bomb >= 0 )
-    {
-      bomb = -1;
-      GElem	*el = elFactory.createElem( RBomb::burningBomb( copy ) );
-      if( el->canFall() )
-	el->f |= TOMB;
-      return( el );
-    }
+  {
+    bomb = -1;
+    GElem	*el = elFactory.createElem( RBomb::burningBomb( copy ) );
+    if( el->canFall() )
+      el->f |= TOMB;
+    return( el );
+  }
   else return( game.tbct.b[x][y]->toForeground() );
 }
 

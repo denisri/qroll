@@ -36,8 +36,6 @@ namespace roll
     ///
     virtual ~RBomb() {}
 
-    /**@name	Propriétés de la classe */
-    //@{
     ///
     virtual bool isBomb() const { return( true ); }
     ///	crée un nouvel élément transformé (si transformable)
@@ -48,15 +46,12 @@ namespace roll
     ///
     virtual RollSoundBank::SNDLIST soundWhenFalls() const
     { return( RollSoundBank::BOMB ); }
-    //@}
+    virtual bool isExplosive() const { return true; }
 
-    /**@name	Propriétés propres à Rbomb */
-    //@{
     ///	Numéro de type de bombe
     virtual unsigned bombNum() const;
     ///	Donne le no de la bombe allumée correspondant au type voulu
     static unsigned short burningBomb( unsigned num );
-    //@}
 
   protected:
   };

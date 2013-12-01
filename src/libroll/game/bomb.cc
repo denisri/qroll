@@ -47,9 +47,9 @@ unsigned short RBomb::burningBomb( unsigned num )
     case 0:
       return( 73 );
     case 1:
-      return( 0x121 );
+      return( 0x149 );
     case 2:
-      return( 0x199 );
+      return( 0x1c1 );
     case 3:
       return( 0x14c );
     default:
