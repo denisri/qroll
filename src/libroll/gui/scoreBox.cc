@@ -229,7 +229,7 @@ void QRScoreBox::changeScore()
 
   for( ib=pl.bombs.begin(); ib!=eb; ++ib )
   {
-    if( ib->second != _bombs[ ib->first ]->intValue() )
+    if( (int) ib->second != _bombs[ ib->first ]->intValue() )
       setBombs( ib->first, ib->second );
   }
   for( i=0; i<8; ++i )
