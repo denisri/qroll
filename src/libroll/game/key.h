@@ -26,34 +26,25 @@
 namespace roll
 {
 
-  /**	Clef */
+  /**	Key */
   class RKey : public RFallingEatable
   {
   public:
-    ///
     RKey( unsigned num ) : RFallingEatable( num ) {}
-    ///
     virtual ~RKey();
 
-    /**@name	Propriétés de la classe */
-    //@{
-    ///
     virtual bool isKey() const { return( true ); }
     ///	crée un nouvel élément transformé (si transformable)
     virtual GElem* transformed() const;
-    ///
     virtual RollSoundBank::SNDLIST soundWhenEaten() const
     { return( RollSoundBank::KEY ); }
-    ///
     virtual RollSoundBank::SNDLIST soundWhenFalls() const
     { return( RollSoundBank::KEY_FALL ); }
-    //@}
 
-    /**@name	Propriétés propres à RKey */
-    //@{
-    ///	Numéro de type de clef
+    ///	key type number
     virtual unsigned keyNum() const;
-    //@}
+    /// key type number -> element id (sprite number)
+    static unsigned keyOfNum( unsigned num );
   };
 
 }

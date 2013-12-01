@@ -46,6 +46,7 @@ public:
   void setDiams( unsigned diams );
   void setPlayer( unsigned num );
   void setBombs( unsigned bombid, unsigned num );
+  void setKey( int key );
 
 public slots:
   void oneLessSecond();
@@ -68,6 +69,7 @@ protected:
   QFrame	*_bombsT[8];
   const QPixmap * const * _sprites;
   int           _bombToLaunch;
+  int           _keyid;
   unsigned	_player;
 
 private:

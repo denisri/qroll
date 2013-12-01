@@ -21,6 +21,7 @@
 #include <iostream>
 #include <roll/game/vars.h>
 #include <roll/game/playerServer.h>
+#include <roll/game/key.h>
 #include <roll/sound/soundProcessor.h>
 #include <qlayout.h>
 
@@ -30,7 +31,7 @@ using namespace std;
 
 QRScoreBox::QRScoreBox( const QPixmap * const * sprites, QWidget *parent, 
                         const char *name ) 
-  : QWidget( parent ), _sprites( sprites ), _bombToLaunch( -1 )
+  : QWidget( parent ), _sprites( sprites ), _bombToLaunch( -1 ), _keyid( -1 )
 {
   if( name )
     setObjectName( name );
@@ -119,6 +120,9 @@ QRScoreBox::QRScoreBox( const QPixmap * const * sprites, QWidget *parent,
   _key->setObjectName( "key" );
   _key->setFrameStyle( PanelStyle );
   _key->setGeometry( 85, 225, 32, 32 );
+  QVBoxLayout *lay = new QVBoxLayout( _key );
+  _key->setLayout( lay );
+  lay->setMargin( 0 );
 
   QLabel	*bombsLabel = new QLabel( this );
   bombsLabel->setObjectName( "bombsLabel" );
@@ -135,7 +139,7 @@ QRScoreBox::QRScoreBox( const QPixmap * const * sprites, QWidget *parent,
       _bombsT[i*2] = fr;
       fr->setFrameStyle( PanelStyle );
       fr->setGeometry( 12, 290+25*i, 20, 20 );
-      QVBoxLayout *lay = new QVBoxLayout( fr );
+      lay = new QVBoxLayout( fr );
       fr->setLayout( lay );
       lay->setMargin( 2 );
       _bombs[i*2] = new QLCDNumber( this );
@@ -236,6 +240,9 @@ void QRScoreBox::changeScore()
     _bombToLaunch = pl.bombToLaunch;
     _bombsT[ _bombToLaunch ]->setPalette( QColor( 100, 100, 255 ) );
   }
+
+  if( _keyid != pl.key )
+    setKey( pl.key );
 }
 
 
@@ -250,9 +257,6 @@ void QRScoreBox::setBombs( unsigned bombid, unsigned num )
 {
   _bombs[ bombid ]->display( (int) num );
   QLabel *label = _bombsT[ bombid ]->findChild<QLabel *>();
-  if( !label )
-  { out << "no label\n";
-  }
   if( num == 0 )
   {
     if( label )
@@ -261,7 +265,6 @@ void QRScoreBox::setBombs( unsigned bombid, unsigned num )
   }
   else if( !label )
   {
-    out << "set pix\n";
     static unsigned bombspr[8] = { 33, 0x121, 0x199, 0x124, 0, 0, 0, 0 };
     QPixmap pix = _sprites[ bombspr[bombid] ]->scaled( 16, 16 );
     label = new QLabel( _bombsT[ bombid ] );
@@ -269,6 +272,22 @@ void QRScoreBox::setBombs( unsigned bombid, unsigned num )
     _bombsT[ bombid ]->layout()->addWidget( label );
   }
 }
+
+
+void QRScoreBox::setKey( int key )
+{
+  _keyid = key;
+  QLabel *label = _key->findChild<QLabel *>();
+  if( label )
+    delete label;
+  if( key >= 0 )
+  {
+    label = new QLabel( _key );
+    label->setPixmap( *_sprites[ RKey::keyOfNum( key ) ] );
+    _key->layout()->addWidget( label );
+  }
+}
+
 
 
 

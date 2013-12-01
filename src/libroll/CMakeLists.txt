@@ -191,9 +191,9 @@ set( _headers
   game/spritFlag.h
   game/telepWall.h
   game/transformWall.h
-  game/vars.h
   game/triggerButton.h
   game/triggerCover.h
+  game/vars.h
   gui/gameField.h
   gui/qGameField.h
   gui/qglGameField.h

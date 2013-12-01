@@ -57,6 +57,26 @@ GElem* RKey::transformed() const
 }
 
 
+unsigned RKey::keyOfNum( unsigned num )
+{
+  switch( num )
+  {
+  case 0:
+  case 1:
+  case 2:
+  case 3:
+  case 4:
+  case 5:
+    return num * 40 + 36;
+  case 6:
+    return 190;
+  case 7:
+    return 0x1ec;
+  default:
+    out << "warning, unknown key type " << num << std::endl;
+    return 0;
+  };
+}
 
 
 
