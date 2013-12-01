@@ -18,6 +18,7 @@
 
 #include <roll/game/playerServer.h>
 #include <roll/game/game.h>
+#include <roll/struct/general.h>
 #include <set>
 #include <iostream>
 
@@ -64,8 +65,6 @@ void PlayerServer::addPlayer( unsigned num )
   cout << "addPlayer " << num << endl;
 
   _bufN[ num ] = 0;
-  _buffer[ num ].clear();
-  _buffer[ num ].push_back( 0 );
   _buffer[ num ].clear();
   _buffer[ num ].push_back( 0 );
   _sBuffer[ num ].clear();
@@ -192,15 +191,15 @@ void PlayerServer::takeKeys()
   iterator	ip, fp = end();
   unsigned	player;
 
-  // cout << "PlayerServer::takeKeys()\n";
+  // out << "PlayerServer::takeKeys()\n";
 
   if( mode() != Client )
   {
-    // cout << "takeKeys local, players: " << size() << endl;
+    // out << "takeKeys local, players: " << size() << endl;
     for( ip = begin(); ip!=fp; ++ip )
     {
       player = ip->first;
-      // cout << "takeKeys, player " << player << endl;
+      // out << "takeKeys, player " << player << endl;
 
       map<unsigned, bool>	& kbd = _kbd[ player ];
       vector<unsigned>	& buf = _buffer[ player ];
@@ -262,6 +261,28 @@ void PlayerServer::takeKeys()
 
 void PlayerServer::flushKbd()
 {
+  map<unsigned, unsigned>::iterator im, em = _bufN.end();
+  for( im=_bufN.begin(); im!=em; ++im )
+    im->second = 0;
+  map<unsigned, vector<unsigned> >::iterator ib, eb = _buffer.end();
+  for( ib=_buffer.begin(); ib!=eb; ++ib )
+  {
+    ib->second.clear();
+    ib->second.push_back( 0 );
+  }
+  map<unsigned, vector<bool> >::iterator is, es = _sBuffer.end();
+  for( is=_sBuffer.begin(); is!=es; ++is )
+  {
+    is->second.clear();
+    is->second.push_back( false );
+    is->second.push_back( false );
+  }
+  map<unsigned, bool>::iterator ir, er = _repeat.end();
+  for( ir=_repeat.begin(); ir!=er; ++ir )
+    ir->second = false;
+  _repeatKey.clear();
+  _kbd.clear();
+  _keys.clear();
 }
 
 
@@ -271,7 +292,7 @@ set<unsigned> PlayerServer::removeNetLink( unsigned num )
 
   if( num == 0 )
     {
-      cerr << "PlayerServer::removeNetLink - can't remove link 0 (local)\n";
+      err << "PlayerServer::removeNetLink - can't remove link 0 (local)\n";
       return( todel );
     }
 
@@ -281,13 +302,13 @@ set<unsigned> PlayerServer::removeNetLink( unsigned num )
     if( (*i).second.network == num )	// remote player
       todel.insert( (*i).first );
 
-  cout << "PlayerServer::removeNetLink " << num << ", " << todel.size() << " players\n";
-  cout << "server size: " << size() << endl;
+  out << "PlayerServer::removeNetLink " << num << ", " << todel.size() << " players\n";
+  out << "server size: " << size() << endl;
   set<unsigned>::iterator	is, es = todel.end();
   for( is=todel.begin(); is!=es; ++is )
     removePlayer( *is );
 
-  cout << "now size: " << size() << endl;
+  out << "now size: " << size() << endl;
   return todel;
 }
 

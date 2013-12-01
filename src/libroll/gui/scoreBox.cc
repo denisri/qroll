@@ -137,13 +137,14 @@ QRScoreBox::QRScoreBox( const QPixmap * const * sprites, QWidget *parent,
 
   QButtonGroup *bgrp = new QButtonGroup( this );
   bgrp->setExclusive( true );
+  _bombgroup = bgrp;
 
   for( int i=0; i<4; ++i )
     {
       QPushButton *bt = new QPushButton( this );
       _bombsT[i*2] = bt;
       bt->setCheckable( true );
-      bgrp->addButton( bt );
+      bgrp->addButton( bt, i*2 );
       bt->setFocusPolicy( Qt::NoFocus );
       bt->setGeometry( 11, 290+25*i, 20, 20 );
       _bombs[i*2] = new QLCDNumber( this );
@@ -153,13 +154,16 @@ QRScoreBox::QRScoreBox( const QPixmap * const * sprites, QWidget *parent,
       bt = new QPushButton( this );
       _bombsT[i*2+1] = bt;
       bt->setCheckable( true );
-      bgrp->addButton( bt );
+      bgrp->addButton( bt, i*2+1 );
       bt->setFocusPolicy( Qt::NoFocus );
       bt->setGeometry( 67, 290+25*i, 20, 20 );
       _bombs[i*2+1] = new QLCDNumber( this );
       _bombs[i*2+1]->setDigitCount( 2 );
       _bombs[i*2+1]->setGeometry( 89, 290+25*i, 30, 20 );
     }
+
+  connect( bgrp, SIGNAL( buttonClicked( int ) ), 
+           this, SLOT( bombSelected( int ) ) );
 
   resize( 128, 384 );
 }
@@ -239,6 +243,7 @@ void QRScoreBox::changeScore()
       _bombsT[ _bombToLaunch ]->setPalette( QPalette() );
     _bombToLaunch = pl.bombToLaunch;
     _bombsT[ _bombToLaunch ]->setPalette( QColor( 100, 100, 255 ) );
+    _bombsT[ _bombToLaunch ]->setChecked( true );
   }
 
   if( _keyid != pl.key )
@@ -284,6 +289,13 @@ void QRScoreBox::setKey( int key )
 }
 
 
+void QRScoreBox::bombSelected( int num )
+{
+  out << "bombSelected " << num << endl;
+  Player        &pl = (*game.tbct.players)[ _player ];
+  if( _bombgroup->checkedId() >= 0 )
+    pl.bombToLaunch = _bombgroup->checkedId();
+}
 
 
 

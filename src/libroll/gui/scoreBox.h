@@ -23,6 +23,7 @@
 #include <qlabel.h>
 #include <qlcdnumber.h>
 class QPushButton;
+class QButtonGroup;
 
 
 /**	Barre de scores, timing
@@ -53,6 +54,7 @@ public slots:
   void oneLessSecond();
   ///	Demande de réaffichage des scores
   void changeScore();
+  void bombSelected( int );
 
 signals:
 
@@ -68,6 +70,7 @@ protected:
   QLCDNumber	*_bombs[8];
   QFrame	*_key;
   QPushButton	*_bombsT[8];
+  QButtonGroup  *_bombgroup;
   const QPixmap * const * _sprites;
   int           _bombToLaunch;
   int           _keyid;
