@@ -220,7 +220,7 @@ GElem* RElemFactory::createElem( unsigned num )
     case 215:
     case 216:
     case 217:
-    case 0x10c:  // bÃ©bettes page 1
+    case 0x10c:  // blobs page 1
     case 0x10d:
     case 0x10e:
     case 0x134:

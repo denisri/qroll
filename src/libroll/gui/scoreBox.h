@@ -31,61 +31,28 @@ class QRScoreBox : public QWidget
   Q_OBJECT
 
 public:
-  /**@name	Constructeur - destructeur */
-  //@{
-  ///
-  QRScoreBox( QWidget *parent=0, const char *name="scoreBox" );
-  ///
+  QRScoreBox( const QPixmap * const * sprites, QWidget *parent=0, 
+              const char *name="scoreBox" );
   ~QRScoreBox();
-  //@}
 
-  /**@name	Fonctions */
-  //@{
-  ///
   unsigned time() const;
-  ///
   unsigned score() const;
-  ///
   unsigned lives() const;
-  ///
   unsigned diams() const;
-  // /
-  //void pause();
-  // /
-  //void cont();
-  ///
   void changeStage();
-  ///
   void setTime( unsigned t );
-  // /
-  //void startTime( unsigned t );
-  // /
-  //void stopTime();
-  ///
   void setScore( unsigned score );
-  ///
   void setLives( unsigned lives );
-  ///
   void setDiams( unsigned diams );
-  ///
   void setPlayer( unsigned num );
-  //@}
+  void setBombs( unsigned bombid, unsigned num );
 
 public slots:
-  /**@name	slots: */
-  //@{
-  ///
   void oneLessSecond();
   ///	Demande de réaffichage des scores
   void changeScore();
-  //@}
 
 signals:
-  /**@name	signals: */
-  //@{
-  // /
-  //void timeout();
-  //@}
 
 protected:
   QLabel	*_timeLabel;
@@ -99,7 +66,8 @@ protected:
   QLCDNumber	*_bombs[8];
   QFrame	*_key;
   QFrame	*_bombsT[8];
-  //QTimer	*_timer;
+  const QPixmap * const * _sprites;
+  int           _bombToLaunch;
   unsigned	_player;
 
 private:

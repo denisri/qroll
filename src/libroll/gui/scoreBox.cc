@@ -22,12 +22,15 @@
 #include <roll/game/vars.h>
 #include <roll/game/playerServer.h>
 #include <roll/sound/soundProcessor.h>
+#include <qlayout.h>
 
 using namespace roll;
+using namespace std;
 
 
-QRScoreBox::QRScoreBox( QWidget *parent, const char *name ) 
-  : QWidget( parent )
+QRScoreBox::QRScoreBox( const QPixmap * const * sprites, QWidget *parent, 
+                        const char *name ) 
+  : QWidget( parent ), _sprites( sprites ), _bombToLaunch( -1 )
 {
   if( name )
     setObjectName( name );
@@ -128,16 +131,24 @@ QRScoreBox::QRScoreBox( QWidget *parent, const char *name )
 
   for( int i=0; i<4; ++i )
     {
-      _bombsT[i*2] = new QFrame( this );
-      _bombsT[i*2]->setFrameStyle( PanelStyle );
-      _bombsT[i*2]->setGeometry( 12, 293+25*i, 16, 16 );
+      QFrame *fr = new QFrame( this );
+      _bombsT[i*2] = fr;
+      fr->setFrameStyle( PanelStyle );
+      fr->setGeometry( 12, 290+25*i, 20, 20 );
+      QVBoxLayout *lay = new QVBoxLayout( fr );
+      fr->setLayout( lay );
+      lay->setMargin( 2 );
       _bombs[i*2] = new QLCDNumber( this );
       _bombs[i*2]->setDigitCount( 2 );
       _bombs[i*2]->setGeometry( 32, 290+25*i, 30, 20 );
 
-      _bombsT[i*2+1] = new QFrame( this );
-      _bombsT[i*2+1]->setFrameStyle( PanelStyle );
-      _bombsT[i*2+1]->setGeometry( 68, 293+25*i, 16, 16 );
+      fr = new QFrame( this );
+      _bombsT[i*2+1] = fr;
+      fr->setFrameStyle( PanelStyle );
+      fr->setGeometry( 68, 290+25*i, 20, 20 );
+      lay = new QVBoxLayout( fr );
+      fr->setLayout( lay );
+      lay->setMargin( 2 );
       _bombs[i*2+1] = new QLCDNumber( this );
       _bombs[i*2+1]->setDigitCount( 2 );
       _bombs[i*2+1]->setGeometry( 88, 290+25*i, 30, 20 );
@@ -204,6 +215,27 @@ void QRScoreBox::changeScore()
 
   if( score() != pl.score )
     setScore( pl.score );
+
+  map<unsigned, unsigned>::iterator ib, eb = pl.bombs.end();
+  unsigned i = 0;
+
+  for( ib=pl.bombs.begin(); ib!=eb; ++ib )
+  {
+    if( ib->second != _bombs[ ib->first ]->intValue() )
+      setBombs( ib->first, ib->second );
+  }
+  for( i=0; i<8; ++i )
+  {
+    if( pl.bombs.find( i ) == eb && _bombs[ i ]->intValue() != 0 )
+      setBombs( i, 0 );
+  }
+  if( (int) pl.bombToLaunch != _bombToLaunch )
+  {
+    if( _bombToLaunch >= 0 )
+      _bombsT[ _bombToLaunch ]->setPalette( QPalette() );
+    _bombToLaunch = pl.bombToLaunch;
+    _bombsT[ _bombToLaunch ]->setPalette( QColor( 100, 100, 255 ) );
+  }
 }
 
 
@@ -214,6 +246,29 @@ void QRScoreBox::setPlayer( unsigned num )
 }
 
 
+void QRScoreBox::setBombs( unsigned bombid, unsigned num )
+{
+  _bombs[ bombid ]->display( (int) num );
+  QLabel *label = _bombsT[ bombid ]->findChild<QLabel *>();
+  if( !label )
+  { out << "no label\n";
+  }
+  if( num == 0 )
+  {
+    if( label )
+      delete label;
+   // label->setPixmap( QPixmap() );
+  }
+  else if( !label )
+  {
+    out << "set pix\n";
+    static unsigned bombspr[8] = { 33, 0x121, 0x199, 0x124, 0, 0, 0, 0 };
+    QPixmap pix = _sprites[ bombspr[bombid] ]->scaled( 16, 16 );
+    label = new QLabel( _bombsT[ bombid ] );
+    label->setPixmap( pix );
+    _bombsT[ bombid ]->layout()->addWidget( label );
+  }
+}
 
 
 

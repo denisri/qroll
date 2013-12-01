@@ -53,14 +53,14 @@ void QRGameField::resizeEvent( QResizeEvent* )
 
 void QRGameField::keyPressedEvent( QKeyEvent* key )
 {
-  cout << "GameField keyPressed\n";
+//   cout << "GameField keyPressed\n";
   key->ignore();
 }
 
 
 void QRGameField::keyReleasedEvent( QKeyEvent* key )
 {
-  cout << "GameField keyReleased\n";
+//   cout << "GameField keyReleased\n";
   key->ignore();
 }
 

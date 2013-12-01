@@ -344,7 +344,7 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
   d->opengl = !usegl;
   setUseOpenGL( usegl );
 
-  d->scoreBox = new QRScoreBox( this, "RRScoreBox" );
+  d->scoreBox = new QRScoreBox( d->parentMW->sprites(), this, "RRScoreBox" );
   d->scoreBox->setFixedWidth( d->scoreBox->width() );
 
   // lay->addWidget( d->game );
