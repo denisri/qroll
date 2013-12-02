@@ -244,7 +244,7 @@ void SeriesArranger::levelsDropped( QDropEvent* event )
 
   QPoint	pos = d->iconv->mapFromParent( event->pos() );
   //cout << "pos: " << pos.x() << ", " << pos.y() << endl;
-  QListWidgetItem	*item;
+  QListWidgetItem	*item = 0;
   QRect	rect, rect0;
   bool	first = true;
   int i, nitem = d->iconv->count();
@@ -396,14 +396,13 @@ void SeriesArranger::insertLevels( unsigned insertpos,
     theQRWin->storeLevel();
 
   vector<QListWidgetItem*>			items;
-  unsigned					j, inum, n = sl.size();
+  unsigned					j, n = sl.size();
   map<unsigned, SimpleLevel>::const_iterator	isl, esl = sl.end();
   QListWidgetItem				*item;
   unsigned ipos = insertpos;
 
   for( j=0, isl=sl.begin(); isl!=esl; ++isl )
   {
-    inum = isl->first;
     if( ser->insertLevel( ipos, isl->second ) < 0 )
     {
       ipos = ser->numLevels();
@@ -418,7 +417,7 @@ void SeriesArranger::insertLevels( unsigned insertpos,
 
   // renum items texts
   int c = d->iconv->count();
-  for( j=0; j<c; ++j )
+  for( j=0; j<(unsigned) c; ++j )
     d->iconv->item( j )->setText( tr( "Level " ) + QString::number( j ) );
 
   if( insertpos <= (unsigned) game.tb )

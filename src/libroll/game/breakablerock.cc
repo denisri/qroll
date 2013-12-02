@@ -37,8 +37,6 @@ RBreakableRock::~RBreakableRock()
 
 void RBreakableRock::doExplode( unsigned x, unsigned y )
 {
-  unsigned long         fl;
-
   if( x == 0 || y == 0 || x+1 == game.tbct.sizeX() 
       || y+1 == game.tbct.sizeY() )
     return;   // in border, do not explode
@@ -62,9 +60,7 @@ void RBreakableRock::doExplode( unsigned x, unsigned y )
 
       if( !(sp_flg[s].l2 & INDES) && !(f & INDE) ) // 1er plan
       {
-//         fl = EXP1;
         ge = elFactory.createElem( explo.d[explo.a[s]][x % 3][y % 3] );
-        ge->f |= fl;
         if( ge->chainExplodes() )
           ge->f |= PETE;
 

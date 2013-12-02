@@ -821,7 +821,7 @@ void QLevelParams::newExplosion()
 
   for( i=0; i<512; ++i )
   {
-    if( expli.a[i] >= 0 && addresses.find( expli.a[i] ) == notused )
+    if( addresses.find( expli.a[i] ) == notused )
     {
       GElem	*elem = elFactory.createElem( i );
       if( elem && elem->isExplosive() )

@@ -73,7 +73,7 @@ void RTriggerButton::deactivate()
 }
 
 
-void RTriggerButton::realProccess( unsigned x, unsigned y )
+void RTriggerButton::realProccess( unsigned, unsigned )
 {
   deactivate();
 }

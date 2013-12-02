@@ -27,7 +27,7 @@ using namespace roll;
 using namespace std;
 
 
-LevelsDrag::LevelsDrag( QWidget * dragSource, const char * name )
+LevelsDrag::LevelsDrag( QWidget * /* dragSource */, const char * /* name */ )
   : QMimeData( /*dragSource, name*/ )
 {
 }
