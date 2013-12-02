@@ -46,6 +46,7 @@
 #include <roll/game/dynamite.h>
 #include <roll/game/triggerButton.h>
 #include <roll/game/triggerCover.h>
+#include <roll/game/breakablerock.h>
 
 #include <roll/game/vars.h>
 
@@ -468,9 +469,13 @@ GElem* RElemFactory::createElem( unsigned num )
     case 0x1b0:
     case 0x1d8:
       return( new RFallingEatable( num ) );
-    case 0x1bf:  // rock cassable
+    case 0x11f: // egg
+    case 0x147: // breaking egg
+    case 0x16f: // breaking egg
+    case 0x197: // breaking egg
+    case 0x1bf: // rock cassable
     case 0x1e7:
-      return( new Rock( num ) );
+      return( new RBreakableRock( num ) );
     case 186:  // mur bouffeur
       return( new RHoleWall( num ) );
     case 255:

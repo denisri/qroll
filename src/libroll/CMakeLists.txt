@@ -42,6 +42,7 @@ set( _sources
   game/ball.cc
   game/blob.cc
   game/bomb.cc
+  game/breakablerock.cc
   game/burningBomb.cc
   game/button.cc
   game/closeDoor.cc
@@ -146,6 +147,7 @@ set( _headers
   "game/ball.h"
   "game/blob.h"
   "game/bomb.h"
+  "game/breakablerock.h"
   "game/burningBomb.h"
   "game/button.h"
   "game/closeDoor.h"

@@ -61,8 +61,6 @@ namespace roll
     virtual ~GElem();
     //@}
 
-    /**@name	Fonctions */
-    //@{
     ///	Sprite à afficher (quand seul)
     virtual unsigned short sprite( RBack* back = 0 ) const;
     ///	Sprite qui bouge (ou vide s'il n'y en a pas)
@@ -84,7 +82,8 @@ namespace roll
     /** ID identifying this particular element - used for packing / saving
 	/ transmitting levels by network from elements numbers */
     virtual unsigned short idNumber() const { return( s ); }
-    //@}
+    /// this method also commits suicide (deletes this)
+    virtual void doExplode( unsigned x, unsigned y );
 
     /**@name	Propriétés de la classe */
     //@{

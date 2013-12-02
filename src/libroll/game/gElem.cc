@@ -177,18 +177,16 @@ void GElem::realProcess( unsigned, unsigned )
 }
 
 
-void GElem::explode( unsigned x, unsigned y )
+void GElem::doExplode( unsigned x, unsigned y )
 {
-  int			i,j;
-  unsigned long		fl;
-  GElem			*el = game.tbct.d[x][y];
-  unsigned short	s = el->s;
+  int                   i,j;
+  unsigned long         fl;
 
-  if( el->isExplosive() )
+  if( isExplosive() )
   {
     if( x == 0 || y == 0 || x+1 == game.tbct.sizeX() 
         || y+1 == game.tbct.sizeY() )
-      return;	// au bord, on ne pète pas.
+      return;   // au bord, on ne pète pas.
 
     for( j=0; j<3; ++j ) for( i=0; i<3; ++i )
     {
@@ -196,7 +194,7 @@ void GElem::explode( unsigned x, unsigned y )
       if( !(sp_flg[bk->s].l2 & BC_INDES) && !(bk->f & BI_INDE) )
         // background destructible
       {
-        //	change background
+        //      change background
         delete bk;
         bk = backFactory.createBack( explo.d[explo.a[s]][i][j] );
 
@@ -221,6 +219,14 @@ void GElem::explode( unsigned x, unsigned y )
     }
     RRSoundProcessor::processor().process( RollSoundBank::EXPLO );
   }
+}
+
+
+void GElem::explode( unsigned x, unsigned y )
+{
+  GElem	*el = game.tbct.d[x][y];
+  if( el )
+    el->doExplode( x, y );
 }
 
 

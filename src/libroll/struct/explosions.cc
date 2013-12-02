@@ -100,11 +100,14 @@ void RExplosions::load( const string & nom )
       a[i+j*40+0x100] = a[34];
     }
 
-  // Pareil bombes
+  // Same for bombs
   a[73] = a[113] = a[33];
   a[0x149] = a[0x171] = a[0x121];
   a[0x1c1] = a[0x1e9] = a[0x199];
   a[0x14c] = a[0x174] = a[0x124];
+  // Same for breakable rocks and eggs
+  a[0x147] = a[0x16f] = a[0x197] = a[0x11f];
+  a[0x1e7] = a[0x1bf];
 }
 
 
