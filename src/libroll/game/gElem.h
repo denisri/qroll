@@ -108,6 +108,7 @@ namespace roll
     virtual AnimType animType() const;
     virtual bool canFall() const { return( false ); }
     virtual bool canMove() const { return( false ); }
+    virtual bool canBePushed() const;
     ///	se mange (par Roll)
     virtual bool isEatable() const { return( false ); }
     ///	est écrasable par el ?

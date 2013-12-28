@@ -248,6 +248,12 @@ bool GElem::canBeInBorder() const
 }
 
 
+bool GElem::canBePushed() const
+{
+  return ( sp_flg[s].l1 & POUSS ) != 0;
+}
+
+
 
 //	Vide
 

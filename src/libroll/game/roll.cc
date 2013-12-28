@@ -412,7 +412,7 @@ bool Roll::poss( unsigned i, unsigned j, int pouss, int mec )
 
   GElem	*& efar = * (&game.tbct.d[i+pouss][j]);
 
-  if( pouss != 0 && (flag & POUSS) && (efar->s==255)
+  if( pouss != 0 && enear->canBePushed() && (efar->s==255)
       && !(game.tbct.d[i+pouss][j-1]->f & ROUL) )
     {
       RRSoundProcessor::processor().processIfNotUsed( RollSoundBank::ROLL_PUSH );

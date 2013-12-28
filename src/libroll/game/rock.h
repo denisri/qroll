@@ -48,6 +48,7 @@ namespace roll
     virtual bool canEat( const GElem* el ) const { return( el->isEmpty() ); }
     virtual RollSoundBank::SNDLIST soundWhenFalls() const
     { return( RollSoundBank::ROCK ); }
+    virtual bool canBePushed() const { return true; }
 
   protected:
     virtual void realProcess( unsigned x, unsigned y );
