@@ -19,9 +19,36 @@ alink="#FF0000">
 <b><font color="#000099">&nbsp;ROCK'N'ROLL Changes list</font></b></h2></center>
 
 <hr width="100%">
-<h4>
-02/09/07 - version 0.7-non-final</h4>
-Version 0.7 is <b>NOT finished</b>, it's just a pre-release
+
+<h4>2013/12/30 - version 0.8</h4>
+
+More than 6 years later... still not dead (not completely)...
+<ul>
+<li>Partial porting to Android. Still a proof of concept and work in progress.
+  <ul>
+  <li>The game globally works.</li>
+  <li>Controls are bound to "gesture events": pan/drag for moves, double tap + pan for fire + direction, long tap for space/bombs... but user experience is not good: the precision of controls is bad, so it needs more work.
+  </li>
+  <li>Many edition/control/settings windows do not work properly, crash or hang. I suspect a number of malfunctions are caused by Qt (wich is not completely ported to Android yet), especially the file browser to load levels crashes or hangs quite often and I cannot do much about it.</li>
+  <li>No sound yet.</li>
+  <li>I could not make the OpenGL renderings to work, so keep with the basic Qt renderings.</li>
+  <li>Network has not been tested at all, so don't really expect it to work.</li>
+  </ul>
+</li>
+<li>Porting to Qt 5. Both Qt 4 or 5 are supported currently. Qt3 support has been dropped (or has not been tested for years).</li>
+<li>A few fixes in game elements and levels.</li>
+<li>A few new game elements have been coded: eggs and breakable rocks, triggers, (is that all?)</li>
+<li>New binary distributions modes, using .deb packages for Ubuntu, or Qt Installer Framework for other architectures (exept android which has its .apk format).
+</li>
+<li>OpenGL rendering uses fewer textures, which sometimes could result in blank textures.</li>
+<li>Sound can use Alsa, old OSS or similar (linux/solaris), or QSound, or Qt Phonon. But still does not work on all architectures...
+</li>
+<li>Build system change: now using CMake.</li>
+</ul>
+
+
+<h4>02/09/07 - version 0.7-non-final</h4>
+Version 0.7 has never been finished, there was only a pre-release.
 <ul>
 <li>
 <b>Porting to MacOS X:</b> QRoll now runs on Mac too...</li>

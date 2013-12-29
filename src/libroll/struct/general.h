@@ -2,7 +2,7 @@
                           general.h  -  description
                              -------------------
     begin                : 1999
-    copyright            : (C) 2000-2006 by Denis Riviï¿½re
+    copyright            : (C) 2000-2006 by Denis Riviere
     email                : nudz@free.fr
                            http://nudz.free.fr
  ***************************************************************************/
