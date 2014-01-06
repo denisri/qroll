@@ -944,21 +944,28 @@ void QRMainWin::initPixmaps()
 
   for( j=0; j<12; ++j )
     for( i=0; i<20; ++i )
-      {
-	if( j < 6 ) num = j*40 + i;
-	else num = (j-6)*40 + 20 + i;
+    {
+      if( j < 6 ) num = j*40 + i;
+      else num = (j-6)*40 + 20 + i;
 #if defined( _WIN32 ) && defined( WIN32_AVOID_PIXMAPS )
-	_osprite[ num ] = new QImage( image1.copy( i*W, j*H, W, H ) );
-	_osprite[ num+256 ] = new QImage( image2.copy( i*W, j*H, W, H ) );
+      _osprite[ num ] = new QImage( image1.copy( i*W, j*H, W, H ) );
+      _osprite[ num+256 ] = new QImage( image2.copy( i*W, j*H, W, H ) );
 #else
-	_osprite[ num ]->convertFromImage( image1.copy( i*W, j*H, W, H ) );
-	_osprite[ num+256 ]->convertFromImage( image2.copy( i*W, j*H, W, H ) );
+#if QT_VERSION >= 0x040700
+      _osprite[ num ]->convertFromImage( image1.copy( i*W, j*H, W, H ) );
+      _osprite[ num+256 ]->convertFromImage( image2.copy( i*W, j*H, W, H ) );
+#else
+      // Qt >= 4 and < 4.7 doesn(t have QPixmap::convertFromImage
+      *_osprite[ num ] = QPixmap::fromImage( image1.copy( i*W, j*H, W, H ) );
+      *_osprite[ num+256 ] = QPixmap::fromImage(
+        image2.copy( i*W, j*H, W, H ) );
 #endif
-	convertSprite( image1, i*W, j*H, W, H, 
-		       _greySprite[ num ], _colorSprite[ num ] );
-	convertSprite( image2, i*W, j*H, W, H, 
-		       _greySprite[ num+256 ], _colorSprite[ num+256 ] );
-      }
+#endif
+      convertSprite( image1, i*W, j*H, W, H,
+                      _greySprite[ num ], _colorSprite[ num ] );
+      convertSprite( image2, i*W, j*H, W, H,
+                      _greySprite[ num+256 ], _colorSprite[ num+256 ] );
+    }
 }
 
 
