@@ -999,14 +999,22 @@ void QRMainWin::genPixmaps()
 
   for( j=0; j<12; ++j )
     for( i=0; i<20; ++i )
-      {
-	if( j < 6 ) num = j*40 + i;
-	else num = (j-6)*40 + 20 + i;
-	fillImage( img, num );
-	_sprite[ num ]->convertFromImage( img );
-	fillImage( img, num+256 );
-	_sprite[ num+256 ]->convertFromImage( img );
-      }
+    {
+      if( j < 6 ) num = j*40 + i;
+      else num = (j-6)*40 + 20 + i;
+      fillImage( img, num );
+#if QT_VERSION >= 0x040700
+      _sprite[ num ]->convertFromImage( img );
+#else
+      *_sprite[ num ] = QPixmap::fromImage( img );
+#endif
+      fillImage( img, num+256 );
+#if QT_VERSION >= 0x040700
+      _sprite[ num+256 ]->convertFromImage( img );
+#else
+      *_sprite[ num+256 ] = QPixmap::fromImage( img );
+#endif
+    }
 }
 
 
@@ -1644,10 +1652,14 @@ QPixmap QRMainWin::originalSprite( unsigned short num ) const
 {
 #if defined( _WIN32 ) && defined( WIN32_AVOID_PIXMAPS )
   QPixmap	pix;
+#if QT_VERSION >= 0x040700
   pix.convertFromImage( *_osprite[ num ] );
-  return( pix );
 #else
-  return( *_osprite[ num ] );
+  pix = QPixmap::fromImage( *_osprite[ num ] );
+#endif
+  return pix;
+#else
+  return *_osprite[ num ];
 #endif
 }
 
