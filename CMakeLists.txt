@@ -116,7 +116,7 @@ endif()
 
 add_definitions( ${QROLL_DEFINITIONS} )
 
-set( QROLL_INCLUDE_DIR ${PROJECT_BINARY_DIR}/include )
+set( QROLL_INCLUDE_DIR ${CMAKE_BINARY_DIR}/include )
 include_directories( "${QROLL_INCLUDE_DIR}" )
 
 if( DESIRED_QT_VERSION EQUAL 3 )
