@@ -33,7 +33,7 @@
    needed to "think different"... (even Windows is more standard !)
 */
 # include <OpenGL/gl.h>
-# include <GL/glu.h>
+# include <OpenGL/glu.h>
 #else
 #ifdef ANDROID
 # include <GLES/gl.h>
