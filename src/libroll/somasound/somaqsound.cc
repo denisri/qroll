@@ -114,8 +114,8 @@ bool SomaQSound::isOK() const
 #if QT_VERSION >= 0x050000
   return d->initialized;
 #else
-  cout << "QSound::isAvailable(): " << QSound::isAvailable() << endl;
-  cout << "SomaQSound initialized: " << d->initialized << endl;
+//   cout << "QSound::isAvailable(): " << QSound::isAvailable() << endl;
+//   cout << "SomaQSound initialized: " << d->initialized << endl;
   return QSound::isAvailable() && d->initialized;
 #endif
 }
