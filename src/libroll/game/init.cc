@@ -199,13 +199,13 @@ namespace
 
           comp = followlink( abspath( comp ) );
 
-#ifdef __APPLE__
-          pos = comp.rfind( "/MacOS" );
-#else
           pos = comp.rfind( "/bin/" );
+#ifdef __APPLE__
+          if( pos == string::npos )
+            pos = comp.rfind( "/qroll.app/Contents/MacOS/" );
+#endif
           if( pos == string::npos )
             pos = comp.rfind( '/' );
-#endif
           if( pos != string::npos )
             RR_path = comp.substr( 0, pos+1 ) + "share/qroll";
           else
