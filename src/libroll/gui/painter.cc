@@ -24,11 +24,11 @@
 #include <qpainter.h>
 #include <stack>
 
-#include "paint.xpm"
-#include "fill.xpm"
-#include "rect.xpm"
-#include "copy.xpm"
-#include "pattern.xpm"
+#include "../../../share/icons/paint.xpm"
+#include "../../../share/icons/fill.xpm"
+#include "../../../share/icons/rect.xpm"
+#include "../../../share/icons/copy.xpm"
+#include "../../../share/icons/pattern.xpm"
 
 using namespace roll;
 using namespace std;

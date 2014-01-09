@@ -69,10 +69,10 @@
 #include <roll/game/vars.h>
 
 
-#include "fileopen_xpm.xpm"
-#include "play_xpm.xpm"
-#include "pause_xpm.xpm"
-#include "stop_xpm.xpm"
+#include "../../../share/icons/fileopen_xpm.xpm"
+#include "../../../share/icons/play_xpm.xpm"
+#include "../../../share/icons/pause_xpm.xpm"
+#include "../../../share/icons/stop_xpm.xpm"
 
 using namespace roll;
 using namespace std;

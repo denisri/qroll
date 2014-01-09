@@ -455,7 +455,11 @@ void GameConfig::save()
   if( r != 0 )
   {
     out << "mkdir " << configDir() << endl;
+#ifdef _WIN32
+    mkdir( configDir().c_str() );
+#else
     mkdir( configDir().c_str(), 0770 );
+#endif
   }
   ofstream  f( configFilename().c_str() );
   f << "# Rock'n'Roll configuration file\n";

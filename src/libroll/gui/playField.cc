@@ -36,6 +36,7 @@
 #include <QTouchEvent>
 #include <math.h>
 #endif
+#include <time.h> // for clock() / clock_t
 
 using namespace roll;
 using namespace std;

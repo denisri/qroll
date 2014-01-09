@@ -56,7 +56,7 @@ int main( int argc, char** argv )
   // QApplication::setColorSpec( QApplication::ManyColor );
   new QApplication( argc, argv );
   qApp->setApplicationName( "QRoll" );
-#ifdef _WIN32
+#if defined( _WIN32 ) && QT_VERSION < 0x040000
   QPixmap::setDefaultOptimization( QPixmap::MemoryOptim );
 #endif
 
@@ -83,7 +83,7 @@ int main( int argc, char** argv )
 
   //	translator
   string	path = RR_path + "/po/";
-  string	lang = "default";
+  string	lang = "en";
 
   const char	*lgenv = getenv( "LANG" );
   if( lgenv )
@@ -116,7 +116,9 @@ int main( int argc, char** argv )
   // work around an ugly bidouille
   theGame().tbct.players = PlayerServer::server;
 
+  out << "creating main window\n" << flush;
   QRMainWin	mwin;
+  out << "created.\n" << flush;
 
   qApp->connect( qApp, SIGNAL( lastWindowClosed() ), qApp, SLOT( quit() ) );
 
@@ -126,7 +128,9 @@ int main( int argc, char** argv )
   cap2 += " v. ";
   cap2 += rrVersionString();
   mwin.setWindowTitle( cap2.c_str() );
+  out << "showing\n" << flush;
   mwin.show();
+  out << "shown\n" << flush;
 
   bool	allowSound = true;
 
@@ -144,6 +148,7 @@ int main( int argc, char** argv )
       mwin.soundOnOff();
     }
 
+  out << "running loop\n" << flush;
   return( qApp->exec() );
 }
 
