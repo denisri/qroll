@@ -127,10 +127,12 @@ bool LevelRaw::loadAtari( istream & file, AtariFormatInfo & ai )
   unsigned short	debu = ((unsigned short)c1<<8) + c2;
 
   unsigned 		sparam = debu - 28;
-  vector<unsigned char>	pars( sparam );
+  vector<unsigned char>	pars( sparam + 2 );
 
   for( i=0; i<sparam; ++i )
     file >> pars[i];
+  pars[sparam] = 0;
+  pars[sparam+1] = 0;
 
   //	convert variable parameters to more readable format
 
