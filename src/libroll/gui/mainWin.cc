@@ -375,10 +375,10 @@ QRMainWin::~QRMainWin()
       delete _osprite[ i + 256 ];
     }
 
-  delete _greySprite[0];
-  delete _greySprite[256];
-  delete _colorSprite[0];
-  delete _colorSprite[256];
+  delete[] _greySprite[0];
+  delete[] _greySprite[256];
+  delete[] _colorSprite[0];
+  delete[] _colorSprite[256];
 
   delete d;
 }
