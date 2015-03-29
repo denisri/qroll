@@ -45,7 +45,6 @@ using namespace Qt;
 
 namespace roll
 {
-
 #ifdef ANDROID
 /* on Android, derive a GestureRecognizer for pan gestures, because the
    normal pan only works in two-finger mode, and we want it with one finger */
@@ -390,12 +389,13 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
 #if QT_VERSION >= 0x040600
   grabGesture( Qt::PanGesture );
   grabGesture( Qt::PinchGesture );
-  // grabGesture( Qt::SwipeGesture );
+//  grabGesture( Qt::SwipeGesture );
   grabGesture( Qt::TapGesture );
-  // grabGesture( Qt::TapAndHoldGesture ); // handle this in tap.
+//  grabGesture( Qt::TapAndHoldGesture ); // handle this in tap.
   grabGesture( DoubleTapGesture::gtype );
+  parent->grabGesture( DoubleTapGesture::gtype );
 // #if QT_VERSION >= 0x040700
-  // QTapAndHoldGesture::setTimeout( 100 );
+//   QTapAndHoldGesture::setTimeout( 200 );
 // #endif
 #endif
 
@@ -1220,6 +1220,7 @@ bool QRPlayField::gestureEvent( QGestureEvent *event )
   // use tap gestures only during game, otherwise panning is preferred
   if( game.running )
   {
+
     if( QGesture *tap = event->gesture( DoubleTapGesture::gtype ) )
     {
       if( tap->state() == Qt::GestureStarted )

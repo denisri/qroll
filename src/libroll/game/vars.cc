@@ -28,14 +28,14 @@ using namespace std;
 //#define FILE_OUTPUT
 #endif
 #ifdef ANDROID
-#define FILE_OUTPUT
+//#define FILE_OUTPUT
 #endif
 
 namespace roll
 {
 #ifdef FILE_OUTPUT
 #ifdef ANDROID
-  static ofstream	qroll_file( "/sdcard/share/qroll/qroll-log.log" );
+  static ofstream	qroll_file( "/sdcard0/share/qroll/qroll-log.log" );
 #else
   static ofstream	qroll_file( "qroll_out.txt" );
 #endif

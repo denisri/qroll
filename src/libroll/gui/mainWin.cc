@@ -353,6 +353,14 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
   // load game and GUI config
 
   GameConfig::config().load();
+
+#if QT_VERSION >= 0x040600
+  this->grabGesture(Qt::TapGesture);
+//  this->grabGesture(Qt::SwipeGesture);
+  this->grabGesture(Qt::PanGesture);
+  this->grabGesture(Qt::PinchGesture);
+  this->setAttribute(Qt::WA_AcceptTouchEvents);
+#endif
 }
 
 
