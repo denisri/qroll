@@ -18,6 +18,9 @@
 #include "soundbank.h"
 #include "soundslot.h"
 #include <unistd.h>
+#ifdef ANDROID
+#include <QFile>
+#endif
 
 using namespace soma;
 using namespace audiq;
@@ -73,6 +76,31 @@ void SoundBank::loadSounds()
 
     if( !sl.loaded && sl.shouldbeloaded )
     {
+#ifdef ANDROID
+      QFile fstream( sl.filename.c_str() );
+      if( !fstream.open( QIODevice::ReadOnly ) )
+      {
+        sl.valid = false;
+        continue;
+      }
+      if( sl.diffcoded )
+      {
+        // TODO: implement diffcode for QFile streams
+        sl.valid = false;
+        continue;
+      }
+      else
+      {
+        hdr.read( fstream, sl.filename );
+        int sz = hdr.size;
+        sl.buffer.reserve( sz );
+        sl.buffer.insert( sl.buffer.end(), sz, 0 );
+        fstream.read( (char *) &sl.buffer[0], sz );
+      }
+      sl.loaded = true;
+
+#else // not android: use regular fstream
+
       ifstream str( sl.filename.c_str() );
       if( !str )
       {
@@ -99,6 +127,7 @@ void SoundBank::loadSounds()
         str.read( (char *) &sl.buffer[0], sz );
       }
       sl.loaded = true;
+#endif
     }
   }
 }

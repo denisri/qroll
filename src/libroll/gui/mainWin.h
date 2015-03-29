@@ -136,6 +136,7 @@ public slots:
   ///	Network callback
   void playersRenumed( const roll::RenumList & play );
   void about();
+  void rules();
   void soundOnOff();
   void allowScale();
   void standardSize();

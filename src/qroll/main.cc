@@ -62,11 +62,12 @@ int main( int argc, char** argv )
 
   init( argc, argv );		// initialise le jeu, charge les données
 #ifndef SOMA_NO_SOUND
-#ifdef QT_PHONON_LIB
-  // new SomaSoundQtPhonon;
-#endif
 #ifdef SOMA_SOUND_ALSA
   new SomaSoundAlsa;
+#else // alsa works better for now...
+#ifdef QT_PHONON_LIB
+  new SomaSoundQtPhonon;
+#endif
 #endif
 #ifdef SOMA_SOUND_OSS
   new SomaSoundOSS;

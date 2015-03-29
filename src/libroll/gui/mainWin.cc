@@ -52,6 +52,10 @@
 #include <qtimer.h>
 #include <qmessagebox.h>
 #include <qdesktopwidget.h>
+#include <QTextBrowser>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QPushButton>
 
 #include <assert.h>
 #include <iostream>
@@ -290,6 +294,7 @@ QRMainWin::QRMainWin( QWidget *parent, const char *name )
   menuBar()->addSeparator();
   QMenu *helpM = menuBar()->addMenu( tr( "Help" ) );
   helpM->addAction( tr( "About..." ), this, SLOT( about() ) );
+  helpM->addAction( tr( "Game rules" ), this, SLOT( rules() ) );
 
 
   //	Icons bar
@@ -404,6 +409,7 @@ void QRMainWin::load()
   int res = fd->exec();
 #ifdef ANDROID
   _timer->start();
+  fd->setWindowState( Qt::WindowMaximized );
 #endif
   if( res )
     {
@@ -1279,6 +1285,7 @@ void QRMainWin::about()
 
 #ifdef ANDROID
   _timer->stop();
+  ab.setWindowState( Qt::WindowMaximized );
 #endif
 
   ab.exec();
@@ -1287,6 +1294,31 @@ void QRMainWin::about()
   _timer->start();
 #endif
 // #endif
+}
+
+
+void QRMainWin::rules()
+{
+  QDialog dialog;
+  QVBoxLayout *layout = new QVBoxLayout( &dialog );
+  dialog.setLayout( layout );
+  QTextBrowser *browser = new QTextBrowser;
+  layout->addWidget( browser );
+  QHBoxLayout *hlay = new QHBoxLayout;
+  layout->addLayout( hlay );
+  QPushButton *ok = new QPushButton( "OK" );
+  hlay->addStretch();
+  hlay->addWidget( ok );
+  dialog.connect( ok, SIGNAL( clicked() ), &dialog, SLOT( accept() ) );
+//  string source = roll::qRollSharePath() + "/po/" + language() + "/rules.html";
+  string source = roll::qRollSharePath() + "/po/en/rules.html";
+  browser->setSource( QUrl( source.c_str() ) );
+#ifdef ANDROID
+  dialog.setWindowState( Qt::WindowMaximized );
+#else
+  dialog.resize( 800, 600 );
+#endif
+  dialog.exec();
 }
 
 

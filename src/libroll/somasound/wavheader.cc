@@ -15,6 +15,9 @@
 #include "wavheader.h"
 #include <fstream>
 #include <stdexcept>
+#ifdef ANDROID
+#include <QFile>
+#endif
 
 using namespace audiq;
 using namespace std;
@@ -33,14 +36,21 @@ WavHeader::~WavHeader()
 
 void WavHeader::read( const std::string & fname )
 {
+#ifdef ANDROID
+  QFile file( fname.c_str() );
+  if( !file.open( QIODevice::ReadOnly ) )
+    throw runtime_error( string( "cannot open file " ) + fname );
+#else
   ifstream	file( fname.c_str(), ios::in | ios::binary );
   if( !file )
     throw runtime_error( string( "cannot open file " ) + fname );
+#endif
   read( file, fname );
 }
 
 
-void WavHeader::read( istream & file, const string & fname )
+template <typename file_stream>
+void WavHeader::read( file_stream & file, const string & fname )
 {
   filename = fname;
   headerOffset = 44;
@@ -120,6 +130,10 @@ void WavHeader::read( istream & file, const string & fname )
   size = len;
 }
 
+template void WavHeader::read( std::istream &, const std::string & );
+#ifdef ANDROID
+template void WavHeader::read( QFile &, const std::string & );
+#endif
 
 void WavHeader::write( const std::string & fname )
 {

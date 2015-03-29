@@ -18,6 +18,7 @@
 #include <string>
 #include <iostream>
 
+
 namespace audiq
 {
 
@@ -27,7 +28,8 @@ namespace audiq
     ~WavHeader();
 
     void read( const std::string & fname );
-    void read( std::istream & file, const std::string & fname = "" );
+    template <typename file_stream>
+    void read( file_stream & file, const std::string & fname = "" );
     void write( const std::string & fname );
     /// write header into an existing file
     void write( std::ostream & file );
