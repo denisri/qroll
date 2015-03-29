@@ -52,7 +52,11 @@
 #include <qtimer.h>
 #include <qmessagebox.h>
 #include <qdesktopwidget.h>
+#ifdef NO_WEBKIT
 #include <QTextBrowser>
+#else
+#include <QWebView>
+#endif
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
@@ -1302,7 +1306,11 @@ void QRMainWin::rules()
   QDialog dialog;
   QVBoxLayout *layout = new QVBoxLayout( &dialog );
   dialog.setLayout( layout );
+#ifdef NO_WEBKIT
   QTextBrowser *browser = new QTextBrowser;
+#else
+  QWebView *browser = new QWebView;
+#endif
   layout->addWidget( browser );
   QHBoxLayout *hlay = new QHBoxLayout;
   layout->addLayout( hlay );
@@ -1312,7 +1320,11 @@ void QRMainWin::rules()
   dialog.connect( ok, SIGNAL( clicked() ), &dialog, SLOT( accept() ) );
 //  string source = roll::qRollSharePath() + "/po/" + language() + "/rules.html";
   string source = roll::qRollSharePath() + "/po/en/rules.html";
+#ifdef NO_WEBKIT
   browser->setSource( QUrl( source.c_str() ) );
+#else
+  browser->setUrl( QUrl( source.c_str() ) );
+#endif
 #ifdef ANDROID
   dialog.setWindowState( Qt::WindowMaximized );
 #else
