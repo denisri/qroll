@@ -188,6 +188,9 @@ void GElem::doExplode( unsigned x, unsigned y )
         || y+1 == game.tbct.sizeY() )
       return;   // au bord, on ne pète pas.
 
+    unsigned short my_s = s; // keep this to avoid using the deleted one
+    // from this after deleting myself
+
     for( j=0; j<3; ++j ) for( i=0; i<3; ++i )
     {
       RBack *&bk = game.tbct.b[x+i-1][y+j-1];
@@ -196,7 +199,7 @@ void GElem::doExplode( unsigned x, unsigned y )
       {
         //      change background
         delete bk;
-        bk = backFactory.createBack( explo.d[explo.a[s]][i][j] );
+        bk = backFactory.createBack( explo.d[explo.a[my_s]][i][j] );
 
         GElem *& ge = game.tbct.d[x+i-1][y+j-1];
 
@@ -208,8 +211,8 @@ void GElem::doExplode( unsigned x, unsigned y )
             ge->f |= PETE | fl;
           else
           {
-            delete ge;
-            ge = elFactory.createElem( explo.d[explo.a[s]][i][j] );
+            delete ge; // may delete this
+            ge = elFactory.createElem( explo.d[explo.a[my_s]][i][j] );
             ge->f |= fl;
             if( ge->chainExplodes() )
               ge->f |= PETE;
