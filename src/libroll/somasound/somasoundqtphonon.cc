@@ -47,7 +47,7 @@ struct SomaSoundQtPhonon::Private
 SomaSoundQtPhonon::SomaSoundQtPhonon()
   : SomaSoundProcessor(), d( new Private )
 {
-  cout << "SomaSoundQtPhonon instantiated\n";
+  qDebug( "SomaSoundQtPhonon instantiated\n" );
 }
 
 

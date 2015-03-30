@@ -13,6 +13,7 @@
 #include "../libroll/somasound/somasoundalsa.h"
 #include "../libroll/somasound/somaqsound.h"
 #include "../libroll/somasound/somasoundqtphonon.h"
+//#include "../libroll/somasound/somaqaudiooutput.h"
 #include <qtranslator.h>
 #ifdef __APPLE__
 #include <unistd.h>
@@ -62,17 +63,23 @@ int main( int argc, char** argv )
 
   init( argc, argv );		// initialise le jeu, charge les données
 #ifndef SOMA_NO_SOUND
+//  qDebug( "QAudioOutput sound" );
+//  new SomaQAudioOutput;
 #ifdef SOMA_SOUND_ALSA
+  qDebug( "ALSA enabled." );
   new SomaSoundAlsa;
 #else // alsa works better for now...
 #ifdef QT_PHONON_LIB
+  qDebug( "Phonon enabled." );
   new SomaSoundQtPhonon;
 #endif
 #endif
 #ifdef SOMA_SOUND_OSS
+  qDebug( "OSS sound enabled." );
   new SomaSoundOSS;
 #endif
 #ifndef SOMA_NO_QSOUND
+  qDebug( "QSound enabled." );
   new SomaQSound;
 #endif
 #endif
@@ -80,7 +87,7 @@ int main( int argc, char** argv )
   SomaSoundProcessor::processor().setSoundBank( new RollSoundBank );
   SomaSoundProcessor::processor().soundBank().init();
   SomaSoundProcessor::processor().soundBank().loadSounds();
-  cout << "sounds loaded\n";
+  qDebug( "sounds loaded\n" );
 
   //	translator
   string	path = RR_path + "/po/";
