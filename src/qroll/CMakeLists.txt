@@ -7,7 +7,11 @@ if( APPLE )
 #  set( _targetname qroll-bin )
 endif( APPLE )
 
-add_executable( ${_targetname} ${_guiExecutable} main.cc )
+if( brainvisa_enabled )
+  brainvisa_add_executable( ${_targetname} ${_guiExecutable} main.cc )
+else()
+  add_executable( ${_targetname} ${_guiExecutable} main.cc )
+endif()
 target_link_libraries( ${_targetname} roll ${QROLL_LIBRARIES} )
 
 if( brainvisa_enabled )
