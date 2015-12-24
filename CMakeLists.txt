@@ -161,8 +161,8 @@ if( brainvisa_enabled )
   # BRAINVISA_CREATE_CMAKE_CONFIG_FILES()
 
   # installer part
-#  BRAINVISA_FIND_PACKAGE( brainvisa-installer QUIET )
-#   if( brainvisa-installer_FOUND )
+  BRAINVISA_FIND_PACKAGE( brainvisa-installer QUIET )
+  if( brainvisa-installer_FOUND )
     if( WIN32 )
       add_custom_target( qroll-icons
         "${CMAKE_COMMAND}" -E copy_file "${CMAKE_CURRENT_SOURCE_DIR}/share/icons/rockroll.xpm" "${CMAKE_BINARY_DIR}/share/brainvisa/installer/images/rockroll.xpm"
@@ -177,7 +177,7 @@ if( brainvisa_enabled )
       )
     endif()
     add_dependencies( qroll qroll-icons )
-#   endif()
+  endif()
 
 else()
 
