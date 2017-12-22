@@ -4758,7 +4758,7 @@ user config files (no DLLs in windows directories, no registers modified).
 # PROBLEMS OR QUESTIONS
 
 
-Visit http://www.anatomist.info or http://www.brainvisa.info web sites.
+Visit http://www.brainvisa.info web site.
 
 ''')
 
@@ -4848,7 +4848,7 @@ brainvisa directory (with 'rm -rf ''' + baseName + '''')
 # PROBLEMS OR QUESTIONS
 
 
-Visit http://www.anatomist.info or http://www.brainvisa.info web sites.
+Visit http://www.brainvisa.info web site.
 
 ''')
 
