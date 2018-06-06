@@ -45,7 +45,7 @@ using namespace Qt;
 
 namespace roll
 {
-#ifdef ANDROID
+// #ifdef ANDROID
 /* on Android, derive a GestureRecognizer for pan gestures, because the
    normal pan only works in two-finger mode, and we want it with one finger */
 
@@ -137,7 +137,7 @@ namespace roll
     gesture->setProperty( "offset", QPointF( 0, 0 ) );
   }
 
-#endif
+// #endif
 
 #if QT_VERSION >= 0x040600
 
@@ -326,13 +326,13 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
   d->layout = lay;
 #ifdef ANDROID // keep max of screen space
   lay->setMargin( 0 );
-  QGestureRecognizer::registerRecognizer( new RRPanGestureRecognizer );
 #else
   lay->setMargin( 2 );
 #endif
   lay->setSpacing( 0 );
   setLayout( lay );
 #if QT_VERSION >= 0x040600
+  QGestureRecognizer::registerRecognizer( new RRPanGestureRecognizer );
   DoubleTapGesture::gtype
       = QGestureRecognizer::registerRecognizer( new RRDoubleTapGestureRecognizer );
 #endif
@@ -397,6 +397,8 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
 // #if QT_VERSION >= 0x040700
 //   QTapAndHoldGesture::setTimeout( 200 );
 // #endif
+  // not needed, done by grabGesture:
+  // setAttribute( Qt::WA_AcceptTouchEvents );
 #endif
 
   //setActiveWindow();
