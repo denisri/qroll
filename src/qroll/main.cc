@@ -54,6 +54,13 @@ int main( int argc, char** argv )
 
   setArgv0( argv[0] );
 
+  if( argc > 1 && ( string( argv[1] ) == "-h"
+                    || string( argv[1] ) == "--help" ) )
+  {
+    cout << "qroll -- Rock'N'Roll Boulderdash-like game.\n";
+    exit(0);
+  }
+
   // QApplication::setColorSpec( QApplication::ManyColor );
   new QApplication( argc, argv );
   qApp->setApplicationName( "QRoll" );

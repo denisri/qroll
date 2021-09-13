@@ -7,6 +7,13 @@ using namespace std;
 
 int main( int argc, char** argv )
 {
+  if( argc > 1 && ( string( argv[1] ) == "-h"
+                    || string( argv[1] ) == "--help" ) )
+  {
+    cout << "qrsndconv -- convert .wav sound files to Rock'N'Roll simple compressed format.\n";
+    exit(0);
+  }
+
   if( argc != 2 )
     {
       cerr << "Usage : " << argv[0] << "file.wav\n";
