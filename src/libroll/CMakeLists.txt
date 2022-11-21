@@ -1,30 +1,4 @@
 
-if( NOT brainvisa_enabled )
-
-  macro( BRAINVISA_ADD_MOC_FILES _sources )
-    foreach( _current_FILE ${ARGN} )
-      get_filename_component( _tmp_FILE ${_current_FILE} ABSOLUTE )
-      file( READ "${_tmp_FILE}" _content )
-      string( REGEX MATCH Q_OBJECT _match "${_content}" )
-      if( _match )
-        get_filename_component( _basename ${_tmp_FILE} NAME_WE )
-        set( _moc ${CMAKE_CURRENT_BINARY_DIR}/${_basename}.moc.cpp )
-        if( DESIRED_QT_VERSION EQUAL 3 )
-          add_custom_command(OUTPUT ${_moc}
-            COMMAND ${QT_MOC_EXECUTABLE}
-            ARGS ${_tmp_FILE} -o ${_moc}
-            DEPENDS ${_tmp_FILE}
-          )
-        else()
-          QT4_GENERATE_MOC( "${_tmp_FILE}" "${_moc}" )
-        endif()
-        set(${_sources} ${${_sources}} "${_moc}" )
-      endif()
-    endforeach()
-  endmacro()
-
-endif() # brainvisa_enabled
-
 set( _sources 
   struct/workLevel.cc
   struct/series.cc
@@ -231,15 +205,29 @@ set( _headers
   socket/netMessages.h
 )
 
-if( NOT DESIRED_QT_VERSION EQUAL 5 )
-  BRAINVISA_ADD_MOC_FILES( _sources ${_headers} )
-endif()
-
 add_library( roll SHARED ${_sources} )
 set_property( TARGET roll PROPERTY VERSION ${${PROJECT_NAME}_VERSION} )
 target_link_libraries( roll ${QROLL_LIBRARIES} )
 if( DESIRED_QT_VERSION EQUAL 5 )
-  qt5_use_modules( roll Widgets Network Multimedia OpenGL )
+#   qt5_use_modules( roll Widgets Network Multimedia OpenGL )
+  target_link_libraries( roll ${Qt5Widgets_LIBRARIES} ${Qt5Network_LIBRARIES}
+                         ${Qt5Multimedia_LIBRARIES} ${Qt5OpenGL_LIBRARIES} )
+  set_property( TARGET roll APPEND PROPERTY INCLUDE_DIRECTORIES
+                ${Qt5Widgets_INCLUDE_DIRS} ${Qt5Network_INCLUDE_DIRS}
+                ${Qt5Multimedia_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} )
+  set_property( TARGET roll APPEND PROPERTY
+                COMPILE_DEFINITIONS_RELEASE QT_NO_DEBUG )
+  set_property( TARGET roll APPEND PROPERTY
+                COMPILE_DEFINITIONS_RELWITHDEBINFO QT_NO_DEBUG)
+  set_property( TARGET roll APPEND PROPERTY
+                COMPILE_DEFINITIONS_MINSIZEREL QT_NO_DEBUG)
+  if( Qt5_POSITION_INDEPENDENT_CODE
+      AND (NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+           OR CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0))
+    set_property( TARGET roll PROPERTY POSITION_INDEPENDENT_CODE
+                  ${Qt5_POSITION_INDEPENDENT_CODE} )
+  endif()
+
 endif()
 
 if( brainvisa_enabled )

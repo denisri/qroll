@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 2.6 )
+cmake_minimum_required( VERSION 3.10 )
 
 set(  brainvisa_enabled "0" )
 set( USE_BRAINVISA_CMAKE TRUE CACHE BOOL "use Brainvisa cmake build system" )
@@ -78,8 +78,8 @@ elseif( DESIRED_QT_VERSION EQUAL 5 )
     # TODO: packaging Qt5
   endif()
 else()
-  # Qt3
-  message( FATAL_ERROR "Qt3 is not supported any longer" )
+  # Qt6
+  message( FATAL_ERROR "Qt6 is not supported yet" )
 #   find_package( QtVersion )
 #   find_package( OpenGL )
 endif()
