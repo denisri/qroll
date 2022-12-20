@@ -130,7 +130,7 @@ QREditPalette::QREditPalette( QWidget* parent, const char* name,
   lay->addWidget( d->scl );
   d->palette = new QGroupBox( d->scl );
   d->pallay = new QGridLayout( d->palette );
-  d->pallay->setMargin( 3 );
+  d->pallay->setContentsMargins( 3, 3, 3, 3 );
   d->pallay->setSpacing( 2 );
   d->palettebgp = new QButtonGroup( d->palette );
   d->palettebgp->setExclusive( true );
@@ -325,7 +325,7 @@ void QREditPalette::scale( float x )
   }
   d->palette = new QGroupBox( d->scl );
   d->pallay = new QGridLayout( d->palette );
-  d->pallay->setMargin( 3 );
+  d->pallay->setContentsMargins( 3, 3, 3, 3 );
   d->pallay->setSpacing( 2 );
   d->palettebgp = new QButtonGroup( d->palette );
   d->palettebgp->setExclusive( true );

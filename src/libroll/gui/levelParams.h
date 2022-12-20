@@ -36,7 +36,7 @@ class QLevelParams : public QWidget
 
 public:
   QLevelParams( QWidget* parent = 0, const char* name = 0, 
-                Qt::WindowFlags f = 0 );
+                Qt::WindowFlags f = Qt::WindowFlags() );
   virtual ~QLevelParams();
 
 public slots:
@@ -89,7 +89,7 @@ namespace roll
 
     public:
       QElemDrawer( int x, QWidget * parent, 
-                   Qt::WindowFlags f=0 );
+                   Qt::WindowFlags f = Qt::WindowFlags() );
       virtual ~QElemDrawer();
 
     signals:
@@ -111,7 +111,7 @@ namespace roll
     public:
       ElementSelector( const std::set<unsigned short> &, QWidget * parent=0, 
                        const QString & name = QString(), bool modal=false,
-                       Qt::WindowFlags f=0 );
+                       Qt::WindowFlags f = Qt::WindowFlags() );
       virtual ~ElementSelector();
 
       int button;

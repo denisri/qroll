@@ -34,7 +34,7 @@ class QRConfigWin : public QWidget
 
 public:
   QRConfigWin( QWidget* parent = 0, const char* name = 0, 
-               Qt::WindowFlags f = 0 );
+               Qt::WindowFlags f = Qt::WindowFlags() );
   virtual ~QRConfigWin();
 
 public slots:

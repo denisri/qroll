@@ -106,7 +106,7 @@ QLevelParams::QLevelParams( QWidget* parent, const char* name,
 
   QHBoxLayout   *mhbl = new QHBoxLayout( this );
   mhbl->setSpacing( 5 );
-  mhbl->setMargin( 2 );
+  mhbl->setContentsMargins( 2, 2, 2, 2 );
   setLayout( mhbl );
   QFrame       *mfr = new QFrame( this );
   mhbl->addWidget( mfr );
@@ -114,7 +114,7 @@ QLevelParams::QLevelParams( QWidget* parent, const char* name,
   mfr->setLayout( mfrl );
   mfr->setFrameStyle( QFrame::Box | QFrame::Sunken );
   mfrl->setSpacing( 5 );
-  mfrl->setMargin( 10 );
+  mfrl->setContentsMargins( 10, 10, 10, 10 );
 
   mfrl->addWidget( new QLabel( tr( "Level :" ), mfr ), 0, 0 );
   d->level = new QSpinBox( mfr );
@@ -125,7 +125,7 @@ QLevelParams::QLevelParams( QWidget* parent, const char* name,
 
   QWidget	*szxhb = new QWidget( mfr );
   QHBoxLayout   *szxhbl = new QHBoxLayout( szxhb );
-  szxhbl->setMargin( 0 );
+  szxhbl->setContentsMargins( 0, 0, 0, 0 );
   mfrl->addWidget( szxhb, 1, 0 );
   szxhb->setLayout( szxhbl );
   szxhbl->setSpacing( 5 );
@@ -187,7 +187,7 @@ QLevelParams::QLevelParams( QWidget* parent, const char* name,
   mfrl->addWidget( ap, 10, 0 );
   ap->setLayout( apl );
   apl->setSpacing( 5 );
-  apl->setMargin( 0 );
+  apl->setContentsMargins( 0, 0, 0, 0 );
   QCheckBox	*colcb = new QCheckBox( tr( "Colors" ), ap );
   apl->addWidget( colcb );
   QCheckBox	*expcb = new QCheckBox( tr( "Explosions" ), ap );
@@ -216,7 +216,7 @@ QLevelParams::QLevelParams( QWidget* parent, const char* name,
   d->colors[3]->setFixedSize( sz );
   d->colors[4]->setFixedSize( sz );
   QVBoxLayout *colpl = new QVBoxLayout( d->colpanel );
-  colpl->setMargin( 5 );
+  colpl->setContentsMargins( 5, 5, 5, 5 );
   colpl->setSpacing( 3 );
   colpl->addWidget( d->colors[0] );
   colpl->addWidget( d->colors[1] );
@@ -246,7 +246,7 @@ QLevelParams::QLevelParams( QWidget* parent, const char* name,
   QFrame   *expgd = new QFrame( d->exppanel );
   exppl->addWidget( expgd );
   QGridLayout	*expgdl = new QGridLayout( expgd );
-  expgdl->setMargin( 0 );
+  expgdl->setContentsMargins( 0, 0, 0, 0 );
   expgdl->setSpacing( 0 );
   expgd->setLayout( expgdl );
   expgd->setFrameStyle( QFrame::Sunken | QFrame::Panel );
@@ -290,7 +290,7 @@ QLevelParams::QLevelParams( QWidget* parent, const char* name,
   blbl->addWidget( new QLabel( tr( "Free :" ), d->blbpanel ) );
   QFrame      *blbgd = new QFrame( d->blbpanel );
   QGridLayout *blbgdl = new QGridLayout( blbgd );
-  blbgdl->setMargin( 0 );
+  blbgdl->setContentsMargins( 0, 0, 0, 0 );
   blbgdl->setSpacing( 0 );
   blbl->addWidget( blbgd );
   blbgd->setFrameStyle( QFrame::Sunken | QFrame::Panel );
@@ -306,7 +306,7 @@ QLevelParams::QLevelParams( QWidget* parent, const char* name,
   blbl->addWidget( new QLabel( tr( "Blocked :" ), d->blbpanel ) );
   blbgd = new QFrame( d->blbpanel );
   blbgdl = new QGridLayout( blbgd );
-  blbgdl->setMargin( 0 );
+  blbgdl->setContentsMargins( 0, 0, 0, 0 );
   blbgdl->setSpacing( 0 );
   blbl->addWidget( blbgd );
   blbgd->setFrameStyle( QFrame::Sunken | QFrame::Panel );
@@ -1078,7 +1078,7 @@ internal::ElementSelector::ElementSelector( const set<unsigned short>
   setWindowTitle( name );
   setModal( modal );
   QVBoxLayout	*lay = new QVBoxLayout( this );
-  lay->setMargin( 10 );
+  lay->setContentsMargins( 10, 10, 10, 10 );
   lay->setSpacing( 10 );
   QGroupBox *grd = new QGroupBox( name, this );
   QGridLayout *gl = new QGridLayout( grd );

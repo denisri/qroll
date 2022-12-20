@@ -22,6 +22,7 @@
 #include <qdatastream.h>
 #include <roll/struct/simpleLevel_d.h>
 #include <roll/struct/general.h>
+#include <QIODevice>
 
 namespace roll
 {

@@ -51,7 +51,6 @@
 #include <qlabel.h>
 #include <qtimer.h>
 #include <qmessagebox.h>
-#include <qdesktopwidget.h>
 #ifdef NO_WEBKIT
 #include <QTextBrowser>
 #else

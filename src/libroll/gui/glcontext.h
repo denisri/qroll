@@ -26,17 +26,33 @@
 
 #ifndef RR_NO_OPENGL
 
+#include <QtGlobal>
+#if QT_VERSION >= 0x060000
+#define USE_OPENGLWIDGET
+#include <QOpenGLWidget>
+#else
 #include <QGLWidget>
+#endif
 
-
+#ifdef USE_OPENGLWIDGET
+class GLWidget : public QOpenGLWidget
+#else
 class GLWidget : public QGLWidget
+#endif
 {
     Q_OBJECT
 public:
+#ifdef USE_OPENGLWIDGET
+    GLWidget( QWidget* parent=0, const char* name=0,
+              const QOpenGLWidget* shareWidget = 0, Qt::WindowFlags f=0 );
+    GLWidget( const QGLFormat& format, QWidget* parent=0, const char* name=0,
+              const QOpenGLWidget* shareWidget = 0, Qt::WindowFlags f=0 );
+#else
     GLWidget( QWidget* parent=0, const char* name=0,
               const QGLWidget* shareWidget = 0, Qt::WindowFlags f=0 );
     GLWidget( const QGLFormat& format, QWidget* parent=0, const char* name=0,
               const QGLWidget* shareWidget = 0, Qt::WindowFlags f=0 );
+#endif
     virtual ~GLWidget();
 };
 

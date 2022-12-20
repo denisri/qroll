@@ -25,6 +25,8 @@ if( NOT brainvisa_enabled )
   endif()
 endif()
 
+set( QROLL_DEFINITIONS )
+
 if( NOT DESIRED_QT_VERSION )
   find_package( Qt REQUIRED )
 endif()
@@ -77,9 +79,23 @@ elseif( DESIRED_QT_VERSION EQUAL 5 )
   if( brainvisa_enabled )
     # TODO: packaging Qt5
   endif()
+elseif( DESIRED_QT_VERSION EQUAL 6 )
+  find_package( Qt6 REQUIRED COMPONENTS Widgets Network Multimedia OpenGL
+                                        OpenGLWidgets )
+  add_definitions( ${Qt6Core_DEFINITIONS} ${Qt6Widgets_DEFINITIONS}
+                   ${Qt6OpenGL_DEFINITIONS} ${Qt6OpenGLWidgets_DEFINITIONS}
+                   ${Qt6Network_DEFINITIONS} ${Qt6Multimedia_DEFINITIONS})
+  include_directories( ${Qt6Core_INCLUDE_DIRS} ${Qt6Widgets_INCLUDE_DIRS}
+                       ${Qt6OpenGL_INCLUDE_DIRS}
+                       ${Qt6OpenGLWidgets_INCLUDE_DIRS}
+                       ${Qt6Network_INCLUDE_DIRS}
+                       ${Qt6Multimedia_INCLUDE_DIRS} )
+  set( QT_LIBRARIES Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets Qt6::Network
+                    Qt6::Multimedia )
+  list( APPEND QROLL_DEFINITIONS "-DRR_NO_OPENGL" )  # fot now: FIXME
 else()
-  # Qt6
-  message( FATAL_ERROR "Qt6 is not supported yet" )
+  # Qt > 6
+  message( FATAL_ERROR "Qt > 6 is not supported yet" )
 #   find_package( QtVersion )
 #   find_package( OpenGL )
 endif()
@@ -89,26 +105,26 @@ if( NOT ALSA_FOUND AND brainvisa_enabled )
   find_package(Alsa) # brainvisa
 endif()
 
-set( QROLL_DEFINITIONS "-DQROLL_EXPORTS" "-DHAS_GLEXT" )
+list( APPEND QROLL_DEFINITIONS "-DQROLL_EXPORTS" "-DHAS_GLEXT" )
 set( QROLL_LIBRARIES ${OPENGL_LIBRARIES} )
 
 if( NOT OPENGL_FOUND )
-  set( QROLL_DEFINITIONS "-DRR_NO_OPENGL" )
+  lit( APPEND QROLL_DEFINITIONS "-DRR_NO_OPENGL" )
 endif()
 
 if (EXISTS '/usr/include/sys/soundcard.h' OR EXISTS '/usr/include/sys/audioio.h' )
-  set( QROLL_DEFINITIONS "${QROLL_DEFINITIONS} -DSOMA_SOUND_OSS" )
+  list( APPEND QROLL_DEFINITIONS "-DSOMA_SOUND_OSS" )
 endif()
 if(ALSA_FOUND)
   include_directories( "${ALSA_INCLUDE_DIR}" )
   if( brainvisa_enabled )
     BRAINVISA_DEPENDENCY(RUN DEPENDS libasound2 RUN)
   endif()
-  set( QROLL_DEFINITIONS "${QROLL_DEFINITIONS} -DSOMA_SOUND_ALSA" )
+  list( APPEND QROLL_DEFINITIONS "-DSOMA_SOUND_ALSA" )
   set( QROLL_LIBRARIES ${QROLL_LIBRARIES} ${ALSA_LIBRARIES} )
 endif()
 if( QT_PHONON_FOUND )
-#   set( QROLL_DEFINITIONS "${QROLL_DEFINITIONS} -DSOMA_SOUND_QTPHONON" )
+#   list( APPEND QROLL_DEFINITIONS "-DSOMA_SOUND_QTPHONON" )
 # QT_PHONON_LIB is already defined in FindQt4
   set( QROLL_LIBRARIES ${QROLL_LIBRARIES} ${QT_PHONON_LIBRARY} )
 else()
@@ -117,7 +133,7 @@ endif()
 if( QT_QTWEBKIT_FOUND )
   set( QROLL_LIBRARIES ${QROLL_LIBRARIES} ${QT_QTWEBKIT_LIBRARY} )
 else()
-  set( QROLL_DEFINITIONS "${QROLL_DEFINITIONS} -DNO_WEBKIT" )
+  list( APPEND QROLL_DEFINITIONS "-DNO_WEBKIT" )
 endif()
 
 add_definitions( ${QROLL_DEFINITIONS} )

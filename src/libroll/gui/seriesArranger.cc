@@ -68,9 +68,9 @@ SeriesArranger::SeriesArranger( QWidget *parent, const char *name,
 
   QMenuBar	*menu = menuBar();
   QMenu	*pop = new QMenu( tr( "Edit" ) );
-  pop->addAction( tr( "Copy" ), this, SLOT( copy() ), CTRL + Key_C );
-  pop->addAction( tr( "Cut" ), this, SLOT( cut() ), CTRL + Key_X );
-  pop->addAction( tr( "Paste" ), this, SLOT( paste() ), CTRL + Key_V );
+  pop->addAction( tr( "Copy" ), this, SLOT( copy() ), CTRL | Key_C );
+  pop->addAction( tr( "Cut" ), this, SLOT( cut() ), CTRL | Key_X );
+  pop->addAction( tr( "Paste" ), this, SLOT( paste() ), CTRL | Key_V );
   pop->addAction( tr( "Delete" ), this, SLOT( deleteSelection() ), 
 		   Key_Delete );
   menu->addMenu( pop );
@@ -153,7 +153,9 @@ QPixmap SeriesArranger::levelPixmap( const SimpleLevel & sl )
 
   QPainter  paint2;
   paint.begin( &pix );
+#if QT_VERSION < 0x060000
   paint.initFrom( d->iconv );
+#endif
 
   // set fastest, poorest quality
   paint.setRenderHint( QPainter::Antialiasing, false );
@@ -166,7 +168,9 @@ QPixmap SeriesArranger::levelPixmap( const SimpleLevel & sl )
       {
         imgs[sp] = QImage( (int) d->scale, (int) d->scale, QImage::Format_RGB32 );
         paint2.begin( &imgs[sp] );
+#if QT_VERSION < 0x060000
         paint2.initFrom( d->iconv );
+#endif
         paint2.scale( d->scale / 32, d->scale / 32 );
         paint2.setRenderHint( QPainter::Antialiasing, false );
         paint2.setRenderHint( QPainter::SmoothPixmapTransform, false );

@@ -20,7 +20,6 @@
 #define QROLL_GUI_SERIESARRANGER_H
 
 #include <qmainwindow.h>
-#include <QLinkedList>
 #include <QMimeData>
 #include <QListWidgetItem>
 #include <map>

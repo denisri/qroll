@@ -325,9 +325,9 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
   QHBoxLayout	*lay= new QHBoxLayout( this );
   d->layout = lay;
 #ifdef ANDROID // keep max of screen space
-  lay->setMargin( 0 );
+  lay->setContentsMargins( 0, 0, 0, 0 );
 #else
-  lay->setMargin( 2 );
+  lay->setContentsMargins( 2, 2, 2, 2 );
 #endif
   lay->setSpacing( 0 );
   setLayout( lay );
@@ -339,7 +339,7 @@ QRPlayField::QRPlayField( const QRMainWin* parentMW, bool usegl,
 
   // d->game = new QWidget( this );
   // QVBoxLayout *vg = new QVBoxLayout( d->game );
-  // vg->setMargin( 0 );
+  // vg->setContentsMargins( 0, 0, 0, 0 );
   // d->game->setLayout( vg );
   d->opengl = !usegl;
   setUseOpenGL( usegl );
@@ -1043,7 +1043,7 @@ bool QRPlayField::panGesture( QPanGesture * gesture )
     d->panning = false;
     if( d->tapkey )
     {
-      QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
+      QKeyEvent kup( QEvent::KeyRelease, d->tapkey, Qt::KeyboardModifier() );
       keyReleasedEvent( &kup );
     }
     return false;
@@ -1102,12 +1102,12 @@ bool QRPlayField::panGesture( QPanGesture * gesture )
 
     if( d->tapkey && d->tapkey != key )
     {
-      QKeyEvent kup( QEvent::KeyRelease, d->tapkey, 0 );
+      QKeyEvent kup( QEvent::KeyRelease, d->tapkey, Qt::KeyboardModifier() );
       keyReleasedEvent( &kup );
       if( d->relativeControls )
         d->panoffset = gesture->offset();
     }
-    QKeyEvent ke( QEvent::KeyPress, key, 0 );
+    QKeyEvent ke( QEvent::KeyPress, key, Qt::KeyboardModifier() );
     keyPressedEvent( &ke );
     d->tapkey = key;
     return true;
@@ -1228,14 +1228,16 @@ bool QRPlayField::gestureEvent( QGestureEvent *event )
       if( tap->state() == Qt::GestureStarted )
       {
         d->doubleTapping = true;
-        QKeyEvent kup( QEvent::KeyPress, Qt::Key_Control, 0 );
+        QKeyEvent kup( QEvent::KeyPress, Qt::Key_Control,
+                       Qt::KeyboardModifier() );
         keyPressedEvent( &kup );
         event->setAccepted( true );
       }
       else if( tap->state() == Qt::GestureFinished
                || tap->state() == Qt::GestureCanceled )
       {
-        QKeyEvent kup( QEvent::KeyRelease, Qt::Key_Control, 0 );
+        QKeyEvent kup( QEvent::KeyRelease, Qt::Key_Control,
+                       Qt::KeyboardModifier() );
         keyReleasedEvent( &kup );
         d->doubleTapping = false;
         event->setAccepted( true );
@@ -1260,7 +1262,8 @@ bool QRPlayField::gestureEvent( QGestureEvent *event )
         else if( tap->state() == GestureFinished
                  && clock() - d->tapAndHoldTimer >= holdTime * CLOCKS_PER_SEC )
         {
-          QKeyEvent kup( QEvent::KeyRelease, Qt::Key_Space, 0 );
+          QKeyEvent kup( QEvent::KeyRelease, Qt::Key_Space,
+                         Qt::KeyboardModifier() );
           keyPressedEvent( &kup );
           keyReleasedEvent( &kup );
           return true;

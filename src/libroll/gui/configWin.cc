@@ -64,7 +64,7 @@ QRConfigWin::QRConfigWin( QWidget* parent, const char* name,
   setWindowTitle( tr( "Rock'n'Roll game configuration" ) );
 
   QVBoxLayout	*mainlay = new QVBoxLayout( this );
-  mainlay->setMargin( 10 );
+  mainlay->setContentsMargins( 10, 10, 10, 10 );
   mainlay->setSpacing( 10 );
   setAttribute( Qt::WA_DeleteOnClose );
   QTabWidget       *tbar = new QTabWidget( this );

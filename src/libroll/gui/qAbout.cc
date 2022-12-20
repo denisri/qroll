@@ -37,12 +37,12 @@
 #include <qpushbutton.h>
 #include <qtimer.h>
 #include <qpainter.h>
-#include <qsound.h>
-#if QT_VERSION < 0x050000
-#include <QX11Info>
-#endif
+#include <QMediaPlayer>
 #include <qnamespace.h>
 #include <qevent.h>
+#if QT_VERSION >= 0x060000
+#include <QAudioOutput>
+#endif
 #include <unistd.h>
 #include <stdio.h>
 #include <math.h>
@@ -126,8 +126,8 @@ namespace
     {
       QPainter	paint( this );
       paint.setClipRect( 0, 0, width(), height() );
-      paint.fillRect( 0, 0, width(), height(), 
-                      QBrush( palette().brush( QPalette::Background ) ) );
+      paint.fillRect( 0, 0, width(), height(),
+                      QBrush( palette().color( QPalette::Window ) ) );
       mustfill = false;
     }
     else if( text && nextline )
@@ -197,7 +197,7 @@ namespace
 
       paint.setClipRect( x, y, w, h );
       paint.fillRect( x, height()-n, w, n,
-                      palette().brush( QPalette::Background ) );
+                      QBrush( palette().color( QPalette::Window ) ) );
       paint.drawText( x, height()+offset, w, h,
                       Qt::AlignHCenter | Qt::AlignBottom, 
                       QString::fromUtf8( line ) );
@@ -241,7 +241,10 @@ struct QAbout::Private
   pthread_t		musThrd;
 #endif
   bool			threadRunning;
-  QSound		*qsound;
+  QMediaPlayer		*qmediaplayer;
+#if QT_VERSION >= 0x060000
+  QAudioOutput          *audiooutput;
+#endif
   bool			diffcoded;
   string		musicfile;
   string		tempfile;
@@ -258,8 +261,10 @@ struct QAbout::Private
 
 
 QAbout::Private::Private()
-  : 
-  qsound( 0 ), 
+  : qmediaplayer( 0 ),
+#if QT_VERSION >= 0x060000
+  audiooutput( 0 ),
+#endif
   diffcoded( false ), useAlsa( false ), useOSS( false ),
   soundBufferSize( 0 )
 #ifdef SOMA_SOUND_ALSA
@@ -281,7 +286,7 @@ QAbout::QAbout( QWidget* parent, const char* name )
   setModal( true );
 
   QVBoxLayout	*lay1 = new QVBoxLayout( this );
-  lay1->setMargin( 10 );
+  lay1->setContentsMargins( 10, 10, 10, 10 );
   lay1->setSpacing( -1 );
   lay1->setObjectName( "lay1" );
   d->edit = new QScrollingLabel( this, "edit" );
@@ -354,12 +359,6 @@ QAbout::QAbout( QWidget* parent, const char* name )
 #else
   bool enableQSound = true;
 #endif
-  if( enableQSound
-#if QT_VERSION < 0x050000
-    && !QSound::isAvailable() 
-#endif
-  )
-    enableQSound = false;
 
   if( enableQSound )
     {
@@ -370,8 +369,14 @@ QAbout::QAbout( QWidget* parent, const char* name )
           file = d->tempfile;
           DiffCode::uncompress( d->musicfile, d->tempfile );
         }
-      d->qsound = new QSound( file.c_str(), this );
-      d->qsound->play();
+      d->qmediaplayer = new QMediaPlayer( this );
+#if QT_VERSION >= 0x060000
+      d->audiooutput = new QAudioOutput;
+      d->qmediaplayer->setSource( QUrl::fromLocalFile( file.c_str() ) );
+#else
+      d->qmediaplayer->setMedia( QUrl::fromLocalFile( file.c_str() ) );
+#endif
+      d->qmediaplayer->play();
     }
   else
     {
@@ -415,10 +420,13 @@ QAbout::~QAbout()
 #endif
 #endif // ABOUT_NO_SOUND
 
-  if( d->qsound )
+  if( d->qmediaplayer )
     {
-      d->qsound->stop();
-      delete d->qsound;
+      d->qmediaplayer->stop();
+      delete d->qmediaplayer;
+#if QT_VERSION >= 0x060000
+      delete d->audiooutput;
+#endif
     }
 
   if( !d->tempfile.empty() )

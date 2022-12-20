@@ -43,7 +43,7 @@ RRClientDialog::RRClientDialog( QWidget* parent, const char* name )
   setModal( true );
 
   QVBoxLayout *lay2 = new QVBoxLayout( this );
-  lay2->setMargin( 10 );
+  lay2->setContentsMargins( 10, 10, 10, 10 );
   setLayout( lay2 );
 
   QGroupBox	*hg = new QGroupBox( tr( "Server address :" ), this );

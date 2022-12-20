@@ -124,7 +124,7 @@ QRScoreBox::QRScoreBox( const QPixmap * const * sprites, QWidget *parent,
   _key->setGeometry( 85, 225, 32, 32 );
   QVBoxLayout *lay = new QVBoxLayout( _key );
   _key->setLayout( lay );
-  lay->setMargin( 0 );
+  lay->setContentsMargins( 0, 0, 0, 0 );
 
   QLabel	*bombsLabel = new QLabel( this );
   bombsLabel->setObjectName( "bombsLabel" );

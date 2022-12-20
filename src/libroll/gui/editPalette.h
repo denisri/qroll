@@ -34,7 +34,7 @@ class QREditPalette : public QMainWindow
 
 public:
   QREditPalette( QWidget* parent = 0, const char* name = 0, 
-                 Qt::WindowFlags f = 0 );
+                 Qt::WindowFlags f = Qt::WindowFlags() );
   virtual ~QREditPalette();
 
   unsigned short selectedSprite() const;
