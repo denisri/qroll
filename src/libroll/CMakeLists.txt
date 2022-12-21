@@ -83,6 +83,7 @@ set( _sources
   gui/simpleLevelIO.cc
   somasound/diffcode.cc
   somasound/somaqsound.cc
+  somasound/somaqsoundeffect.cc
   somasound/somasoundalsa.cc
   somasound/somasoundoss.cc
   somasound/somasoundprocessor.cc
@@ -189,6 +190,7 @@ set( _headers
   gui/seriesIconView.h
   gui/qdatastreamWrapper.h
   somasound/somaqsound.h
+  somasound/somaqsoundeffect.h
   somasound/somasoundalsa.h
   somasound/somasoundoss.h
   somasound/somasoundprocessor.h

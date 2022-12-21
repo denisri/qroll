@@ -1,8 +1,8 @@
 /***************************************************************************
                           qsound.h
                              -------------------
-    begin                : 2004
-    copyright            : (C) 2004 by Denis Rivière
+    begin                : 2022
+    copyright            : (C) 2022 by Denis Rivière
     email                : nudz@free.fr
  ***************************************************************************/
 
@@ -16,32 +16,32 @@
  ***************************************************************************/
 
 
-#ifndef SOMA_SOUND_SOMAQSOUND_H
-#define SOMA_SOUND_SOMAQSOUND_H
+#ifndef SOMA_SOUND_SOMAQSOUNDEFFECT_H
+#define SOMA_SOUND_SOMAQSOUNDEFFECT_H
 
 #include "somasoundprocessor.h"
 #include <QtGlobal>
-#if QT_VERSION < 0x060000
-#define SOMA_SOUND_QSOUND
+#if QT_VERSION >= 0x050000
+#define SOMA_SOUND_QSOUNDEFFECT
 
 namespace soma
 {
 
-  /// sound processor implementation using QSound
-  class SomaQSound : public SomaSoundProcessor
+  /// sound processor implementation using QSoundEffect
+  class SomaQSoundEffect : public SomaSoundProcessor
   {
   public:
-    SomaQSound();
-    virtual ~SomaQSound();
+    SomaQSoundEffect();
+    virtual ~SomaQSoundEffect();
     virtual void process( int type );
     virtual void stop();
     virtual void stop( int type );
     virtual void close();
     virtual bool isOK() const;
     virtual std::string name() const;
-    /** The QSound has priority 10, which is rather poor (compared to 100 for 
-        the OSS sound) because it doesn't allow sound mixing, and it's
-        not really real-time (sounds are queued so can be delayed)
+    /** The QSoundEffect has priority 20, (compared to 100 for
+        the OSS sound) because the audio device does not always work, and the
+        current implementation only allows one sound of a given type at a time.
      */
     virtual float priorityRating() const;
 

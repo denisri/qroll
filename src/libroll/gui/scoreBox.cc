@@ -162,8 +162,13 @@ QRScoreBox::QRScoreBox( const QPixmap * const * sprites, QWidget *parent,
       _bombs[i*2+1]->setGeometry( 89, 290+25*i, 30, 20 );
     }
 
-  connect( bgrp, SIGNAL( buttonClicked( int ) ), 
+#if QT_VERSION >= 0x050f00
+  connect( bgrp, SIGNAL( idClicked( int ) ),
            this, SLOT( bombSelected( int ) ) );
+#else
+  connect( bgrp, SIGNAL( buttonClicked( int ) ),
+           this, SLOT( bombSelected( int ) ) );
+#endif
 
   resize( 128, 384 );
 }

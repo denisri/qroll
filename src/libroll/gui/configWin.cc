@@ -194,8 +194,13 @@ QRConfigWin::QRConfigWin( QWidget* parent, const char* name,
   connect( rollexit, SIGNAL( toggled( bool ) ), this, 
 	   SLOT( rollExit( bool ) ) );
   connect( gl, SIGNAL( toggled( bool ) ), this, SLOT( useOpenGL( bool ) ) );
+#if QT_VERSION >= 0x050f00
+  connect( d->glopt, SIGNAL( idClicked( int ) ), this,
+          SLOT( glModeChanged( int ) ) );
+#else
   connect( d->glopt, SIGNAL( buttonClicked( int ) ), this,
-	   SLOT( glModeChanged( int ) ) );
+          SLOT( glModeChanged( int ) ) );
+#endif
   connect( dbc, SIGNAL( toggled( bool ) ), this, 
 	   SLOT( useCustomTiming( bool ) ) );
   connect( d->dbgtim, SIGNAL( valueChanged( int ) ), this, 

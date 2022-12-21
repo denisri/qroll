@@ -32,7 +32,7 @@ namespace soma
 
       Specificities :
 
-      - portable interface, independante from the underlying sound kit.
+      - portable interface, independent from the underlying sound kit.
       - several implementations (ALSA / OSS / Sun audio / QSound)
 
       Additional implementations and extensions may be added as plugins.

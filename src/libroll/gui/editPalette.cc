@@ -145,8 +145,13 @@ QREditPalette::QREditPalette( QWidget* parent, const char* name,
   d->scl->setWidget( d->palette );
   connect( emb, SIGNAL( clicked() ), this, SLOT( quickSelect0() ) );
   connect( rl, SIGNAL( clicked() ), this, SLOT( quickSelect1() ) );
-  connect( d->palettebgp, SIGNAL( buttonClicked( int ) ), this, 
+#if QT_VERSION >= 0x050f00
+  connect( d->palettebgp, SIGNAL( idClicked( int ) ), this,
            SLOT( select( int ) ) );
+#else
+  connect( d->palettebgp, SIGNAL( buttonClicked( int ) ), this,
+           SLOT( select( int ) ) );
+#endif
   d->mode = 1;
   setDrawingMode( 0 );
 
@@ -333,8 +338,13 @@ void QREditPalette::scale( float x )
   //QSize sh = d->palette->sizeHint();
   //cout << "pal sh: " << sh.width() << " x " << sh.height() << endl;
   d->scl->setWidget( d->palette );
-  connect( d->palettebgp, SIGNAL( buttonClicked( int ) ), this, 
-	   SLOT( select( int ) ) );
+#if QT_VERSION >= 0x050f00
+  connect( d->palettebgp, SIGNAL( idClicked( int ) ), this,
+           SLOT( select( int ) ) );
+#else
+  connect( d->palettebgp, SIGNAL( buttonClicked( int ) ), this,
+           SLOT( select( int ) ) );
+#endif
   d->palette->show();
 }
 

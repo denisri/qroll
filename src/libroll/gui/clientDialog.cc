@@ -88,7 +88,11 @@ RRClientDialog::RRClientDialog( QWidget* parent, const char* name )
 
   connect( okBtn, SIGNAL( clicked() ), this, SLOT( accept() ) );
   connect( cancelBtn, SIGNAL( clicked() ), this, SLOT( reject() ) );
+#if QT_VERSION >= 0x050f00
+  connect( bts, SIGNAL( idClicked( int ) ), this, SLOT( modeClick( int ) ) );
+#else
   connect( bts, SIGNAL( buttonClicked(int) ), this, SLOT( modeClick( int ) ) );
+#endif
 }
 
 

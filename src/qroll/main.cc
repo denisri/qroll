@@ -13,6 +13,7 @@
 #include "../libroll/somasound/somasoundalsa.h"
 #include "../libroll/somasound/somaqsound.h"
 #include "../libroll/somasound/somasoundqtphonon.h"
+#include "../libroll/somasound/somaqsoundeffect.h"
 //#include "../libroll/somasound/somaqaudiooutput.h"
 #include <qtranslator.h>
 #ifdef __APPLE__
@@ -85,9 +86,13 @@ int main( int argc, char** argv )
   qDebug( "OSS sound enabled." );
   new SomaSoundOSS;
 #endif
-#ifndef SOMA_NO_QSOUND
+#ifdef SOMA_SOUND_QSOUND
   qDebug( "QSound enabled." );
   new SomaQSound;
+#endif
+#ifdef SOMA_SOUND_QSOUNDEFFECT
+  qDebug( "QSoundEffect enabled." );
+  new SomaQSoundEffect;
 #endif
 #endif
 

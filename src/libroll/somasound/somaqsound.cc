@@ -17,6 +17,9 @@
  ***************************************************************************/
 
 #include "somaqsound.h"
+
+#ifdef SOMA_SOUND_QSOUND
+
 #include "soundbank.h"
 #include "soundslot.h"
 #include <qsound.h>
@@ -173,4 +176,5 @@ float SomaQSound::priorityRating() const
   return 10;
 }
 
+#endif
 
