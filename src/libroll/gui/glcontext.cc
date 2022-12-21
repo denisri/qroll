@@ -43,6 +43,7 @@
 #endif
 #include <iostream>
 
+#ifndef USE_OPENGLWIDGET
 
 namespace shfj
 {
@@ -130,16 +131,24 @@ void *GLContext::tryVisual( const QGLFormat& f, int bufDepth )
 
 #endif
 
+#endif
+
 
 #include "roll/gui/glcontext.h"
 
 
+#ifdef USE_OPENGLWIDGET
+GLWidget::GLWidget( QWidget* parent, const char* name,
+                    const QOpenGLWidget* shareWidget, Qt::WindowFlags f )
+  : QOpenGLWidget( parent, shareWidget, f )
+#else
 GLWidget::GLWidget( QWidget* parent, const char* name,
                     const QGLWidget* shareWidget, Qt::WindowFlags f )
   : QGLWidget( parent, shareWidget, f )
+#endif
 {
   setObjectName( name );
-#ifndef ANDROID
+#if !defined(ANDROID) && !defined(USE_OPENGLWIDGET)
   QGLFormat format = QGLFormat::defaultFormat();
   if ( shareWidget )
     setContext( new shfj::GLContext( format, this ), shareWidget->context() );
@@ -150,13 +159,20 @@ GLWidget::GLWidget( QWidget* parent, const char* name,
 }
 
 
-GLWidget::GLWidget( const QGLFormat& format, QWidget* parent, 
-		    const char* name, const QGLWidget* shareWidget, 
+#ifdef USE_OPENGLWIDGET
+GLWidget::GLWidget( const QGLFormat& format, QWidget* parent,
+                    const char* name, const QOpenGLWidget* shareWidget,
+                    Qt::WindowFlags f )
+  : QOpenGLWidget( format, parent, shareWidget, f )
+#else
+GLWidget::GLWidget( const QGLFormat& format, QWidget* parent,
+                    const char* name, const QGLWidget* shareWidget,
                     Qt::WindowFlags f )
   : QGLWidget( format, parent, shareWidget, f )
+#endif
 {
   setObjectName( name );
-#ifndef ANDROID
+#if !defined(ANDROID) && !defined(USE_OPENGLWIDGET)
   if ( shareWidget )
     setContext( new shfj::GLContext( format, this ), shareWidget->context() );
   else

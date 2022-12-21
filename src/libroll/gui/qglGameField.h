@@ -44,8 +44,13 @@ public:
 	       const char *name = 0 );
   virtual ~QRGLGameField();
 
+#ifdef USE_OPENGLWIDGET
+  virtual int width() const { return( QOpenGLWidget::width() ); }
+  virtual int height() const { return( QOpenGLWidget::height() ); }
+#else
   virtual int width() const { return( QGLWidget::width() ); }
   virtual int height() const { return( QGLWidget::height() ); }
+#endif
 
   static void setGLMode( GLMode m ) { _glmode = m; }
   static bool glMode() { return( _glmode ); }

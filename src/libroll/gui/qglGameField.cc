@@ -58,7 +58,11 @@ QRGLGameField::GLMode	QRGLGameField::_glmode = QRGLGameField::DrawPixels;
 static map<unsigned short, QImage>	glsprites;
 static GLuint				*gltexmap = 0, *gltexmap2 = 0;
 static vector<pair<GLfloat,GLfloat> >   gltexcoord;
+#ifdef USE_OPENGLWIDGET
+static QOpenGLWidget		*sharedwid = 0;
+#else
 static QGLWidget			*sharedwid = 0;
+#endif
 
 #ifdef RR_DEBUG
 // temp, debug
@@ -92,7 +96,11 @@ QRGLGameField::QRGLGameField( const QPixmap * const * sprites,
   // setBackgroundMode( Qt::NoBackground );
   if( !sharedwid )
   {
+#ifdef USE_OPENGLWIDGET
+    sharedwid = new QOpenGLWidget( 0, this );
+#else
     sharedwid = new QGLWidget( 0, this );
+#endif
     sharedwid->setObjectName( "shared widget" );
   }
 }
