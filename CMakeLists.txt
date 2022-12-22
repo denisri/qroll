@@ -92,7 +92,7 @@ elseif( DESIRED_QT_VERSION EQUAL 6 )
                        ${Qt6Multimedia_INCLUDE_DIRS} )
   set( QT_LIBRARIES Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets Qt6::Network
                     Qt6::Multimedia )
-  list( APPEND QROLL_DEFINITIONS "-DRR_NO_OPENGL" )  # fot now: FIXME
+#   list( APPEND QROLL_DEFINITIONS "-DRR_NO_OPENGL" )  # fot now: FIXME
 else()
   # Qt > 6
   message( FATAL_ERROR "Qt > 6 is not supported yet" )

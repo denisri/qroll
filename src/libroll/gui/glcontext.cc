@@ -35,7 +35,8 @@
 #define protected public
 #endif
 
-#include <qgl.h>
+#include <roll/gui/glcontext.h>
+// #include <qgl.h>
 
 #if defined(_WS_X11_) || defined(Q_WS_X11)
 #undef private
@@ -134,13 +135,10 @@ void *GLContext::tryVisual( const QGLFormat& f, int bufDepth )
 #endif
 
 
-#include "roll/gui/glcontext.h"
-
-
 #ifdef USE_OPENGLWIDGET
 GLWidget::GLWidget( QWidget* parent, const char* name,
                     const QOpenGLWidget* shareWidget, Qt::WindowFlags f )
-  : QOpenGLWidget( parent, shareWidget, f )
+  : QOpenGLWidget( parent, /*shareWidget, */ f )
 #else
 GLWidget::GLWidget( QWidget* parent, const char* name,
                     const QGLWidget* shareWidget, Qt::WindowFlags f )
@@ -159,17 +157,11 @@ GLWidget::GLWidget( QWidget* parent, const char* name,
 }
 
 
-#ifdef USE_OPENGLWIDGET
-GLWidget::GLWidget( const QGLFormat& format, QWidget* parent,
-                    const char* name, const QOpenGLWidget* shareWidget,
-                    Qt::WindowFlags f )
-  : QOpenGLWidget( format, parent, shareWidget, f )
-#else
+#ifndef USE_OPENGLWIDGET
 GLWidget::GLWidget( const QGLFormat& format, QWidget* parent,
                     const char* name, const QGLWidget* shareWidget,
                     Qt::WindowFlags f )
   : QGLWidget( format, parent, shareWidget, f )
-#endif
 {
   setObjectName( name );
 #if !defined(ANDROID) && !defined(USE_OPENGLWIDGET)
@@ -180,6 +172,7 @@ GLWidget::GLWidget( const QGLFormat& format, QWidget* parent,
   // setBackgroundMode( Qt::NoBackground );
 #endif
 }
+#endif
 
 
 GLWidget::~GLWidget()

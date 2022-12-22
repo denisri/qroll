@@ -27,6 +27,11 @@
 #include <qpainter.h>
 #include <qimage.h>
 #include <qevent.h>
+#ifdef USE_OPENGLWIDGET
+#include <QOpenGLContext>
+#include <QWindow>
+#include <QOpenGLTexture>
+#endif
 #if defined(__APPLE__)
 /* OpenGL on Mac uses non-standard include paths, it would have been
    too simple and too much like all other systems, they definitely
@@ -56,6 +61,9 @@ QRGLGameField::GLMode	QRGLGameField::_glmode = QRGLGameField::DrawPixels;
 #endif
 
 static map<unsigned short, QImage>	glsprites;
+#ifdef USE_OPENGLWIDGET
+static map<unsigned short, QOpenGLTexture *> gltex;
+#endif
 static GLuint				*gltexmap = 0, *gltexmap2 = 0;
 static vector<pair<GLfloat,GLfloat> >   gltexcoord;
 #ifdef USE_OPENGLWIDGET
@@ -97,7 +105,7 @@ QRGLGameField::QRGLGameField( const QPixmap * const * sprites,
   if( !sharedwid )
   {
 #ifdef USE_OPENGLWIDGET
-    sharedwid = new QOpenGLWidget( 0, this );
+    sharedwid = new QOpenGLWidget( this );
 #else
     sharedwid = new QGLWidget( 0, this );
 #endif
@@ -342,7 +350,11 @@ void QRGLGameField::updateScreen( bool, int, int )
     }
 #endif
 
+#ifdef USE_OPENGLWIDGET
+  context()->swapBuffers( windowHandle() );
+#else
   swapBuffers();
+#endif
 }
 
 
@@ -370,6 +382,17 @@ void QRGLGameField::makeTextures()
     gltexmap = new GLuint[ 512 ];
     gltexmap2 = new GLuint[ 2 ];
     gltexcoord.resize( 512 );
+
+#ifdef USE_OPENGLWIDGET
+    gltexmap2[0] = 0;
+    gltexmap2[1] = 0;
+
+    for( i=0; i<256; ++i )
+    {
+      gltexmap[i] = 0;
+      gltexmap[i+256] = 0;
+    }
+#else
     glGenTextures( 2, gltexmap2 );
 
     for( i=0; i<256; ++i )
@@ -386,6 +409,7 @@ void QRGLGameField::makeTextures()
     status = glGetError();
     if( status != GL_NO_ERROR )
       err << "OpenGL error tex: " << status << endl;
+#endif
 #endif
 
     setColorsChanged( true );
@@ -412,6 +436,18 @@ void QRGLGameField::makeTextures()
         }
       }
       p.end();
+
+#ifdef USE_OPENGLWIDGET
+      glsprites[i] = im;
+      if( gltex[i] != 0 )
+        delete gltex[i];
+      QOpenGLTexture *gtex = new QOpenGLTexture(
+        im, QOpenGLTexture::DontGenerateMipMaps );
+      gltex[i] = gtex;
+      gltexmap2[i] = gtex->textureId();
+      for( int j=0; j<256; ++j )
+        gltexmap[j + i*256] = gltexmap2[i];
+#else
       glsprites[i] = convertToGLFormat( im );
 
       glBindTexture( GL_TEXTURE_2D, gltexmap2[i] );
@@ -425,6 +461,7 @@ void QRGLGameField::makeTextures()
       status = glGetError();
       if( status != GL_NO_ERROR )
         cerr << "OpenGL error tex: " << status << endl;
+#endif
 #endif
     }
     setColorsChanged( false );

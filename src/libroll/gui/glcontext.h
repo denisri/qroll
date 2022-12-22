@@ -46,9 +46,6 @@ public:
     GLWidget( QWidget* parent=0, const char* name=0,
               const QOpenGLWidget* shareWidget = 0,
               Qt::WindowFlags f = Qt::WindowFlags() );
-    GLWidget( const QGLFormat& format, QWidget* parent=0, const char* name=0,
-              const QOpenGLWidget* shareWidget = 0,
-              Qt::WindowFlags f = Qt::WindowFlags() );
 #else
     GLWidget( QWidget* parent=0, const char* name=0,
               const QGLWidget* shareWidget = 0,
