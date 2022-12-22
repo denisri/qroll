@@ -88,9 +88,11 @@ namespace roll
 
     bool		colorsChanged;
     WorkLevel::RGB	color[6];
+    bool nextDisplayIsHalf;
   };
 
-  QRGLGameField_Private::QRGLGameField_Private() : colorsChanged( true ) {}
+  QRGLGameField_Private::QRGLGameField_Private()
+    : colorsChanged( true ), nextDisplayIsHalf( false ) {}
 
 }
 
@@ -150,13 +152,15 @@ void QRGLGameField::displayFull()
 
 void QRGLGameField::displayFullSlot()
 {
-  displayFull();
+  d->nextDisplayIsHalf = false;
+  update();
 }
 
 
 void QRGLGameField::displayHalfSlot()
 {
-  displayHalf();
+  d->nextDisplayIsHalf = true;
+  update();
 }
 
 
@@ -351,7 +355,7 @@ void QRGLGameField::updateScreen( bool, int, int )
 #endif
 
 #ifdef USE_OPENGLWIDGET
-  context()->swapBuffers( context()->surface() );
+  // context()->swapBuffers( context()->surface() );
 #else
   swapBuffers();
 #endif
@@ -484,8 +488,10 @@ void QRGLGameField::makeTextures()
 
 void QRGLGameField::paintGL()
 {
-  //updateScreen( true, _pscr->width(), _pscr->height() );
-  displayFull();
+  if( d->nextDisplayIsHalf )
+    displayHalf();
+  else
+    displayFull();
 }
 
 
