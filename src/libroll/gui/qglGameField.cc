@@ -327,31 +327,31 @@ void QRGLGameField::updateScreen( bool, int, int )
 
       glAreTexturesResident( 240*2+1, gltexmap2, res );
       for( i=0; i<240*2+1; ++i )
-	if( res[i] )
-	  ++n;
+        if( res[i] )
+          ++n;
       cout << "resident textures : " << n << " ( ";
       for( i=0; i<240*2+1; ++i )
-	if( res[i] )
-	  cout << ( i<240 ? i : ( i==240 ? 255 : i+15) ) << " ";
+        if( res[i] )
+          cout << ( i<240 ? i : ( i==240 ? 255 : i+15) ) << " ";
 
       unsigned	m = 0;
       for( i=0; i<256+240; ++i )
-	if( nonres[i] )
-	  ++m;
+        if( nonres[i] )
+          ++m;
       cout << "), used non-res : " << m << " ( ";
       for( i=0; i<256+240; ++i )
-	if( nonres[i] )
-	  cout << i << " ";
+        if( nonres[i] )
+          cout << i << " ";
       cout << "), used res : ";
       for( i=0; i<256+240; ++i )
-	if( usedres[i] )
-	  cout << i << " ";
+        if( usedres[i] )
+          cout << i << " ";
       cout << ")\n";
     }
 #endif
 
 #ifdef USE_OPENGLWIDGET
-  context()->swapBuffers( windowHandle() );
+  context()->swapBuffers( context()->surface() );
 #else
   swapBuffers();
 #endif
@@ -431,13 +431,19 @@ void QRGLGameField::makeTextures()
           int x = j & 15;
           int y = j >> 4;
           p.drawPixmap( x * 32, y * 32, *_sprite[ ind ] );
+// #ifdef USE_OPENGLWIDGET
+//           gltexcoord[ ind ] = make_pair( GLfloat( x * xscl),
+//                                          GLfloat( y * yscl ) );
+// #else
           gltexcoord[ ind ] = make_pair( GLfloat( x * xscl),
-                                          GLfloat( 15. / 16 - y * yscl ) );
+                                         GLfloat( 15. / 16 - y * yscl ) );
+// #endif
         }
       }
       p.end();
 
 #ifdef USE_OPENGLWIDGET
+      im = im.mirrored( false, true );
       glsprites[i] = im;
       if( gltex[i] != 0 )
         delete gltex[i];
