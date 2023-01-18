@@ -21,7 +21,7 @@
 
 #include "somasoundprocessor.h"
 #include <QtGlobal>
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050f00
 #define SOMA_SOUND_QSOUNDEFFECT
 
 namespace soma
