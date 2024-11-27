@@ -71,11 +71,13 @@ if( DESIRED_QT_VERSION EQUAL 4 )
     BRAINVISA_DEPENDENCY( DEV RECOMMENDS libqt4-xmlpatterns DEV )
   endif()
 elseif( DESIRED_QT_VERSION EQUAL 5 )
+  find_package( OpenGL REQUIRED )
   find_package( Qt5Widgets REQUIRED )
   find_package( Qt5Network REQUIRED )
   find_package( Qt5Multimedia REQUIRED )
-  find_package( OpenGL REQUIRED )
   find_package( Qt5OpenGL REQUIRED )
+  set( QT_LIBRARIES ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES}
+    ${Qt5Network_LIBRARIES} ${Qt5Multimedia_LIBRARIES} )
   if( brainvisa_enabled )
     # TODO: packaging Qt5
   endif()
@@ -100,13 +102,15 @@ else()
 #   find_package( OpenGL )
 endif()
 
+set(QT_LIBRARIES ${QT_LIBRARIES} ${OPENGL_FIX_LIBRARIES})
+
 find_package(ALSA) # system cmake
 if( NOT ALSA_FOUND AND brainvisa_enabled )
   find_package(Alsa) # brainvisa
 endif()
 
 list( APPEND QROLL_DEFINITIONS "-DQROLL_EXPORTS" "-DHAS_GLEXT" )
-set( QROLL_LIBRARIES ${OPENGL_LIBRARIES} )
+set( QROLL_LIBRARIES ${OPENGL_LIBRARIES} )  # ${OPENGL_glx_LIBRARY} )
 
 if( NOT OPENGL_FOUND )
   lit( APPEND QROLL_DEFINITIONS "-DRR_NO_OPENGL" )

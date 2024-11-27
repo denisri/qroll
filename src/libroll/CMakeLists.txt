@@ -211,9 +211,6 @@ add_library( roll SHARED ${_sources} )
 set_property( TARGET roll PROPERTY VERSION ${${PROJECT_NAME}_VERSION} )
 target_link_libraries( roll ${QROLL_LIBRARIES} )
 if( DESIRED_QT_VERSION EQUAL 5 )
-#   qt5_use_modules( roll Widgets Network Multimedia OpenGL )
-  target_link_libraries( roll ${Qt5Widgets_LIBRARIES} ${Qt5Network_LIBRARIES}
-                         ${Qt5Multimedia_LIBRARIES} ${Qt5OpenGL_LIBRARIES} )
   set_property( TARGET roll APPEND PROPERTY INCLUDE_DIRECTORIES
                 ${Qt5Widgets_INCLUDE_DIRS} ${Qt5Network_INCLUDE_DIRS}
                 ${Qt5Multimedia_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} )
