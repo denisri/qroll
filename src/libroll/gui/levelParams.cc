@@ -1104,8 +1104,13 @@ internal::ElementSelector::ElementSelector( const set<unsigned short>
   can->setFixedSize( can->sizeHint() );
   lay->addWidget( can );
   connect( can, SIGNAL( clicked() ), this, SLOT( reject() ) );
+#if QT_VERSION >= 0x050f00
+  connect( grdb, SIGNAL( idClicked( int ) ), this,
+           SLOT( selectElement( int ) ) );
+#else
   connect( grdb, SIGNAL( buttonClicked( int ) ), this,
            SLOT( selectElement( int ) ) );
+#endif
 }
 
 
