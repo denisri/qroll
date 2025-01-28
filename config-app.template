@@ -1,6 +1,0 @@
-#!include config-local
-
-TEMPLATE=	app
-CONFIG  =       qt
-
-LIBS = @libBuildLine@
